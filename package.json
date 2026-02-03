@@ -1,0 +1,7 @@
+{
+  "name": "openmasjid-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}
