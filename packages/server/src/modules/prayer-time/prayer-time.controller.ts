@@ -36,13 +36,13 @@ export class PrayerTimeController
     try 
     {
       const bodySchema = z.object({
-        month: z.string().regex(/^\d{2}$/),
-        year: z.string().regex(/^\d{4}$/),
+        month: z.coerce.number().min(1).max(12),
+        year: z.coerce.number().min(2020).max(2030),
         cityId: z.string()
       });
       
       const { month, year, cityId } = bodySchema.parse(req.body);
-      const result = await this.service.syncFromExternalApi(cityId, year, month);
+      const result = await this.service.syncFromExternalApi(cityId, year.toString(), month.toString());
 
       return reply.send({ success: true, count: result.length, message: 'Sync successful' });
     } 

@@ -15,8 +15,8 @@ export class PrayerTimeService
     const cached = await this.repository.getByDate(dateStr);
     if (cached) return cached;
 
-    const settings = await this.configRepository.getOrInit();
-    const activeCityId = settings.cityId;
+    const settings      = await this.configRepository.getOrInit();
+    const activeCityId  = settings.cityId;
 
     const [year, month] = dateStr.split('-');
     await this.syncFromExternalApi(activeCityId, year, month);
@@ -26,7 +26,11 @@ export class PrayerTimeService
 
   async syncFromExternalApi(cityId: string, year: string, month: string) 
   {
-    const url = `${config.MYQURAN_API_URL}/sholat/jadwal/${cityId}/${year}-${month}`;
+    const formattedMonth  = month.toString().padStart(2, '0');
+    const formattedYear   = year.toString();
+    const url             = `${config.MYQURAN_API_URL}/sholat/jadwal/${cityId}/${formattedYear}-${formattedMonth}`;
+
+    console.log(`[PrayerTime] Syncing from: ${url}`);
 
     try 
     {
@@ -35,10 +39,14 @@ export class PrayerTimeService
 
       if (!json.status || !json.data?.jadwal) 
       {
+        console.error('[PrayerTime] Invalid API Response:', JSON.stringify(json));
         throw new Error('Invalid response from MyQuran API');
       }
 
-      const schedules = Object.entries(json.data.jadwal).map(([dateKey, times]) => {
+      const jadwalMap = json.data.jadwal;
+
+      const schedules = Object.entries(jadwalMap).map(([dateKey, times]: [string, any]) => 
+      {
         if (!dateKey.match(/^\d{4}-\d{2}-\d{2}$/)) return null;
 
         return {
