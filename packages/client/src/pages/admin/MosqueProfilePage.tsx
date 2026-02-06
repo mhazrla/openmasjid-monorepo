@@ -1,21 +1,40 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useMosqueProfile, useUpdateMosqueProfile } from '../../features/mosque/hooks';
 import type { UpdateMosqueProfileDto } from '../../features/mosque/types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
+import { ActionButton } from '../../components/ui/ActionButton';
+import { handleFormError } from '../../utils/form-error';
+import { ImageUpload } from '../../components/ui/ImageUpload';
+import { FormItem, FormSection } from '../../components/ui/FormLayout';
+import { Input } from '../../components/ui/Input';
+import { api } from '../../lib/axios';
 
-// Reusable Styles (DRY Principle)
-const INPUT_CLASS = "flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
-const TEXTAREA_CLASS = "flex w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50";
+const uploadFile = async (file: File): Promise<string> => 
+{
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const { data } = await api.post<{ url: string }>('/upload', formData, 
+    {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    return data.url;
+};
 
 export const MosqueProfilePage = () => 
 {
     const { data: profile, isLoading } = useMosqueProfile();
     const updateMutation = useUpdateMosqueProfile();
     
-    const { register, handleSubmit, reset, formState: { errors, isDirty } } = useForm<UpdateMosqueProfileDto>();
+    const [logoFile, setLogoFile]       = useState<File | null>(null);
+    const [qrisFile, setQrisFile]       = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
+    const { register, control, handleSubmit, reset, setError, formState: { errors, isDirty } } = useForm<UpdateMosqueProfileDto>();
 
     useEffect(() => 
     {
@@ -25,27 +44,63 @@ export const MosqueProfilePage = () =>
                 name: profile.name,
                 address: profile.address,
                 bankAccountNumber: profile.bankAccountNumber || '',
+                logoUrl: profile.logoUrl || '',
+                qrisUrl: profile.qrisUrl || '',
             });
         }
     }, [profile, reset]);
 
-    const onSubmit = (data: UpdateMosqueProfileDto) => 
+    const onSubmit = async (data: UpdateMosqueProfileDto) => 
     {
-        updateMutation.mutate(data, 
-        {
-            onSuccess: () => 
+        setIsUploading(true);
+        try {
+            let finalLogoUrl = data.logoUrl;
+            let finalQrisUrl = data.qrisUrl;
+
+            if (logoFile) 
             {
-                toast.success("Profile successfully updated!");
-                reset({ ...data });
-            },
-            onError: (err: any) => 
-            {
-                console.error("Save Error:", err);
-                const errorMessage = err.response?.data?.message || err.message || "Failed to save data.";
-                
-                toast.error(errorMessage);
+                finalLogoUrl = await uploadFile(logoFile);
             }
-        });
+            else if (logoFile === null && data.logoUrl === '') 
+            {
+               finalLogoUrl = '';
+            }
+
+            if (qrisFile) 
+            {
+                finalQrisUrl = await uploadFile(qrisFile);
+            }
+            else if (qrisFile === null && data.qrisUrl === '') 
+            {
+               finalQrisUrl = '';
+            }
+
+            const payload = 
+            {
+                ...data,
+                logoUrl: finalLogoUrl,
+                qrisUrl: finalQrisUrl,
+            };
+
+            await updateMutation.mutateAsync(payload);
+            
+            toast.success("Profile successfully updated!");
+            
+            setLogoFile(null);
+            setQrisFile(null);
+            
+            reset(payload);
+
+        } 
+        catch (err: any) 
+        {
+            console.error(err);
+            handleFormError(err, setError);
+        } 
+        finally 
+        {
+            setIsUploading(false);
+        }
     };
 
     if (isLoading) 
@@ -66,72 +121,125 @@ export const MosqueProfilePage = () =>
                 </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+            <FormSection>
                 <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-6">
-                    {/* Nama Masjid */}
-                    <div className="space-y-2">
-                        <label htmlFor="name" className="text-sm font-medium text-slate-700">Mosque Name</label>
-                        <input
+                    <FormItem 
+                        label="Mosque Name" 
+                        required 
+                        error={errors.name?.message}
+                    >
+                        <Input
                             id="name"
-                            type="text"
-                            {...register('name', { required: 'Mosque name is required' })}
-                            className={cn(INPUT_CLASS, errors.name && "border-red-500 focus:ring-red-500")}
                             placeholder="Example: Al-Ikhlas Mosque"
+                            {...register('name', { required: 'Mosque name is required' })}
                         />
-                        {errors.name && <span className="text-xs text-red-500">{errors.name.message}</span>}
-                    </div>
+                    </FormItem>
 
-                    {/* Alamat */}
-                    <div className="space-y-2">
-                        <label htmlFor="address" className="text-sm font-medium text-slate-700">Full Address</label>
+                    <FormItem 
+                        label="Full Address" 
+                        required 
+                        error={errors.address?.message}
+                    >
                         <textarea
                             id="address"
                             rows={3}
                             {...register('address', { required: 'Address is required' })}
-                            className={cn(TEXTAREA_CLASS, errors.address && "border-red-500 focus:ring-red-500")}
+                            className={cn(
+                                "flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                                "resize-none"
+                            )}
                             placeholder="123 Main Street..."
                         />
-                        {errors.address && <span className="text-xs text-red-500">{errors.address.message}</span>}
+                    </FormItem>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormItem error={errors.logoUrl?.message}>
+                            <Controller
+                                control={control}
+                                name="logoUrl"
+                                render={({ field }) => (
+                                    <ImageUpload 
+                                        label="Mosque Logo"
+                                        value={logoFile || field.value} 
+                                        onChange={(file) => {
+                                            setLogoFile(file);
+                                            if (file) 
+                                            {
+                                                field.onChange(field.value);
+                                            } 
+                                            else 
+                                            {
+                                                field.onChange('');
+                                            }
+                                        }}
+                                    />
+                                )}
+                            />
+                        </FormItem>
+
+                        <FormItem error={errors.qrisUrl?.message}>
+                            <Controller
+                                control={control}
+                                name="qrisUrl" 
+                                render={({ field }) => (
+                                    <ImageUpload 
+                                        label="QRIS Code"
+                                        value={qrisFile || field.value}
+                                        onChange={(file) => {
+                                            setQrisFile(file);
+                                            if (file) 
+                                            {
+                                                field.onChange(field.value);
+                                            } 
+                                            else 
+                                            {
+                                                field.onChange('');
+                                            }
+                                        }}
+                                    />
+                                )}
+                            />
+                        </FormItem>
                     </div>
 
-                    {/* No Rekening */}
-                    <div className="space-y-2">
-                        <label htmlFor="bank" className="text-sm font-medium text-slate-700">Bank Account / Donation Info (Optional)</label>
-                        <input
+                    <FormItem 
+                        label="Bank Account / Donation Info (Optional)" 
+                        description="Will be displayed on running text or donation info."
+                    >
+                        <Input
                             id="bank"
-                            type="text"
-                            {...register('bankAccountNumber')}
-                            className={INPUT_CLASS}
                             placeholder="BSI 12345678 a.n DKM..."
+                            {...register('bankAccountNumber')}
                         />
-                        <p className="text-xs text-slate-500">Will be displayed on running text or donation info.</p>
-                    </div>
+                    </FormItem>
 
-                    {/* Action Buttons */}
                     <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 mt-6">
-                         <button
+                         <ActionButton 
+                            variant="secondary" 
+                            onClick={() => 
+                            {
+                                reset();
+                                setLogoFile(null);
+                                setQrisFile(null);
+                            }} 
                             type="button"
-                            onClick={() => reset()}
-                            disabled={!isDirty || updateMutation.isPending}
-                            className="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 focus:outline-none disabled:opacity-50"
+                            disabled={(!isDirty && !logoFile && !qrisFile) || isUploading}
                         >
                             Cancel
-                        </button>
-                        <button
+                        </ActionButton>
+                        
+                        <ActionButton 
+                            variant="primary" 
+                            icon={<Save className="w-4 h-4" />} 
+                            isLoading={isUploading || updateMutation.isPending} 
                             type="submit"
-                            disabled={!isDirty || updateMutation.isPending}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50"
+                            disabled={!isDirty && !logoFile && !qrisFile}
                         >
-                            {updateMutation.isPending ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Save className="w-4 h-4" />
-                            )}
-                            {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
-                        </button>
+                            {isUploading ? 'Uploading...' : 'Save Changes'}
+                        </ActionButton>
                     </div>
                 </form>
-            </div>
+            </FormSection>
         </div>
     );
 };

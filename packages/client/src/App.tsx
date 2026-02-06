@@ -4,26 +4,43 @@ import { queryClient } from './lib/react-query';
 import { AdminLayout } from './layouts/AdminLayout';
 import { MosqueProfilePage } from './pages/admin/MosqueProfilePage';
 import { PrayerTimePage } from './pages/admin/PrayerTimePage';
+import { DisplayConfigPage } from './pages/admin/DisplayConfigPage';
+import { ShortlinkPage } from './pages/admin/ShortlinkPage';
+import { LoginPage } from './pages/auth/LoginPage';
 import { Toaster } from 'sonner';
+import { StandbyView } from './pages/display/StandbyView';
+import { SetupGuard } from './components/guards/SetupGuard';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
-function App() {
+function App() 
+{
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster position="top-right" />
       <BrowserRouter>
         <Routes>
-          {/* Public Display Route */}
-          <Route path="/" element={<div className="p-10 text-4xl font-bold text-center">Display TV Page (Coming Soon)</div>} />
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
           
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminLayout />}>
-             <Route index element={<Navigate to="/admin/mosque" replace />} />
-             <Route path="mosque" element={<MosqueProfilePage />} />
-             <Route path="prayer" element={<PrayerTimePage />} />
-             
-             {/* Placeholders for future routes */}
-             <Route path="display" element={<div>Display Config</div>} />
-             <Route path="shortlinks" element={<div>Shortlinks Manager</div>} />
+          {/* 1. Root / Display Route (Guarded for Setup/Error) */}
+          <Route path="/" element={
+            <SetupGuard>
+              <StandbyView />
+            </SetupGuard>
+          } />
+          
+          {/* Redirect legacy path */}
+          <Route path="/display" element={<Navigate to="/" replace />} />
+          
+          {/* 2. Secure Admin Routes */}
+          <Route element={<ProtectedRoute />}>
+              <Route path="/admin" element={<AdminLayout />}>
+                 <Route index element={<Navigate to="/admin/mosque" replace />} />
+                 <Route path="mosque" element={<MosqueProfilePage />} />
+                 <Route path="prayer" element={<PrayerTimePage />} />
+                 <Route path="display" element={<DisplayConfigPage />} />
+                 <Route path="shortlinks" element={<ShortlinkPage />} />
+              </Route>
           </Route>
         </Routes>
       </BrowserRouter>

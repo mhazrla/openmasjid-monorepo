@@ -1,14 +1,22 @@
 import * as React from "react"
 import { cn } from "../../lib/utils"
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
+{
   label?: string;
   error?: string;
+  description?: string;
 }
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, label, error, ...props }, ref) => {
+const Input = React.forwardRef<HTMLInputElement, InputProps>(({ 
+  className, 
+  type, 
+  label, 
+  error, 
+  description, 
+  ...props 
+}, ref) => 
+{
     return (
       <div className="w-full space-y-2">
         {label && (
@@ -27,6 +35,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             {...props}
         />
+        {description && !error && <p className="text-xs text-slate-500">{description}</p>}
         {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
       </div>
     )

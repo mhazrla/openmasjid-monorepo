@@ -1,25 +1,27 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePrayerTime, useSyncPrayerTimes } from '../../features/prayer/hooks';
+import { useDisplayConfig } from '../../features/display-config/hooks';
 import type { SyncPrayerRequest } from '../../features/prayer/types';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
-import { Calendar, CloudDownload, Loader2, Search, MapPin, LocateFixed } from 'lucide-react';
+import { Calendar, CloudDownload, Loader2, Search, MapPin, Settings as SettingsIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { enUS } from 'date-fns/locale';
-import { type City, CITIES, MONTHS, DEFAULT_CITY_ID, DATE_FORMAT_API } from '../../constants/prayer';
-import { calculateDistance } from '../../lib/geo';
+import { CITIES, MONTHS, DEFAULT_CITY_ID, DATE_FORMAT_API } from '../../constants/prayer';
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
+import { ActionButton } from '../../components/ui/ActionButton';
 import { useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 
-const CITY_OPTIONS = CITIES.map(c => ({ value: c.id, label: c.name }));
+// ...imports
+import { PrayerTimeCard } from '../../features/prayer/components/PrayerTimeCard';
+
 const MONTH_OPTIONS = MONTHS.map((m, idx) => ({ value: idx + 1, label: m }));
 
-const BUTTON_PRIMARY = "flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm";
-const BUTTON_SECONDARY = "flex items-center justify-center gap-2 px-3 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md hover:bg-emerald-100 focus:outline-none transition-colors";
-
-function getCityNameById(id: string): string {
+function getCityNameById(id: string): string 
+{
     return CITIES.find(c => c.id === id)?.name || 'Unknown City';
 }
 
@@ -27,9 +29,11 @@ export const PrayerTimePage = () =>
 {
     const currentYear = new Date().getFullYear();
     const queryClient = useQueryClient();
+    
+    const { data: displayConfig, isLoading: isConfigLoading } = useDisplayConfig();
 
     // --- State: Sync Form ---
-    const { register, handleSubmit, watch, setValue, getValues, formState: { errors } } = useForm<SyncPrayerRequest>({
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<SyncPrayerRequest>({
         defaultValues: 
         {
             cityId: DEFAULT_CITY_ID,
@@ -38,15 +42,32 @@ export const PrayerTimePage = () =>
         }
     });
 
-    const [previewCityName, setPreviewCityName] = useState<string>(getCityNameById(DEFAULT_CITY_ID));
-    const [selectedDate, setSelectedDate]       = useState<string>(format(new Date(), DATE_FORMAT_API));
+    const [previewCityName, setPreviewCityName] = useState<string>('');
+    useEffect(() => 
+    {
+        if (displayConfig?.cityId) 
+        {
+            setPreviewCityName(getCityNameById(displayConfig.cityId));
+            setValue('cityId', displayConfig.cityId);
+        }
+    }, [displayConfig, setValue]);
+
+    const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), DATE_FORMAT_API));
 
     const syncMutation = useSyncPrayerTimes();
     const onSyncSubmit = (data: SyncPrayerRequest) => 
     {
+        if (!displayConfig?.cityId) 
+        {
+             toast.error("Please set a city in Display Config first.");
+
+             return;
+        }
+
         const payload = 
         {
             ...data,
+            cityId: displayConfig.cityId,
             month: Number(data.month),
             year: Number(data.year)
         };
@@ -59,7 +80,6 @@ export const PrayerTimePage = () =>
                 queryClient.invalidateQueries({ queryKey: ['prayer-times'] });
                 
                 setSelectedDate(format(new Date(), DATE_FORMAT_API));
-                setPreviewCityName(getCityNameById(data.cityId));
             },
             onError: (err) => 
             {
@@ -67,81 +87,6 @@ export const PrayerTimePage = () =>
                 toast.error('Sync failed. Please check server connection.');
             }
         });
-    };
-
-    const [isLocating, setIsLocating] = useState(false);
-
-    const onAutoDetect = () => 
-    {
-        if (!navigator.geolocation) 
-        {
-            toast.error("Browser does not support Geolocation.");
-            return;
-        }
-
-        setIsLocating(true);
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => 
-            {
-                const userLat = position.coords.latitude;
-                const userLon = position.coords.longitude;
-                
-                let nearestCity: City | null = null;
-                let minDistance = Infinity;
-
-                CITIES.forEach(city => 
-                {
-                    const dist = calculateDistance(userLat, userLon, city.lat, city.lon);
-                    if (dist < minDistance) 
-                    {
-                        minDistance = dist;
-                        nearestCity = city;
-                    }
-                });
-
-                if (nearestCity) 
-                {
-                    const city = nearestCity as City; 
-                    setValue('cityId', city.id);
-                    toast.success(`Location detected: ${city.name} (${minDistance.toFixed(1)} km). Syncing...`);
-                    const currentValues = getValues();
-
-                    onSyncSubmit({
-                        cityId: city.id,
-                        month: currentValues.month,
-                        year: currentValues.year
-                    });
-
-                } 
-                else 
-                {
-                    toast.error("Could not find nearest city.");
-                }
-                setIsLocating(false);
-            },
-            (error) => 
-            {
-                console.error("Geolocation Error:", error);
-                setIsLocating(false);
-
-                switch(error.code) 
-                {
-                    case error.PERMISSION_DENIED:
-                        toast.error("Location permission denied. Please allow location access.");
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        toast.error("Location information unavailable.");
-                        break;
-                    case error.TIMEOUT:
-                        toast.error("Location request timed out.");
-                        break;
-                    default:
-                        toast.error("Failed to detect location.");
-                        break;
-                }
-            }
-        );
     };
 
     const { data: prayerData, isLoading: isPrayerLoading } = usePrayerTime(selectedDate);
@@ -152,6 +97,32 @@ export const PrayerTimePage = () =>
                 <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Prayer Times</h1>
                 <p className="text-slate-500 mt-1">Manage and synchronize prayer times from trusted sources.</p>
             </div>
+
+            {/* Read-Only Location Banner */}
+            {isConfigLoading ? (
+                 <div className="p-4 bg-slate-50 rounded-lg flex items-center justify-center">
+                    <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                 </div>
+            ) : (
+                <div className="bg-sky-50 border border-sky-100 rounded-lg p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                         <div className="bg-white p-2 rounded-full shadow-sm">
+                            <MapPin className="w-5 h-5 text-sky-600" />
+                         </div>
+                         <div>
+                            <p className="text-sm text-sky-800 font-medium">
+                                Showing prayer times for: <span className="font-bold text-sky-900">{getCityNameById(displayConfig?.cityId || DEFAULT_CITY_ID)}</span>
+                            </p>
+                            <p className="text-xs text-sky-600">Location is managed in Display Config.</p>
+                         </div>
+                    </div>
+                    
+                    <Link to="/admin/display" className="flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-white border border-sky-200 px-3 py-1.5 rounded-md hover:bg-sky-100 transition-colors">
+                        <SettingsIcon className="w-3 h-3" />
+                        Change Location
+                    </Link>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Card 1: Sync Form */}
@@ -167,25 +138,8 @@ export const PrayerTimePage = () =>
                     </div>
                     
                     <form onSubmit={handleSubmit(onSyncSubmit)} className="p-6 space-y-6">
-                        <div className="space-y-2">
-                             <div className="flex items-center justify-between">
-                                <label className="text-sm font-medium leading-none text-slate-700">City / District</label>
-                                <button 
-                                    type="button" 
-                                    onClick={onAutoDetect}
-                                    disabled={isLocating || syncMutation.isPending}
-                                    className={BUTTON_SECONDARY}
-                                >
-                                    {isLocating ? <Loader2 className="w-3 h-3 animate-spin"/> : <LocateFixed className="w-3 h-3"/>}
-                                    {isLocating ? 'Locating...' : 'Auto Detect'}
-                                </button>
-                            </div>
-                            <Select
-                                options={CITY_OPTIONS}
-                                {...register('cityId', { required: 'Please select a city first' })}
-                                error={errors.cityId?.message}
-                            />
-                        </div>
+                        {/* Hidden City ID */}
+                        <input type="hidden" {...register('cityId')} />
 
                         <div className="grid grid-cols-[2fr_1fr] gap-4">
                             <Select
@@ -205,14 +159,21 @@ export const PrayerTimePage = () =>
                         </div>
 
                         <div className="pt-2">
-                            <button 
+                             {/* Hint about location */}
+                             <p className="text-xs text-slate-500 mb-2 text-center">
+                                Syncing data for <span className="font-semibold">{getCityNameById(displayConfig?.cityId || DEFAULT_CITY_ID)}</span>
+                            </p>
+
+                            <ActionButton 
                                 type="submit" 
-                                disabled={syncMutation.isPending || isLocating}
-                                className={cn(BUTTON_PRIMARY, "w-full h-10")}
+                                variant="primary"
+                                isLoading={syncMutation.isPending}
+                                disabled={!displayConfig?.cityId}
+                                className="w-full"
+                                icon={<CloudDownload className="w-4 h-4" />}
                             >
-                                {syncMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudDownload className="w-4 h-4" />}
-                                {syncMutation.isPending ? 'Syncing...' : 'Sync Data Now'}
-                            </button>
+                                Sync Data Now
+                            </ActionButton>
                         </div>
                     </form>
                 </div>
@@ -289,23 +250,3 @@ export const PrayerTimePage = () =>
         </div>
     );
 };
-
-// Sub-component
-const PrayerTimeCard = ({ label, time, highlight = false }: { label: string, time: string, highlight?: boolean }) => (
-    <div className={cn(
-        "flex flex-col items-center justify-center p-5 rounded-xl border transition-all duration-200 group relative overflow-hidden",
-        highlight 
-            ? "bg-amber-50 border-amber-200 shadow-md transform hover:-translate-y-1" 
-            : "bg-white border-slate-200 shadow-sm hover:border-emerald-200 hover:shadow-md"
-    )}>
-        {highlight && <div className="absolute top-0 inset-x-0 h-1 bg-amber-400" />}
-        <span className={cn(
-            "text-xs font-semibold uppercase tracking-wider mb-2",
-            highlight ? "text-amber-700" : "text-slate-400 group-hover:text-emerald-600"
-        )}>{label}</span>
-        <span className={cn(
-            "text-2xl font-bold font-mono tracking-tight",
-            highlight ? "text-amber-900" : "text-slate-700"
-        )}>{time}</span>
-    </div>
-);

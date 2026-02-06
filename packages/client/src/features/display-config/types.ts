@@ -1,0 +1,34 @@
+import { z } from 'zod';
+
+export const displayConfigSchema = z.object({
+  id: z.number(),
+  cityId: z.string(),
+  runningText: z.string().optional().nullable(),
+  
+  // Timings
+  preAdzanDuration: z.number().default(2),
+  adzanDuration: z.number().default(4),
+  iqomahDelaySubuh: z.number().default(10),
+  iqomahDelayDzuhur: z.number().default(10),
+  iqomahDelayAshar: z.number().default(10),
+  iqomahDelayMaghrib: z.number().default(10),
+  iqomahDelayIsya: z.number().default(10),
+  
+  // Time Adjustments
+  adjSubuh: z.number().default(0),
+  adjDzuhur: z.number().default(0),
+  adjAshar: z.number().default(0),
+  adjMaghrib: z.number().default(0),
+  adjIsya: z.number().default(0),
+  adjTerbit: z.number().default(0),
+  adjDhuha: z.number().default(0),
+
+  // Audio
+  enableBeep: z.boolean().default(true),
+});
+
+export type DisplayConfig = z.infer<typeof displayConfigSchema>;
+
+// Update DTO
+export const updateDisplayConfigSchema = displayConfigSchema.partial().omit({ id: true });
+export type UpdateDisplayConfigDto = z.infer<typeof updateDisplayConfigSchema>;

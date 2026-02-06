@@ -8,7 +8,9 @@ export const usePrayerTime = (date: string) =>
         queryKey: ['prayer-times', date],
         queryFn: () => getPrayerTimes(date),
         enabled: !!date,
-        staleTime: 1000 * 60 * 60,
+        refetchInterval: 30 * 1000, 
+        refetchOnReconnect: true,
+        refetchOnWindowFocus: false
     });
 };
 
@@ -18,7 +20,8 @@ export const useSyncPrayerTimes = () =>
 
     return useMutation({
         mutationFn: (payload: SyncPrayerRequest) => syncPrayerTimes(payload),
-        onSuccess: () => {
+        onSuccess: () => 
+        {
             queryClient.invalidateQueries({ queryKey: ['prayer-times'] });
         },
     });

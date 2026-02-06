@@ -5,7 +5,9 @@ export interface MosqueProfile
     address: string;
     bankAccountNumber?: string | null;
     logoUrl?: string | null;
-    letterheadConfig?: {
+    qrisUrl?: string | null;
+    letterheadConfig?: 
+    {
         headerText: string;
         logoPosition: 'left' | 'center' | 'right';
         font: string;
@@ -20,7 +22,9 @@ export interface UpdateMosqueProfileDto
     address?: string;
     bankAccountNumber?: string;
     logoUrl?: string;
-    letterheadConfig?: {
+    qrisUrl?: string;
+    letterheadConfig?: 
+    {
         headerText: string;
         logoPosition: 'left' | 'center' | 'right';
         font: string;
