@@ -8,8 +8,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   HOST: z.string().default('0.0.0.0'),
   MYQURAN_API_URL: z.string().url().default('https://api.myquran.com/v3'),
-  // Default City ID (e.g. 9766527f2b5d3e95d4a733fcfb77bd7e for Kab. Bekasi)
-  DEFAULT_CITY_ID: z.string().default('9766527f2b5d3e95d4a733fcfb77bd7e'),
+  DEFAULT_CITY_ID: z.string().default(process.env.DEFAULT_CITY_ID as string),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 

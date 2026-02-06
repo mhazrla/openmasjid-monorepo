@@ -15,7 +15,7 @@ export class DisplayConfigRepository
       return result[0];
     }
 
-    const defaultCityId = config.DEFAULT_CITY_ID || '9766527f2b5d3e95d4a733fcfb77bd7e';
+    const defaultCityId = config.DEFAULT_CITY_ID as string;
 
     const defaults = await db.insert(displayConfig).values({
       id: 1,
@@ -28,7 +28,6 @@ export class DisplayConfigRepository
       iqomahDelayAshar: 10,
       iqomahDelayMaghrib: 10,
       iqomahDelayIsya: 10,
-      prayerDuration: 15,
       enableBeep: true
     }).returning();
     

@@ -12,12 +12,13 @@ export const updateMosqueProfileSchema = z.object(
   name: z.string().min(3, 'At least 3 characters for mosque name'),
   address: z.string().min(5, 'At least 5 characters for address'),
   bankAccountNumber: z.string().optional(),
-  logoUrl: z.string().url().optional().or(z.literal('')),
+  logoUrl: z.string().optional(),
+  qrisUrl: z.string().optional(),
   letterheadConfig: z.object({
     headerText: z.string(),
     logoPosition: z.enum(['left', 'center', 'right']),
     font: z.string(),
-  }).optional(),
+  }).optional().nullable(),
 });
 
 // DTOs

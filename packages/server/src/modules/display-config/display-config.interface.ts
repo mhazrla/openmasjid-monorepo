@@ -20,7 +20,16 @@ export const updateDisplayConfigSchema = z.object({
   iqomahDelayAshar: z.number().int().min(0).optional(),
   iqomahDelayMaghrib: z.number().int().min(0).optional(),
   iqomahDelayIsya: z.number().int().min(0).optional(),
-  prayerDuration: z.number().int().min(0).optional(),
+
+  // Time Adjustments (Can be negative, so NO .min(0))
+  adjSubuh: z.number().int().optional(),
+  adjDzuhur: z.number().int().optional(),
+  adjAshar: z.number().int().optional(),
+  adjMaghrib: z.number().int().optional(),
+  adjIsya: z.number().int().optional(),
+  adjImsak: z.number().int().optional(),
+  adjTerbit: z.number().int().optional(),
+  adjDhuha: z.number().int().optional(),
 
   // Audio
   enableBeep: z.boolean().optional(),

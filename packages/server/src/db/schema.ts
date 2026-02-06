@@ -14,6 +14,7 @@ export const mosqueProfile = sqliteTable('mosque_profile', {
   address: text('address').notNull(),
   bankAccountNumber: text('no_rekening'),
   logoUrl: text('logo_url'),
+  qrisUrl: text('qris_url'),
   letterheadConfig: text('kop_surat_config', { mode: 'json' }).$type<{
     headerText: string;
     logoPosition: 'left' | 'center' | 'right';
@@ -25,7 +26,6 @@ export const mosqueProfile = sqliteTable('mosque_profile', {
 export const displayConfig = sqliteTable('display_config', {
   id: integer('id').primaryKey(), // Singleton ID 1
   cityId: text('city_id').notNull(),
-  mosqueName: text('mosque_name'),
   runningText: text('running_text').default('Luruskan dan rapatkan shaf...'),
   
   // Timings
@@ -36,7 +36,15 @@ export const displayConfig = sqliteTable('display_config', {
   iqomahDelayAshar: integer('iqomah_delay_ashar').notNull().default(10),
   iqomahDelayMaghrib: integer('iqomah_delay_maghrib').notNull().default(10),
   iqomahDelayIsya: integer('iqomah_delay_isya').notNull().default(10),
-  prayerDuration: integer('prayer_duration').notNull().default(15),
+
+  // Time Adjustments (Minutes, can be negative)
+  adjSubuh: integer('adj_subuh').notNull().default(0),
+  adjTerbit: integer('adj_terbit').notNull().default(0),
+  adjDhuha: integer('adj_dhuha').notNull().default(0),
+  adjDzuhur: integer('adj_dzuhur').notNull().default(0),
+  adjAshar: integer('adj_ashar').notNull().default(0),
+  adjMaghrib: integer('adj_maghrib').notNull().default(0),
+  adjIsya: integer('adj_isya').notNull().default(0),
 
   // Audio
   enableBeep: integer('enable_beep', { mode: 'boolean' }).notNull().default(true),
@@ -71,6 +79,7 @@ export const users = sqliteTable('users', {
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: text('role').$type<'superadmin' | 'admin' | 'bendahara' | 'display'>().notNull().default('admin'),
+  tokenVersion: integer('token_version').notNull().default(0),
   personId: integer('person_id').references(() => people.id), // Link to real person
   ...{ createdAt, updatedAt }
 });
@@ -91,6 +100,7 @@ export const dailyPrayerTimes = sqliteTable('daily_prayer_times', {
   imsak: text('imsak').notNull(),
   subuh: text('subuh').notNull(),
   terbit: text('terbit').notNull(),
+  dhuha: text('dhuha').notNull(),
   dzuhur: text('dzuhur').notNull(),
   ashar: text('ashar').notNull(),
   maghrib: text('maghrib').notNull(),

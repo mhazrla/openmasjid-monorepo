@@ -24,7 +24,11 @@ export class MosqueRepository
       .values(insertValues)
       .onConflictDoUpdate({
         target: mosqueProfile.id,
-        set: { ...data, updatedAt: new Date() }
+        set: 
+        { 
+          ...data, 
+          updatedAt: new Date() 
+        }
       })
       .returning();
 

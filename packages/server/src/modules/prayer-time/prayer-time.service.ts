@@ -2,6 +2,8 @@ import { PrayerTimeRepository } from './prayer-time.repository';
 import { MyQuranResponse, ParsedPrayerSchedule } from './prayer-time.interface';
 import { config } from '../../config';
 import { DisplayConfigRepository } from '../display-config/display-config.repository';
+import { DisplayConfig } from '../display-config/display-config.interface';
+import { addMinutes, parse, format } from 'date-fns';
 
 export class PrayerTimeService 
 {
@@ -12,16 +14,62 @@ export class PrayerTimeService
 
   async getTimesForDate(dateStr: string) 
   {
-    const cached = await this.repository.getByDate(dateStr);
-    if (cached) return cached;
+    const settings = await this.configRepository.getOrInit();
+    let schedule  = await this.repository.getByDate(dateStr);
 
-    const settings      = await this.configRepository.getOrInit();
-    const activeCityId  = settings.cityId;
+    if (!schedule) 
+    {
+       const activeCityId = settings.cityId;
+       const [year, month] = dateStr.split('-');
+       await this.syncFromExternalApi(activeCityId, year, month);
+       
+       schedule = await this.repository.getByDate(dateStr);
+    }
 
-    const [year, month] = dateStr.split('-');
-    await this.syncFromExternalApi(activeCityId, year, month);
+    if (schedule) 
+    {
+       return this.applyTimeCorrections(schedule, settings);
+    }
 
-    return this.repository.getByDate(dateStr);
+    return undefined;
+  }
+
+  private applyTimeCorrections(schedule: ParsedPrayerSchedule, config: DisplayConfig): ParsedPrayerSchedule 
+  {
+    const adjusted  = { ...schedule };
+    const dateRef   = parse(schedule.date, 'yyyy-MM-dd', new Date()); 
+
+    const adjustments: Partial<Record<keyof ParsedPrayerSchedule, number>> = {
+      subuh: config.adjSubuh,
+      dzuhur: config.adjDzuhur,
+      ashar: config.adjAshar,
+      maghrib: config.adjMaghrib,
+      isya: config.adjIsya,
+      terbit: config.adjTerbit,
+      dhuha: config.adjDhuha,
+    };
+
+    (Object.keys(adjustments) as Array<keyof typeof adjustments>).forEach((key) => 
+    {
+      const rawTime = schedule[key];
+      const adjMinutes = adjustments[key] ?? 0;
+
+      if (rawTime && adjMinutes !== 0) 
+      {
+        try 
+        {
+           const parsedDate = parse(rawTime, 'HH:mm', dateRef);
+           const newDate    = addMinutes(parsedDate, adjMinutes);
+           adjusted[key]    = format(newDate, 'HH:mm');
+        } 
+        catch (e) 
+        {
+           console.error(`[PrayerTime] Failed to adjust ${key}: ${rawTime}`, e);
+        }
+      }
+    });
+
+    return adjusted;
   }
 
   async syncFromExternalApi(cityId: string, year: string, month: string) 
@@ -54,6 +102,7 @@ export class PrayerTimeService
           imsak: times.imsak,
           subuh: times.subuh,
           terbit: times.terbit,
+          dhuha: times.dhuha,
           dzuhur: times.dzuhur,
           ashar: times.ashar,
           maghrib: times.maghrib,
