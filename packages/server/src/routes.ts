@@ -5,6 +5,9 @@ import { displayConfigRoutes } from './modules/display-config/display-config.rou
 import { shortlinkApiRoutes, shortlinkRedirectRoutes } from './modules/shortlink/shortlink.routes';
 import { authRoutes } from './modules/auth/auth.routes';
 import { uploadRoutes } from './modules/upload/upload.routes';
+import { ramadanRoutes } from './modules/ramadan/ramadan.routes';
+import { peopleRoutes } from './modules/people/people.routes';
+import { kajianRoutes } from './modules/kajian/kajian.routes';
 
 export async function appRoutes(app: FastifyInstance) 
 {
@@ -21,6 +24,9 @@ export async function appRoutes(app: FastifyInstance)
     api.register(prayerTimeRoutes, { prefix: '/prayer-times' });
     api.register(displayConfigRoutes, { prefix: '/display-config' });
     api.register(shortlinkApiRoutes, { prefix: '/shortlinks' });
+    api.register(ramadanRoutes, { prefix: '/ramadan' });
+    api.register(peopleRoutes, { prefix: '/people' });
+    api.register(kajianRoutes, { prefix: '/kajian' });
 
     // Auth Routes
     api.register(authRoutes, { prefix: '/auth' });

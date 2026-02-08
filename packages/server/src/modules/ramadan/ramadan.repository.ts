@@ -1,0 +1,107 @@
+import { db } from '../../db';
+import { ramadanConfigs, ramadanSchedules } from '../../db/schema';
+import { eq, desc } from 'drizzle-orm';
+import { CreateRamadanConfigDto, UpdateRamadanConfigDto, UpdateRamadanScheduleDto } from './ramadan.interface';
+import { addDays } from 'date-fns';
+
+export class RamadanRepository 
+{
+  async getActiveConfig() 
+  {
+    const config = await db.query.ramadanConfigs.findFirst({
+      where: eq(ramadanConfigs.isActive, true),
+      orderBy: [desc(ramadanConfigs.createdAt)],
+      with: {
+        schedules: {
+          with: {
+            imam: true
+          }
+        }
+      }
+    });
+
+    return config || null;
+  }
+
+  initializeConfig(data: CreateRamadanConfigDto) 
+  {
+    return db.transaction((tx) => 
+    {
+      
+      tx.update(ramadanConfigs)
+        .set({ isActive: false })
+        .where(eq(ramadanConfigs.isActive, true))
+        .run(); 
+
+      const insertResult = tx.insert(ramadanConfigs).values({
+        hijriYear: data.hijriYear,
+        gregorianYear: data.gregorianYear,
+        badalImamText: data.badalImamText,
+        footerNote: data.footerNote,
+        isActive: true
+      }).run(); 
+
+      const newConfigId = Number(insertResult.lastInsertRowid);
+      const newConfig = {
+        id: newConfigId,
+        ...data,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const startDate = new Date(data.startDate); 
+      const schedulesToInsert = [];
+
+      for (let day = 1; day <= 30; day++) 
+      {
+        const currentDate = addDays(startDate, day - 1);
+        
+        schedulesToInsert.push({
+          configId: newConfigId,
+          ramadanDay: day,
+          date: currentDate,
+          description: '',
+        });
+      }
+
+      if (schedulesToInsert.length > 0) 
+      {
+        tx.insert(ramadanSchedules).values(schedulesToInsert).run();
+      }
+
+      return newConfig;
+    });
+  }
+
+  async updateConfig(id: number, data: UpdateRamadanConfigDto) 
+  {
+    const [updated] = await db.update(ramadanConfigs)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(ramadanConfigs.id, id))
+      .returning();
+    return updated;
+  }
+
+  async updateSchedule(data: UpdateRamadanScheduleDto) 
+  {
+    const { id, date, ...rest } = data;
+
+    const updatePayload: any = 
+    {
+      ...rest,
+      updatedAt: new Date(),
+    };
+
+    if (date) 
+    {
+      updatePayload.date = typeof date === 'string' ? new Date(date) : date;
+    }
+
+    const [updated] = await db.update(ramadanSchedules)
+      .set(updatePayload)
+      .where(eq(ramadanSchedules.id, id))
+      .returning();
+      
+    return updated;
+  }
+}

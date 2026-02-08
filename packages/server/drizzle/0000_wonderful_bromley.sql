@@ -145,11 +145,9 @@ CREATE TABLE `ramadan_schedules` (
 	`type` text NOT NULL,
 	`description` text,
 	`imam_id` integer,
-	`bilal_id` integer,
 	`created_at` integer DEFAULT (unixepoch()) NOT NULL,
 	`updated_at` integer DEFAULT (unixepoch()) NOT NULL,
 	FOREIGN KEY (`imam_id`) REFERENCES `people`(`id`) ON UPDATE no action ON DELETE no action,
-	FOREIGN KEY (`bilal_id`) REFERENCES `people`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `transactions` (

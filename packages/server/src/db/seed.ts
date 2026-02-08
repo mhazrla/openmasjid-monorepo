@@ -4,10 +4,33 @@ import { users, people, mosqueProfile, displayConfig, accounts, coaCategories } 
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
-async function seed() {
+const IMAM_LIST = [
+  "Ust. Dr. Muhammad Yasir, M.A.",
+  "Ust. Muklis Holdani",
+  "Ust. Abu Yahya Badru Salam, Lc.",
+  "Ust. Subhan", 
+  "Ust. Sultan Hasanudin, Lc.",
+  "Ust. Khoirul Cahyadi",
+  "Ust. Patih Suryo Alam, S.Pdi.",
+  "Ust. Alif",
+  "Ust. Muhlis Mubarok",
+  "Ust. Ahmad Rizal, Lc, S.H.I, M.Pd.",
+  "Ust. Abu Syifa",
+  "Akh. Agung Setiawan",
+  "Akh. Adlan",
+  "Akh. Abdilah",
+  "Akh. Albariq Iltizam",
+  "Akh. M. Katsirun Abu Fattan",
+  "Akh. Ammar",
+  "Akh. Yazid",
+];
+
+async function seed() 
+{
   console.log('🌱 Starting seeding process...');
 
-  try {
+  try 
+  {
     // 1. Admin User & Person
     const existingUser = await db.query.users.findFirst({
       where: eq(users.username, 'admin'),
@@ -21,7 +44,7 @@ async function seed() {
         status: 'active',
       }).returning();
 
-      const password = process.env.ADMIN_PASSWORD as string;
+      const password = process.env.ADMIN_PASSWORD as string || 'admin123'; // Fallback if env not set
       const hashedPassword = await bcrypt.hash(password, 10);
 
       await db.insert(users).values({
@@ -37,7 +60,7 @@ async function seed() {
     await db.insert(mosqueProfile).values({
       id: 1,
       name: 'Masjid Jami At-Tadzkirah',
-      address: '',
+      address: 'Jl. Raya Bekasi',
       logoUrl: '',
       qrisUrl: '',
       letterheadConfig: {
@@ -49,7 +72,7 @@ async function seed() {
 
     await db.insert(displayConfig).values({
       id: 1,
-      cityId: process.env.DEFAULT_CITY_ID as string, 
+      cityId: process.env.DEFAULT_CITY_ID as string || '1204', // Default Bekasi
       runningText: 'Mohon lurus dan rapatkan shaf.',
     }).onConflictDoNothing();
 
@@ -63,6 +86,35 @@ async function seed() {
       balance: 0,
       isActive: true
     }).onConflictDoNothing();
+
+    // 3. Seed Imams (NEW SECTION)
+    console.log('Start seeding Imams...');
+    
+    for (const name of IMAM_LIST) 
+    {
+      const existingPerson = await db.query.people.findFirst({
+        where: eq(people.name, name)
+      });
+
+      if (!existingPerson) 
+      {
+        const isAkh = name.toLowerCase().startsWith('akh');
+        const personType = isAkh ? 'jamaah' : 'ustadz';
+
+        await db.insert(people).values({
+          name: name,
+          type: personType, 
+          status: 'active',
+          phoneNumber: '-', 
+          address: '-'      
+        });
+        console.log(`   + Added: ${name} as [${personType}]`);
+      } 
+      else 
+        {
+        console.log(`   . Skipped: ${name} (Already exists)`);
+      }
+    }
 
     console.log('🏁 Seeding completed successfully!');
     process.exit(0);

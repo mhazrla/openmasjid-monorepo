@@ -6,6 +6,7 @@ import {
     Settings, 
     Link as LinkIcon, 
     LogOut,
+    Moon,
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../features/auth/hooks';
@@ -18,6 +19,7 @@ const MENU_ITEMS =
     { label: 'Prayer Times', path: '/admin/prayer', icon: CalendarClock },
     { label: 'Display Config', path: '/admin/display', icon: Settings },
     { label: 'Shortlinks', path: '/admin/shortlinks', icon: LinkIcon },
+    { label: 'Ramadan', path: '/admin/ramadan', icon: Moon }
 ];
 
 interface SidebarProps 

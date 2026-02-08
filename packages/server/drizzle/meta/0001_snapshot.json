@@ -1031,13 +1031,6 @@
           "notNull": false,
           "autoincrement": false
         },
-        "bilal_id": {
-          "name": "bilal_id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
         "created_at": {
           "name": "created_at",
           "type": "integer",
@@ -1063,19 +1056,6 @@
           "tableTo": "people",
           "columnsFrom": [
             "imam_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        },
-        "ramadan_schedules_bilal_id_people_id_fk": {
-          "name": "ramadan_schedules_bilal_id_people_id_fk",
-          "tableFrom": "ramadan_schedules",
-          "tableTo": "people",
-          "columnsFrom": [
-            "bilal_id"
           ],
           "columnsTo": [
             "id"

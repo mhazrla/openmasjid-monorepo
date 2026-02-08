@@ -11,6 +11,7 @@ import { Toaster } from 'sonner';
 import { StandbyView } from './pages/display/StandbyView';
 import { SetupGuard } from './components/guards/SetupGuard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { RamadanPage } from './pages/admin/RamadanPage';
 
 function App() 
 {
@@ -40,6 +41,7 @@ function App()
                  <Route path="prayer" element={<PrayerTimePage />} />
                  <Route path="display" element={<DisplayConfigPage />} />
                  <Route path="shortlinks" element={<ShortlinkPage />} />
+                 <Route path="ramadan" element={<RamadanPage />} />
               </Route>
           </Route>
         </Routes>

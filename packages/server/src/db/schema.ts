@@ -153,11 +153,21 @@ export const fridaySchedules = sqliteTable('friday_schedules', {
 
 export const ramadanSchedules = sqliteTable('ramadan_schedules', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  configId: integer('config_id').references(() => ramadanConfigs.id).notNull(),
   date: integer('date', timestampConfig).notNull(),
-  type: text('type').$type<'tarawih' | 'bukber'>().notNull(),
+  ramadanDay: integer('ramadan_day').notNull(),
   description: text('description'),
   imamId: integer('imam_id').references(() => people.id),
-  bilalId: integer('bilal_id').references(() => people.id),
+  ...{ createdAt, updatedAt }
+});
+
+export const ramadanConfigs = sqliteTable('ramadan_configs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  hijriYear: integer('hijri_year').notNull(),
+  gregorianYear: integer('gregorian_year').notNull(),
+  badalImamText: text('badal_imam'),
+  footerNote: text('footer_note'),
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
   ...{ createdAt, updatedAt }
 });
 
@@ -227,6 +237,7 @@ export const documents = sqliteTable('documents', {
 export const peopleRelations = relations(people, ({ many, one }) => ({
   userAccount: one(users),
   kajianEvents: many(kajianEvents, { relationName: 'kajianSpeaker' }),
+  ramadanImamSchedules: many(ramadanSchedules, { relationName: 'ramadanImam' }),
 }));
 
 export const usersRelations = relations(users, ({ one }) => ({
@@ -265,6 +276,22 @@ export const kajianEventsRelations = relations(kajianEvents, ({ one }) => ({
     })
 }));
 
+export const ramadanConfigsRelations = relations(ramadanConfigs, ({ many }) => ({
+    schedules: many(ramadanSchedules),
+}));
+
+export const ramadanSchedulesRelations = relations(ramadanSchedules, ({ one }) => ({
+  config: one(ramadanConfigs, {
+    fields: [ramadanSchedules.configId],
+    references: [ramadanConfigs.id],
+  }),
+  imam: one(people, {
+    fields: [ramadanSchedules.imamId],
+    references: [people.id],
+    relationName: 'ramadanImam'
+  }),
+}));
+
 // --- Exports Types ---
 
 export type MosqueProfile = InferSelectModel<typeof mosqueProfile>;
@@ -284,3 +311,9 @@ export type InsertAccount = InferInsertModel<typeof accounts>;
 
 export type Transaction = InferSelectModel<typeof transactions>;
 export type InsertTransaction = InferInsertModel<typeof transactions>;
+
+export type RamadanConfig = InferSelectModel<typeof ramadanConfigs>;
+export type InsertRamadanConfig = InferInsertModel<typeof ramadanConfigs>;
+
+export type RamadanSchedule = InferSelectModel<typeof ramadanSchedules>;
+export type InsertRamadanSchedule = InferInsertModel<typeof ramadanSchedules>;

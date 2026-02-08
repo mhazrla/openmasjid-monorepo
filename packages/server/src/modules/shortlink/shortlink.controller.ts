@@ -3,7 +3,8 @@ import { ShortlinkService } from './shortlink.service';
 import { createShortlinkSchema } from './shortlink.interface';
 import { z } from 'zod';
 
-export class ShortlinkController {
+export class ShortlinkController 
+{
   constructor(private service: ShortlinkService) {}
 
   async handleRedirect(req: FastifyRequest, reply: FastifyReply) 
