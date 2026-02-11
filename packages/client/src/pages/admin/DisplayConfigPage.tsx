@@ -1,10 +1,9 @@
-
 import { useForm, Controller } from 'react-hook-form';
 import { useDisplayConfig, useUpdateDisplayConfig } from '../../features/display-config/hooks';
 import type { UpdateDisplayConfigDto } from '../../features/display-config/types';
 import { type City, CITIES } from '../../constants/prayer';
 import { useEffect, useState } from 'react';
-import { Loader2, Save, Settings, LocateFixed, Type, Volume2, Clock } from 'lucide-react';
+import { Loader2, Save, Settings, LocateFixed, Type, Volume2, Clock, BellRing } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select } from '../../components/ui/Select';
 import { Input } from '../../components/ui/Input';
@@ -32,6 +31,7 @@ export const DisplayConfigPage = () =>
                 cityId: config.cityId,
                 runningText: config.runningText || '',
                 enableBeep: config.enableBeep,
+                beepReminderDuration: config.beepReminderDuration || 30,
                 
                 // Durations
                 preAdzanDuration: config.preAdzanDuration,
@@ -44,7 +44,7 @@ export const DisplayConfigPage = () =>
                 iqomahDelayMaghrib: config.iqomahDelayMaghrib,
                 iqomahDelayIsya: config.iqomahDelayIsya,
                 
-                // Adjustments (Added Terbit & Dhuha)
+                // Adjustments
                 adjSubuh: config.adjSubuh,
                 adjTerbit: config.adjTerbit,
                 adjDhuha: config.adjDhuha,
@@ -105,6 +105,7 @@ export const DisplayConfigPage = () =>
             // Number casting safety
             preAdzanDuration: Number(data.preAdzanDuration),
             adzanDuration: Number(data.adzanDuration),
+            beepReminderDuration: Number(data.beepReminderDuration),
             
             iqomahDelaySubuh: Number(data.iqomahDelaySubuh),
             iqomahDelayDzuhur: Number(data.iqomahDelayDzuhur),
@@ -120,7 +121,6 @@ export const DisplayConfigPage = () =>
             adjMaghrib: Number(data.adjMaghrib),
             adjIsya: Number(data.adjIsya),
             
-            // Boolean & String
             enableBeep: Boolean(data.enableBeep),
             runningText: data.runningText,
         };
@@ -201,44 +201,73 @@ export const DisplayConfigPage = () =>
                             <p className="text-xs text-slate-500">Text displayed at the bottom of the screen.</p>
                         </div>
 
-                        {/* Beep Sound Toggle */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
-                            <div className="space-y-0.5">
-                                <label className="text-sm font-medium text-slate-900 flex items-center gap-2">
-                                    <Volume2 className="w-4 h-4" /> Enable Beep Sound
-                                </label>
-                                <p className="text-xs text-slate-500">Play a beep sound before Adzan and Iqomah.</p>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <button
-                                    type="button"
-                                    onClick={playBeep}
-                                    className="px-3 py-1 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded hover:bg-slate-50 active:scale-95 transition-all flex items-center gap-1"
-                                >
-                                    <Volume2 className="w-3 h-3" /> Test
-                                </button>
+                        {/* Beep Settings Group */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                <div className="space-y-0.5">
+                                    <label className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                                        <Volume2 className="w-4 h-4" /> Enable Beep Sound
+                                    </label>
+                                    <p className="text-xs text-slate-500">Play a beep sound before Adzan and Iqomah.</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={playBeep}
+                                        className="px-3 py-1 text-xs font-medium text-slate-600 bg-white border border-slate-300 rounded hover:bg-slate-50 active:scale-95 transition-all flex items-center gap-1"
+                                    >
+                                        <Volume2 className="w-3 h-3" /> Test
+                                    </button>
 
-                                <Controller
-                                    control={control}
-                                    name="enableBeep"
-                                    render={({ field: { value, onChange } }) => (
-                                        <label className="relative inline-flex items-center cursor-pointer">
-                                            <input 
-                                                type="checkbox" 
-                                                className="sr-only peer"
-                                                checked={!!value}
-                                                onChange={(e) => onChange(e.target.checked)}
-                                            />
-                                            <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                    <Controller
+                                        control={control}
+                                        name="enableBeep"
+                                        render={({ field: { value, onChange } }) => (
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="sr-only peer"
+                                                    checked={!!value}
+                                                    onChange={(e) => onChange(e.target.checked)}
+                                                />
+                                                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                            </label>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Beep Reminder Duration (Hanya positif) */}
+                            <div className={cn(
+                                "transition-all duration-300 overflow-hidden",
+                                enableBeepWatch ? "max-h-40 opacity-100" : "max-h-0 opacity-0 pointer-events-none"
+                            )}>
+                                <div className="p-4 bg-emerald-50/50 rounded-lg border border-emerald-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div className="space-y-0.5">
+                                        <label className="text-sm font-medium text-emerald-900 flex items-center gap-2">
+                                            <BellRing className="w-4 h-4" /> Beep Reminder Start
                                         </label>
-                                    )}
-                                />
+                                        <p className="text-xs text-emerald-700">Seconds before phase starts (Minimum 0).</p>
+                                    </div>
+                                    <div className="w-full md:w-32">
+                                        <div className="relative">
+                                            <input 
+                                                type="number"
+                                                min="0"
+                                                className="flex h-9 w-full rounded-md border border-emerald-200 bg-white px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500"
+                                                placeholder="30"
+                                                {...register('beepReminderDuration', { min: 0 })}
+                                            />
+                                            <span className="absolute right-3 top-2 text-xs text-slate-400">sec</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* --- Section 2: Global Timings --- */}
+                {/* --- Section 2: Global Timings (Hanya positif) --- */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
                         <Clock className="w-4 h-4 text-slate-500" />
@@ -249,33 +278,37 @@ export const DisplayConfigPage = () =>
                             label="Pre-Adzan Duration"
                             description="How long standby screen appears before Adzan"
                             type="number"
-                            {...register('preAdzanDuration')}
+                            min="0"
+                            {...register('preAdzanDuration', { min: 0 })}
+                            error={errors.preAdzanDuration && "Must be 0 or more"}
                         />
                         <Input
                             label="Adzan Duration"
                             description="Duration of Adzan display before Iqomah countdown"
                             type="number"
-                            {...register('adzanDuration')}
+                            min="0"
+                            {...register('adzanDuration', { min: 0 })}
+                            error={errors.adzanDuration && "Must be 0 or more"}
                         />
                     </div>
                 </div>
 
-                {/* --- Section 3: Iqomah Timers --- */}
+                {/* --- Section 3: Iqomah Timers (Hanya positif) --- */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
                         <Settings className="w-4 h-4 text-slate-500" />
                         <h2 className="font-semibold text-slate-900">Iqomah Countdown (Minutes)</h2>
                     </div>
                     <div className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                        <Input label="Subuh" type="number" {...register('iqomahDelaySubuh')} />
-                        <Input label="Dzuhur" type="number" {...register('iqomahDelayDzuhur')} />
-                        <Input label="Ashar" type="number" {...register('iqomahDelayAshar')} />
-                        <Input label="Maghrib" type="number" {...register('iqomahDelayMaghrib')} />
-                        <Input label="Isya" type="number" {...register('iqomahDelayIsya')} />
+                        <Input label="Subuh" type="number" min="0" {...register('iqomahDelaySubuh', { min: 0 })} />
+                        <Input label="Dzuhur" type="number" min="0" {...register('iqomahDelayDzuhur', { min: 0 })} />
+                        <Input label="Ashar" type="number" min="0" {...register('iqomahDelayAshar', { min: 0 })} />
+                        <Input label="Maghrib" type="number" min="0" {...register('iqomahDelayMaghrib', { min: 0 })} />
+                        <Input label="Isya" type="number" min="0" {...register('iqomahDelayIsya', { min: 0 })} />
                     </div>
                 </div>
 
-                {/* --- Section 4: Time Corrections --- */}
+                {/* --- Section 4: Time Corrections (Boleh negatif) --- */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
                         <Settings className="w-4 h-4 text-slate-500" />

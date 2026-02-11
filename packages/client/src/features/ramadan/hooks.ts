@@ -1,6 +1,6 @@
 import { api } from '../../lib/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { RamadanConfig, CreateRamadanConfigRequest, UpdateRamadanScheduleRequest, UpdateRamadanConfigRequest, Person } from './types';
+import type { RamadanConfig, CreateRamadanConfigRequest, UpdateRamadanScheduleRequest, UpdateRamadanConfigRequest } from './types';
 
 export const useActiveRamadan = () => 
 {

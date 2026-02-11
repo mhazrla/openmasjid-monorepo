@@ -1,7 +1,12 @@
 import { db } from '../../db';
 import { ramadanConfigs, ramadanSchedules } from '../../db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { CreateRamadanConfigDto, UpdateRamadanConfigDto, UpdateRamadanScheduleDto } from './ramadan.interface';
+import { 
+  CreateRamadanConfigDto, 
+  UpdateRamadanConfigDto, 
+  UpdateRamadanScheduleDto, 
+  InsertRamadanSchedule 
+} from './ramadan.interface';
 import { addDays } from 'date-fns';
 
 export class RamadanRepository 
@@ -13,8 +18,16 @@ export class RamadanRepository
       orderBy: [desc(ramadanConfigs.createdAt)],
       with: {
         schedules: {
+          orderBy: (schedules, { asc }) => [asc(schedules.ramadanDay)],
           with: {
-            imam: true
+            tarawihImam: 
+            {
+                columns: { id: true, name: true }
+            },
+            iftarSpeaker: 
+            {
+                columns: { id: true, name: true }
+            }
           }
         }
       }
@@ -36,6 +49,8 @@ export class RamadanRepository
       const insertResult = tx.insert(ramadanConfigs).values({
         hijriYear: data.hijriYear,
         gregorianYear: data.gregorianYear,
+        title: data.title,
+        subtitle: data.subtitle,
         badalImamText: data.badalImamText,
         footerNote: data.footerNote,
         isActive: true
@@ -50,7 +65,7 @@ export class RamadanRepository
         updatedAt: new Date()
       };
       const startDate = new Date(data.startDate); 
-      const schedulesToInsert = [];
+      const schedulesToInsert: InsertRamadanSchedule[] = [];
 
       for (let day = 1; day <= 30; day++) 
       {
@@ -61,6 +76,13 @@ export class RamadanRepository
           ramadanDay: day,
           date: currentDate,
           description: '',
+          iftarSnackStatus: 'open',
+          iftarMealStatus: 'open',
+          waterStatus: 'open',
+          itikafStatus: 'close', 
+          charityStatus: 'close',
+          createdAt: new Date(),
+          updatedAt: new Date()
         });
       }
 

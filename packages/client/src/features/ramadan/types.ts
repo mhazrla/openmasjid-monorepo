@@ -9,11 +9,38 @@ export interface RamadanSchedule
 {
     id: number;
     configId: number;
-    date: string; // ISO string
+    date: string;
     ramadanDay: number;
     description?: string;
-    imamId?: number;
-    imam?: Person;
+
+    // 1. Tarawih
+    tarawihImamId?: number | null;
+    tarawihImam?: Person;
+
+    // 2. Iftar Snack
+    iftarSnackSource?: string | null;
+    iftarSnackQty: number;
+    iftarSnackStatus: 'open' | 'close';
+
+    // 3. Iftar Meal & Lecture
+    iftarSpeakerId?: number | null;
+    iftarSpeaker?: Person;
+    iftarMealQty: number;
+    iftarMealStatus: 'open' | 'close';
+
+    // 4. Water
+    waterTarawihQty: number;
+    waterIftarQty: number;
+    waterItikafQty: number;
+    waterStatus: 'open' | 'close';
+
+    // 5. Itikaf
+    itikafQty: number;
+    itikafStatus: 'open' | 'close';
+
+    // 6. Charity
+    charityQty: number;
+    charityStatus: 'open' | 'close';
 }
 
 export interface RamadanConfig 
@@ -21,6 +48,8 @@ export interface RamadanConfig
     id: number;
     hijriYear: number;
     gregorianYear: number;
+    title?: string | null;
+    subtitle?: string | null;
     startDate?: string;
     badalImamText?: string;
     footerNote?: string;
@@ -32,6 +61,8 @@ export interface CreateRamadanConfigRequest
 {
     hijriYear: number;
     gregorianYear: number;
+    title: string;
+    subtitle: string;
     startDate: string;
     badalImamText?: string;
     footerNote?: string;
@@ -43,9 +74,40 @@ export interface UpdateRamadanConfigRequest
     footerNote?: string;
 }
 
-export interface UpdateRamadanScheduleRequest 
+export type UpdateRamadanScheduleRequest = Partial<Omit<RamadanSchedule, 'id' | 'configId' | 'ramadanDay' | 'tarawihImam' | 'iftarSpeaker'>>;
+
+// --- EXTRACTED UI TYPES ---
+
+export interface StatusBadgeProps 
 {
-    date?: string;
-    description?: string;
-    imamId?: number | null;
+    value: string;
+    onChange: (value: string) => void;
+    options?: string[];
+}
+
+export interface MinimalInputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+export interface UserSelectProps 
+{
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+    options: { value: string; label: string }[];
+    placeholder?: string;
+}
+
+export interface InitFormData 
+{
+    hijriYear: number;
+    gregorianYear: number;
+    title: string;
+    subtitle: string;
+    startDate: string;
+    badalImamText: string;
+    footerNote: string;
+}
+
+export interface ScheduleRowProps 
+{
+    schedule: RamadanSchedule;
+    ustadzList: { value: string, label: string }[];
 }

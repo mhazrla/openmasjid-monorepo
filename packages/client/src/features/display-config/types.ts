@@ -25,6 +25,7 @@ export const displayConfigSchema = z.object({
 
   // Audio
   enableBeep: z.boolean().default(true),
+  beepReminderDuration: z.number().default(30),
 });
 
 export type DisplayConfig = z.infer<typeof displayConfigSchema>;

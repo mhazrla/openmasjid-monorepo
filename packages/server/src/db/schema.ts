@@ -26,7 +26,7 @@ export const mosqueProfile = sqliteTable('mosque_profile', {
 export const displayConfig = sqliteTable('display_config', {
   id: integer('id').primaryKey(), // Singleton ID 1
   cityId: text('city_id').notNull(),
-  runningText: text('running_text').default('Luruskan dan rapatkan shaf...'),
+  runningText: text('running_text').default('Please straighten and tighten the rows...'),
   
   // Timings
   preAdzanDuration: integer('pre_adzan_duration').notNull().default(2),
@@ -37,7 +37,7 @@ export const displayConfig = sqliteTable('display_config', {
   iqomahDelayMaghrib: integer('iqomah_delay_maghrib').notNull().default(10),
   iqomahDelayIsya: integer('iqomah_delay_isya').notNull().default(10),
 
-  // Time Adjustments (Minutes, can be negative)
+  // Time Adjustments (Minutes)
   adjSubuh: integer('adj_subuh').notNull().default(0),
   adjTerbit: integer('adj_terbit').notNull().default(0),
   adjDhuha: integer('adj_dhuha').notNull().default(0),
@@ -48,20 +48,21 @@ export const displayConfig = sqliteTable('display_config', {
 
   // Audio
   enableBeep: integer('enable_beep', { mode: 'boolean' }).notNull().default(true),
+  beepReminderDuration: integer('beep_reminder_duration').notNull().default(30),
 
   ...{ createdAt, updatedAt }
 });
 
 export const shortlinks = sqliteTable('shortlinks', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  slug: text('slug').notNull().unique(), // e.g. "infaq"
+  slug: text('slug').notNull().unique(), 
   originalUrl: text('original_url').notNull(),
   description: text('description'),
   clicks: integer('clicks').notNull().default(0),
   ...{ createdAt, updatedAt }
 });
 
-// --- 2. SDM (People) ---
+// --- 2. People Management (SDM) ---
 
 export const people = sqliteTable('people', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -73,14 +74,13 @@ export const people = sqliteTable('people', {
   ...{ createdAt, updatedAt }
 });
 
-// Users table now linked to People
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: text('role').$type<'superadmin' | 'admin' | 'bendahara' | 'display'>().notNull().default('admin'),
   tokenVersion: integer('token_version').notNull().default(0),
-  personId: integer('person_id').references(() => people.id), // Link to real person
+  personId: integer('person_id').references(() => people.id),
   ...{ createdAt, updatedAt }
 });
 
@@ -93,10 +93,10 @@ export const meetingMinutes = sqliteTable('meeting_minutes', {
   ...{ createdAt, updatedAt }
 });
 
-// --- 3. Peribadahan (Schedules) ---
+// --- 3. Worship & Schedules ---
 
 export const dailyPrayerTimes = sqliteTable('daily_prayer_times', {
-  date: text('date').primaryKey(), // Using YYYY-MM-DD string as ID for simplicity in lookup
+  date: text('date').primaryKey(), 
   imsak: text('imsak').notNull(),
   subuh: text('subuh').notNull(),
   terbit: text('terbit').notNull(),
@@ -108,10 +108,9 @@ export const dailyPrayerTimes = sqliteTable('daily_prayer_times', {
   ...{ createdAt, updatedAt }
 });
 
-// Hybrid Schedule: 1. Weekly Roster (Default)
 export const weeklyRoster = sqliteTable('weekly_roster', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  dayOfWeek: integer('day_of_week').notNull(), // 0=Sunday, 6=Saturday
+  dayOfWeek: integer('day_of_week').notNull(),
   fajrImamId: integer('fajr_imam_id').references(() => people.id),
   fajrMuadzinId: integer('fajr_muadzin_id').references(() => people.id),
   dhuhurImamId: integer('dhuhur_imam_id').references(() => people.id),
@@ -125,7 +124,6 @@ export const weeklyRoster = sqliteTable('weekly_roster', {
   ...{ createdAt, updatedAt }
 });
 
-// Hybrid Schedule: 2. Daily Overrides
 export const prayerSchedules = sqliteTable('prayer_schedules', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   date: integer('date', timestampConfig).notNull(),
@@ -151,37 +149,66 @@ export const fridaySchedules = sqliteTable('friday_schedules', {
   ...{ createdAt, updatedAt }
 });
 
-export const ramadanSchedules = sqliteTable('ramadan_schedules', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  configId: integer('config_id').references(() => ramadanConfigs.id).notNull(),
-  date: integer('date', timestampConfig).notNull(),
-  ramadanDay: integer('ramadan_day').notNull(),
-  description: text('description'),
-  imamId: integer('imam_id').references(() => people.id),
-  ...{ createdAt, updatedAt }
-});
-
 export const ramadanConfigs = sqliteTable('ramadan_configs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   hijriYear: integer('hijri_year').notNull(),
   gregorianYear: integer('gregorian_year').notNull(),
+  title: text('title').notNull(),
+  subtitle: text('subtitle'),
   badalImamText: text('badal_imam'),
   footerNote: text('footer_note'),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   ...{ createdAt, updatedAt }
 });
 
+export const ramadanSchedules = sqliteTable('ramadan_schedules', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  configId: integer('config_id').references(() => ramadanConfigs.id).notNull(),
+  date: integer('date', timestampConfig).notNull(),
+  ramadanDay: integer('ramadan_day').notNull(),
+  description: text('description'), 
+
+  // 1. Tarawih
+  tarawihImamId: integer('tarawih_imam_id').references(() => people.id),
+  // 2. Iftar Snack
+  iftarSnackSource: text('iftar_snack_source'), 
+  iftarSnackQty: integer('iftar_snack_qty').default(0),
+  iftarSnackStatus: text('iftar_snack_status').$type<'open' | 'close'>().default('open'),
+
+  // 3. Iftar Meal
+  iftarSpeakerId: integer('iftar_speaker_id').references(() => people.id),
+  iftarMealQty: integer('iftar_meal_qty').default(0),
+  iftarMealStatus: text('iftar_meal_status').$type<'open' | 'close'>().default('open'),
+
+  // 4. Mineral Water
+  waterTarawihQty: integer('water_tarawih_qty').default(0),
+  waterIftarQty: integer('water_iftar_qty').default(0),
+  waterItikafQty: integer('water_itikaf_qty').default(0),
+  waterStatus: text('water_status').$type<'open' | 'close'>().default('open'),
+
+  // 5. Itikaf & Sahur
+  itikafQty: integer('itikaf_qty').default(0),
+  itikafStatus: text('itikaf_status').$type<'open' | 'close'>().default('close'),
+
+  // 6. Charity (Santunan)
+  charityQty: integer('charity_qty').default(0),
+  charityStatus: text('charity_status').$type<'open' | 'close'>().default('close'),
+
+  ...{ createdAt, updatedAt }
+});
+
+// Events & Posters
 export const kajianEvents = sqliteTable('kajian_events', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
-  speakerId: integer('speaker_id').references(() => people.id).notNull(), // Normalized: Must link to people
+  speakerId: integer('speaker_id').references(() => people.id).notNull(),
   date: integer('date', timestampConfig).notNull(),
   posterUrl: text('poster_url'),
   type: text('type').$type<'subuh' | 'tematik' | 'tabligh_akbar'>().default('tematik'),
   ...{ createdAt, updatedAt }
 });
 
-// --- 4. Keuangan (Finance) ---
+// --- 4. Finance ---
 
 export const coaCategories = sqliteTable('coa_categories', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -190,10 +217,9 @@ export const coaCategories = sqliteTable('coa_categories', {
   ...{ createdAt, updatedAt }
 });
 
-// New: Financial Accounts ("Wadah Uang")
 export const accounts = sqliteTable('accounts', {
     id: integer('id').primaryKey({ autoIncrement: true }),
-    name: text('name').notNull(), // e.g. "Kotak Amal", "BSI"
+    name: text('name').notNull(), 
     balance: real('balance').notNull().default(0),
     isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
     ...{ createdAt, updatedAt }
@@ -206,12 +232,12 @@ export const transactions = sqliteTable('transactions', {
   amount: real('amount').notNull(),
   description: text('description').notNull(),
   categoryId: integer('category_id').references(() => coaCategories.id).notNull(),
-  accountId: integer('account_id').references(() => accounts.id).notNull(), // Linked to Account
+  accountId: integer('account_id').references(() => accounts.id).notNull(),
   proofPhotoUrl: text('bukti_foto_url'),
   ...{ createdAt, updatedAt }
 });
 
-// --- 5. Komunikasi & Dokumen ---
+// --- 5. Communication ---
 
 export const whatsappOutbox = sqliteTable('whatsapp_outbox', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -232,12 +258,15 @@ export const documents = sqliteTable('documents', {
   ...{ createdAt, updatedAt }
 });
 
-// --- Relations ---
+// --- RELATIONS (Updated) ---
 
 export const peopleRelations = relations(people, ({ many, one }) => ({
   userAccount: one(users),
   kajianEvents: many(kajianEvents, { relationName: 'kajianSpeaker' }),
-  ramadanImamSchedules: many(ramadanSchedules, { relationName: 'ramadanImam' }),
+  
+  // Ramadan Relations
+  ramadanImamSchedules: many(ramadanSchedules, { relationName: 'imamTarawih' }),
+  ramadanIftarSchedules: many(ramadanSchedules, { relationName: 'speakerIftar' }),
 }));
 
 export const usersRelations = relations(users, ({ one }) => ({
@@ -248,9 +277,16 @@ export const usersRelations = relations(users, ({ one }) => ({
 }));
 
 export const weeklyRosterRelations = relations(weeklyRoster, ({ one }) => ({
-    // Simplified: Just linking logic, relations definitions help with query inclusion
     fajrImam: one(people, { fields: [weeklyRoster.fajrImamId], references: [people.id], relationName: 'weeklyFajrImam' }),
-    // ... Repeat for all slots if deeper queries needed
+    fajrMuadzin: one(people, { fields: [weeklyRoster.fajrMuadzinId], references: [people.id], relationName: 'weeklyFajrMuadzin' }),
+    dhuhurImam: one(people, { fields: [weeklyRoster.dhuhurImamId], references: [people.id], relationName: 'weeklyDhuhurImam' }),
+    dhuhurMuadzin: one(people, { fields: [weeklyRoster.dhuhurMuadzinId], references: [people.id], relationName: 'weeklyDhuhurMuadzin' }),
+    asrImam: one(people, { fields: [weeklyRoster.asrImamId], references: [people.id], relationName: 'weeklyAsrImam' }),
+    asrMuadzin: one(people, { fields: [weeklyRoster.asrMuadzinId], references: [people.id], relationName: 'weeklyAsrMuadzin' }),
+    maghribImam: one(people, { fields: [weeklyRoster.maghribImamId], references: [people.id], relationName: 'weeklyMaghribImam' }),
+    maghribMuadzin: one(people, { fields: [weeklyRoster.maghribMuadzinId], references: [people.id], relationName: 'weeklyMaghribMuadzin' }),
+    ishaImam: one(people, { fields: [weeklyRoster.ishaImamId], references: [people.id], relationName: 'weeklyIshaImam' }),
+    ishaMuadzin: one(people, { fields: [weeklyRoster.ishaMuadzinId], references: [people.id], relationName: 'weeklyIshaMuadzin' }),
 }));
 
 export const transactionsRelations = relations(transactions, ({ one }) => ({
@@ -285,10 +321,15 @@ export const ramadanSchedulesRelations = relations(ramadanSchedules, ({ one }) =
     fields: [ramadanSchedules.configId],
     references: [ramadanConfigs.id],
   }),
-  imam: one(people, {
-    fields: [ramadanSchedules.imamId],
+  tarawihImam: one(people, {
+    fields: [ramadanSchedules.tarawihImamId],
     references: [people.id],
-    relationName: 'ramadanImam'
+    relationName: 'imamTarawih'
+  }),
+  iftarSpeaker: one(people, {
+    fields: [ramadanSchedules.iftarSpeakerId],
+    references: [people.id],
+    relationName: 'speakerIftar'
   }),
 }));
 
