@@ -8,7 +8,8 @@ import type
     RamadanScheduleUI, 
     TarawihWidgetProps, 
     PosterWidgetProps, 
-    HaditsWidgetProps 
+    HaditsWidgetProps,
+    BankInfoWidgetProps
 } from '../types';
 import type { RamadanConfig } from '../../ramadan/types';
 
@@ -144,7 +145,7 @@ export const TarawihWidget = memo(({ data, hijriYear, title = "Tarawih" }: Taraw
                     <span className="px-4 py-1.5 rounded bg-emerald-500/10 text-emerald-400 text-sm font-bold uppercase tracking-wider border border-emerald-500/20">Malam Ini</span>
                     <span className="text-slate-400 text-lg">Ramadhan Ke-{data.ramadanDay}</span>
                 </div>
-                <h1 className="text-5xl lg:text-7xl font-bold text-white leading-tight mb-6 font-serif">
+                <h1 className="text-4xl lg:text-4xl font-bold text-white leading-tight mb-6 font-serif">
                     {data.tarawihImam?.name || data.imam?.name || "Belum Ditentukan"}
                 </h1>
                 {data.description && (
@@ -171,14 +172,121 @@ export const PosterWidget = memo(({ data }: PosterWidgetProps) => (
     </div>
 ));
 
-export const HaditsWidget = memo(({ data }: HaditsWidgetProps) => (
-    <div className="flex items-center justify-center w-full h-full animate-in slide-in-from-bottom-8 duration-1000 p-6">
-        <div className="max-w-5xl text-center relative z-10 bg-slate-950/50 backdrop-blur-md p-10 rounded-[3rem] border border-white/5 shadow-2xl">
-            <Quote className="w-20 h-20 text-emerald-500/30 mx-auto mb-6" />
-            {data.arabic && <h1 className="text-4xl lg:text-6xl text-white font-serif leading-loose mb-8 drop-shadow-lg" dir="rtl">{data.arabic}</h1>}
-            <p className="text-2xl lg:text-4xl text-slate-200 font-light leading-relaxed italic mb-10 max-w-4xl mx-auto">"{data.text}"</p>
-            <div className="inline-block border-t border-emerald-500/50 pt-6 px-10">
-                <p className="text-emerald-400 font-bold uppercase tracking-[0.2em] text-xl">{data.source}</p>
+export const HaditsWidget = memo(({ data }: HaditsWidgetProps) => 
+{
+    const getArabicSize = (len: number) => 
+    {
+        if (len < 50) return 'text-5xl lg:text-6xl';
+        if (len < 150) return 'text-4xl lg:text-5xl';
+        if (len < 300) return 'text-3xl lg:text-4xl';
+        return 'text-2xl lg:text-3xl';
+    };
+
+    const getTextSize = (len: number) => 
+    {
+        if (len < 100) return 'text-2xl lg:text-3xl';
+        if (len < 300) return 'text-xl lg:text-2xl';
+        if (len < 600) return 'text-lg lg:text-xl';
+        return 'text-base lg:text-lg';
+    };
+
+    const arabicLen = data.arabic?.length || 0;
+    const textLen = data.text.length;
+
+    return (
+        <div className="flex items-center justify-center w-full h-full animate-in slide-in-from-bottom-8 duration-1000 p-2 md:p-6">
+            <div className="w-full max-w-[95vw] h-[85vh] flex flex-col items-center justify-center relative z-10 bg-slate-950/60 backdrop-blur-xl p-6 md:p-10 rounded-[3rem] border border-white/10 shadow-2xl overflow-hidden">
+                
+                {/* Background Ornament - Centered and Subtle */}
+                <Quote className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 text-emerald-500/5 -scale-x-100" />
+                <Quote className="absolute top-10 left-10 w-24 h-24 text-emerald-500/10 -scale-x-100" />
+                <Quote className="absolute bottom-10 right-10 w-24 h-24 text-emerald-500/10" />
+
+                {/* Main Content Container - Vertical Layout */}
+                <div className="z-10 w-full h-full flex flex-col items-center justify-center overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none] space-y-12">
+                    
+                    {/* Top: Arabic Text */}
+                    {data.arabic && (
+                        <div className="w-full flex-col flex items-center justify-center text-center px-4 md:px-16">
+                            <h1 
+                                className={`${getArabicSize(arabicLen)} text-white font-serif leading-loose drop-shadow-lg py-2`} 
+                                dir="rtl"
+                            >
+                                {data.arabic}
+                            </h1>
+                        </div>
+                    )}
+
+                    {/* Bottom: Translation & Source */}
+                    <div className="w-full max-w-6xl flex flex-col items-center justify-center text-center px-4 md:px-16">
+                        <div className="relative">
+                            <p className={`${getTextSize(textLen)} text-slate-200 font-light leading-relaxed italic`}>
+                                "{data.text}" 
+                                <span className="text-emerald-400 font-bold uppercase tracking-widest text-lg lg:text-xl not-italic ml-3 block md:inline-block mt-4 md:mt-2">
+                                    — {data.source}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    );
+});
+
+export const BankInfoWidget = memo(({ data }: BankInfoWidgetProps) => (
+    <div className="flex items-center justify-center w-full h-full animate-in zoom-in duration-700 p-8">
+        <div className="relative w-full max-w-5xl h-[55vh] min-h-[400px] bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl flex flex-col md:flex-row">
+            
+            {/* LEFT / TOP: QRIS - Only show if URL exists */ }
+            { data.qrisUrl && (
+                <div className="w-full md:w-1/2 bg-white p-8 flex flex-col items-center justify-center relative group">
+                    <img src={data.qrisUrl} alt="QRIS" className="w-full h-full object-contain max-h-[400px] z-10 drop-shadow-xl" />
+                    <div className="absolute top-2 right-2 z-20">
+                        <img src="/images/qris-icon.webp" alt="QRIS Logo" className="h-6 md:h-8 opacity-80" />
+                    </div>
+                </div>
+            )}
+
+            {/* RIGHT / BOTTOM: INFO */}
+            <div className={`${data.qrisUrl ? 'w-full md:w-1/2' : 'w-full'} p-10 flex flex-col justify-center bg-linear-to-br from-slate-900 to-black text-white relative overflow-hidden`}>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                
+                <h2 className="text-xl font-bold text-emerald-400 uppercase tracking-widest mb-6">Infaq / Shodaqoh</h2>
+
+                {/* DIGITAL INFO CARD STYLE */}
+                <div className={`relative w-full ${data.qrisUrl ? 'aspect-video' : 'max-w-2xl mx-auto aspect-[2.5/1]'} bg-slate-800/50 rounded-3xl p-8 border border-white/10 flex flex-col justify-center items-start overflow-hidden group backdrop-blur-md`}>
+                    
+                    {/* Background Decor */}
+                    <div className="absolute right-0 top-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+                    <div className="relative z-10 w-full space-y-6">
+                        <div>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">No. Rekening</p>
+                            <div className="flex items-center gap-4">
+                                <p className="font-mono text-4xl lg:text-6xl font-black text-white tracking-tight drop-shadow-md">
+                                    {data.accountNumber || '-'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="w-full h-px bg-white/10" />
+
+                        <div className="flex flex-col gap-1">
+                            <p className="text-2xl font-bold text-emerald-400 tracking-tight">
+                                {data.bankName || 'BANK'}
+                            </p>
+                            <p className="text-sm font-medium text-slate-400 uppercase tracking-wider truncate">
+                                a.n {data.bankAccountName || data.mosqueName}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="absolute bottom-6 right-6 opacity-20 transform rotate-12">
+                        <HandHeart className="w-32 h-32 text-emerald-500" />
+                    </div>
+                </div>
             </div>
         </div>
     </div>

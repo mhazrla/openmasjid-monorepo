@@ -7,7 +7,7 @@ export class MosqueService
 {
   constructor(private mosqueRepository: MosqueRepository) {}
 
-  async getProfile() 
+  async get() 
   {
     const profile = await this.mosqueRepository.getProfile();
     
@@ -25,14 +25,16 @@ export class MosqueService
     return profile;
   }
 
-  async updateProfile(data: UpdateMosqueProfileDto) 
+  async update(data: UpdateMosqueProfileDto) 
   {
-    const oldProfile = await this.getProfile();
+    const oldProfile = await this.get();
 
     const dbPayload: Partial<InsertMosqueProfile> = 
     {
       name: data.name,
       address: data.address,
+      bankName: data.bankName,
+      bankAccountName: data.bankAccountName,
       bankAccountNumber: data.bankAccountNumber,
       logoUrl: data.logoUrl,
       qrisUrl: data.qrisUrl,

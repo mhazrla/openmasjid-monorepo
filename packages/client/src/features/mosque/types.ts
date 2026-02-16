@@ -3,6 +3,8 @@ export interface MosqueProfile
     id: number;
     name: string;
     address: string;
+    bankName?: string | null;
+    bankAccountName?: string | null;
     bankAccountNumber?: string | null;
     logoUrl?: string | null;
     qrisUrl?: string | null;
@@ -20,6 +22,8 @@ export interface UpdateMosqueProfileDto
 {
     name?: string;
     address?: string;
+    bankName?: string;
+    bankAccountName?: string;
     bankAccountNumber?: string;
     logoUrl?: string;
     qrisUrl?: string;

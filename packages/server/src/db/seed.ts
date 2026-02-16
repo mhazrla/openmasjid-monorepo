@@ -44,7 +44,7 @@
         const [adminPerson] = await db.insert(people).values({
           name: 'System Administrator',
           type: 'pengurus',
-          status: 'active',
+          status: true,
         }).returning();
 
         const password = process.env.ADMIN_PASSWORD as string || 'admin123'; // Fallback if env not set
@@ -107,7 +107,7 @@
           await db.insert(people).values({
             name: name,
             type: personType, 
-            status: 'active',
+            status: true,
             phoneNumber: '-', 
             address: '-'      
           });

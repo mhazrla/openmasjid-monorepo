@@ -2,11 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getMosqueProfile, updateMosqueProfile } from './api';
 import type { UpdateMosqueProfileDto } from './types';
 
-export const useMosqueProfile = () => 
+export const useMosqueProfile = (options?: { refetchInterval?: number }) => 
 {
     return useQuery({
         queryKey: ['mosque-profile'],
         queryFn: getMosqueProfile,
+        refetchInterval: options?.refetchInterval,
     });
 };
 

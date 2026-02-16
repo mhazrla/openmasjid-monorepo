@@ -1,19 +1,26 @@
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, asc, and, like } from 'drizzle-orm';
 import { db } from '../../db';
 import { people } from '../../db/schema';
 import { CreatePersonDto, UpdatePersonDto } from './people.interface';
 
 export class PeopleRepository 
 {
-  async findAll(type?: string) 
+  async findAll(filters: { type?: string; search?: string; status?: boolean }) 
   {
     const conditions = [];
-    if (type) conditions.push(eq(people.type, type as any)); 
     
+    if (filters.status !== undefined) 
+    {
+        conditions.push(eq(people.status, filters.status));
+    }
+
+    if (filters.type) conditions.push(eq(people.type, filters.type as any)); 
+    if (filters.search) conditions.push(like(people.name, `%${filters.search}%`));
+
     return await db.select()
       .from(people)
       .where(and(...conditions))
-      .orderBy(desc(people.createdAt));
+      .orderBy(asc(people.name));
   }
 
   async findById(id: number) 
@@ -30,7 +37,7 @@ export class PeopleRepository
     const [newPerson] = await db.insert(people)
       .values({
         ...data,
-        status: 'active',
+        status: true,
         createdAt: new Date(),
         updatedAt: new Date()
       })
@@ -54,10 +61,14 @@ export class PeopleRepository
 
   async delete(id: number) 
   {
-    const [deleted] = await db.delete(people)
+    const [softDeleted] = await db.update(people)
+      .set({ 
+        status: false,
+        updatedAt: new Date()
+      })
       .where(eq(people.id, id))
       .returning();
     
-    return deleted || null;
+    return softDeleted || null;
   }
 }

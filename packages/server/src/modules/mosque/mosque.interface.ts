@@ -9,8 +9,10 @@ export type InsertMosqueProfile = InferInsertModel<typeof mosqueProfile>;
 // Zod Schemas
 export const updateMosqueProfileSchema = z.object(
 {
-  name: z.string().min(3, 'At least 3 characters for mosque name'),
-  address: z.string().min(5, 'At least 5 characters for address'),
+  name: z.string().min(3, 'Mosque name must be at least 3 characters'),
+  address: z.string().min(5, 'Address must be at least 5 characters'),
+  bankName: z.string().optional(),
+  bankAccountName: z.string().optional(),
   bankAccountNumber: z.string().optional(),
   logoUrl: z.string().optional(),
   qrisUrl: z.string().optional(),

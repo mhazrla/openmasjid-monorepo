@@ -1,0 +1,175 @@
+import { useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { useCreatePerson, useUpdatePerson } from '../hooks';
+import type { PeopleFormModalProps, Person } from '../types';
+import { ActionButton } from '../../../components/ui/ActionButton';
+import { Input } from '../../../components/ui/Input';
+import { Select } from '../../../components/ui/Select';
+import { Modal } from '../../../components/ui/Modal';
+import { handleFormError } from '../../../utils/form-error';
+
+export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormModalProps) => 
+{
+    const createMutation = useCreatePerson();
+    const updateMutation = useUpdatePerson();
+
+    const { register, handleSubmit, reset, setError, clearErrors, control, formState: { errors } } = useForm<Person>({
+        defaultValues: {
+            name: '',
+            type: 'jamaah',
+            phoneNumber: '',
+            address: '',
+            status: true
+        }
+    });
+
+    const handleReset = () => 
+    {
+        clearErrors(); 
+        
+        if (editingPerson) 
+        {
+            // Cast 'status' to string (true/false) for radio button matching
+            reset({
+               ...editingPerson,
+               status: String(editingPerson.status) as any 
+            }); 
+        } 
+        else 
+        {
+            reset({ 
+                name: '',
+                type: 'jamaah',
+                phoneNumber: '',
+                address: '',
+                status: 'true' as any // active by default
+            });
+        }
+    };
+
+    useEffect(() => 
+    {
+        if (isOpen) 
+        {
+            handleReset();
+        }
+    }, [isOpen, editingPerson]);
+
+
+    const onSubmit = (data: Person) => 
+    {
+        // Convert status back to boolean if needed, or handle as is?
+        // Person interface expects boolean.
+        // We need to ensure we pass boolean to mutation if API expects boolean JSON.
+        // API (PeopleController) expects JSON body. 
+        // UpdatePersonDTO -> status?: boolean.
+        // Zod schema -> z.boolean().
+        // So we MUST convert string "true" to boolean true.
+        
+        const payload = {
+            ...data,
+            status: String(data.status) === 'true'
+        };
+
+        const mutationOptions = 
+        {
+            onSuccess: onClose,
+            onError: (err: any) => handleFormError(err, setError)
+        };
+
+        if (editingPerson) 
+        {
+            updateMutation.mutate({ ...payload, id: editingPerson.id }, mutationOptions);
+        } 
+        else 
+        {
+            createMutation.mutate(payload, mutationOptions);
+        }
+    };
+
+    const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
+    return (
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            title={editingPerson ? 'Edit Person' : 'Add New Person'}
+        >
+            <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-5">
+                <Input 
+                    label={<span>Full Name <span className="text-red-500">*</span></span>}
+                    {...register('name', { required: 'Name is required' })} 
+                    placeholder="e.g. Ahmad Fulan"
+                    error={errors.name?.message} 
+                    autoFocus
+                />
+
+                <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-slate-700 block">
+                        Role Type <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                        <Controller
+                            control={control}
+                            name="type"
+                            render={({ field: { value, onChange } }) => (
+                                <Select
+                                    options={[
+                                        { value: 'jamaah', label: 'Jamaah' },
+                                        { value: 'ustadz', label: 'Ustadz' },
+                                        { value: 'pengurus', label: 'Staff (Pengurus)' }
+                                    ]}
+                                    value={value}
+                                    onChange={onChange}
+                                    error={errors.type?.message}
+                                />
+                            )}
+                        />
+                    </div>
+                    {errors.type && <p className="text-xs text-red-500 mt-1">{errors.type.message}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input 
+                        label="Phone Number"
+                        {...register('phoneNumber')} 
+                        placeholder="0812..." 
+                        error={errors.phoneNumber?.message}
+                    />
+                    <Input 
+                        label="Address"
+                        {...register('address')} 
+                        placeholder="Street address..." 
+                        error={errors.address?.message}
+                    />
+                </div>
+
+                {/* Status Field */}
+                {editingPerson && (
+                    <div className="mt-2">
+                        <label className="text-sm font-medium text-slate-700 block mb-2">Status</label>
+                        <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-[:checked]:border-emerald-200 has-[:checked]:bg-emerald-50 transition-colors">
+                                <input type="radio" value="true" {...register('status')} className="text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
+                                <span className="text-sm text-slate-700">Active</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-[:checked]:border-slate-300 has-[:checked]:bg-slate-100 transition-colors">
+                                <input type="radio" value="false" {...register('status')} className="text-slate-600 focus:ring-slate-500 cursor-pointer" />
+                                <span className="text-sm text-slate-700">Archived (Inactive)</span>
+                            </label>
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-4 mt-6">
+                    <ActionButton variant="secondary" onClick={handleReset} type="button" className="cursor-pointer">
+                        Reset
+                    </ActionButton>
+                    <ActionButton variant="primary" type="submit" isLoading={isSubmitting} className="cursor-pointer" icon={null}>
+                        Submit
+                    </ActionButton>
+                </div>
+            </form>
+        </Modal>
+    );
+};

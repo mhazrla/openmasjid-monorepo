@@ -18,7 +18,8 @@ import { format, parseISO } from 'date-fns';
 import { ActionButton } from '../../components/ui/ActionButton';
 import { Input } from '../../components/ui/Input';
 import { cn } from '../../lib/utils';
-import { id as idLocale } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
+import { handleFormError } from '../../utils/form-error';
 
 const StatusBadge = memo(({ value, onChange, options = ['open', 'close'] }: StatusBadgeProps) => 
 {
@@ -68,20 +69,21 @@ const MinimalInput = memo(({ className, type, ...props }: MinimalInputProps) => 
     />
 ));
 
+import { Select } from '../../components/ui/Select';
+
 const UserSelect = memo(({ value, onChange, options, placeholder = "Select..." }: UserSelectProps) => (
-    <div className="relative group/user">
-        <User className="absolute left-2 top-1.5 w-3.5 h-3.5 text-slate-400 group-focus-within/user:text-emerald-500 transition-colors pointer-events-none" />
-        <select
+    <div className="relative group/user w-full">
+        <div className="absolute left-3 top-2.5 z-10 pointer-events-none">
+            <User className="w-4 h-4 text-slate-400 group-focus-within/user:text-emerald-500 transition-colors" />
+        </div>
+        <Select
             value={value}
-            onChange={onChange}
-            className="w-full pl-7 pr-8 py-1 bg-transparent border border-transparent hover:bg-slate-50 hover:border-slate-200 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 rounded text-sm text-slate-700 appearance-none cursor-pointer outline-none transition-all"
-        >
-            <option value="" disabled className="text-slate-400">{placeholder}</option>
-            {options.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-        </select>
-        <ChevronDown className="absolute right-2 top-2 w-3 h-3 text-slate-300 pointer-events-none" />
+            onChange={(val) => onChange({ target: { value: String(val) } } as any)}
+            options={options}
+            placeholder={placeholder}
+            searchable
+            triggerClassName="pl-9"
+        />
     </div>
 ));
 
@@ -89,7 +91,7 @@ const InitRamadanForm = () =>
 {
     const { mutate: initRamadan, isPending } = useInitRamadan();
 
-    const { register, handleSubmit } = useForm<InitFormData>({
+    const { register, handleSubmit, setError } = useForm<InitFormData>({
         defaultValues: 
         {
             hijriYear: new Date().getFullYear() - 579,
@@ -110,7 +112,7 @@ const InitRamadanForm = () =>
             gregorianYear: Number(data.gregorianYear),
         }, {
             onSuccess: () => toast.success("Ramadan config initialized!"),
-            onError: () => toast.error("Failed to initialize.")
+            onError: (err: any) => handleFormError(err, setError)
         });
     };
 
@@ -161,6 +163,7 @@ const ScheduleRow = memo(({ schedule, ustadzList }: ScheduleRowProps) =>
 
         // Iftar Meal / Kajian
         iftarSpeakerId: schedule.iftarSpeakerId?.toString() || '',
+        iftarKajianTitle: schedule.iftarKajianTitle || '',
         iftarMealQty: schedule.iftarMealQty || 0,
         iftarMealStatus: schedule.iftarMealStatus,
 
@@ -220,7 +223,7 @@ const ScheduleRow = memo(({ schedule, ustadzList }: ScheduleRowProps) =>
                 <div className="flex flex-col items-center justify-center">
                     <span className="text-2xl font-bold text-slate-700 leading-none mb-1 font-mono">{schedule.ramadanDay}</span>
                     <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-                        {format(dateObj, 'd MMM', { locale: idLocale })}
+                        {format(dateObj, 'd MMM', { locale: enUS })}
                     </span>
                 </div>
             </td>
@@ -297,6 +300,13 @@ const ScheduleRow = memo(({ schedule, ustadzList }: ScheduleRowProps) =>
                         value={formData.iftarSpeakerId} 
                         onChange={(e) => handleChange('iftarSpeakerId', e.target.value)}
                         placeholder="Pilih Pemateri"
+                    />
+
+                    <MinimalInput 
+                        value={formData.iftarKajianTitle || ''} 
+                        onChange={(e) => handleChange('iftarKajianTitle', e.target.value)} 
+                        placeholder="Judul Kajian..."
+                        className="text-xs italic text-center"
                     />
 
                      <div className="relative w-full">
@@ -471,7 +481,10 @@ export const RamadanPage = () => {
                         </h3>
                         <form 
                             className="space-y-3"
-                            onSubmit={submitGlobal((data: any) => updateConfig({ id: activeConfig.id, ...data }, { onSuccess: () => toast.success("Settings saved") }))}
+                            onSubmit={submitGlobal((data: any) => updateConfig({ id: activeConfig.id, ...data }, { 
+                                onSuccess: () => toast.success("Settings saved"),
+                                onError: (err) => toast.error(err.message || "Failed to save settings") 
+                            }))}
                         >
                             <div className="space-y-1">
                                 <label className="text-[10px] text-slate-400 uppercase font-semibold">Event Title</label>

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Sidebar } from '../components/layout/Sidebar';
 
 export const AdminLayout = () => {
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
 
     return (
         <div className="min-h-screen bg-slate-100 flex">

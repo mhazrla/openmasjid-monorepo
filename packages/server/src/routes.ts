@@ -8,18 +8,18 @@ import { uploadRoutes } from './modules/upload/upload.routes';
 import { ramadanRoutes } from './modules/ramadan/ramadan.routes';
 import { peopleRoutes } from './modules/people/people.routes';
 import { kajianRoutes } from './modules/kajian/kajian.routes';
+import { hadisRoutes } from './modules/hadis/hadis.routes';
 
 export async function appRoutes(app: FastifyInstance) 
 {
-  app.get('/', async () => 
-  {
-    return { status: 'ok', message: 'OpenMasjid API is running' };
-  });
-
   app.register(shortlinkRedirectRoutes, { prefix: '/s' });
 
-  app.register(async (api) => 
+  app.register(async (api) =>  
   {
+    api.get('/', async () => 
+    {
+      return { status: 'ok', message: 'OpenMasjid API is running' };
+    });
     api.register(mosqueRoutes, { prefix: '/mosque-profile' });
     api.register(prayerTimeRoutes, { prefix: '/prayer-times' });
     api.register(displayConfigRoutes, { prefix: '/display-config' });
@@ -27,6 +27,7 @@ export async function appRoutes(app: FastifyInstance)
     api.register(ramadanRoutes, { prefix: '/ramadan' });
     api.register(peopleRoutes, { prefix: '/people' });
     api.register(kajianRoutes, { prefix: '/kajian' });
+    api.register(hadisRoutes, { prefix: '/hadis' });
 
     // Auth Routes
     api.register(authRoutes, { prefix: '/auth' });

@@ -22,13 +22,13 @@ export class PrayerTimeController
         return reply.code(404).send({ success: false, message: 'Data not found' });
       }
 
-      return reply.send({ success: true, data });
+      return reply.code(200).send({ success: true, data });
     } 
     catch (error) 
     {
       console.error(error);
 
-      return reply.code(500).send({ success: false, message: 'Internal Error' });
+      return reply.code(500).send({ success: false, message: 'Internal Server Error' });
     }
   }
 
@@ -44,7 +44,11 @@ export class PrayerTimeController
       const { month, year, cityId } = bodySchema.parse(req.body);
       const result = await this.service.syncFromExternalApi(cityId, year.toString(), month.toString());
 
-      return reply.send({ success: true, count: result.length, message: 'Sync successful' });
+      return reply.code(200).send({ 
+        success: true, 
+        data: { count: result.length },
+        message: 'Sync successful' 
+      });
     } 
     catch (error) 
     {

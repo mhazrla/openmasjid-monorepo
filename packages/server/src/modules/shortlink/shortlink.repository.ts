@@ -45,4 +45,14 @@ export class ShortlinkRepository
   {
     return db.delete(shortlinks).where(eq(shortlinks.id, id)).returning();
   }
+  
+  async update(id: number, data: Partial<InsertShortlink>) 
+  {
+    const result = await db.update(shortlinks)
+      .set(data)
+      .where(eq(shortlinks.id, id))
+      .returning();
+
+    return result[0];
+  }
 }

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { usePrayerTime, useSyncPrayerTimes } from '../../features/prayer/hooks';
 import { useDisplayConfig } from '../../features/display-config/hooks';
 import type { SyncPrayerRequest } from '../../features/prayer/types';
-import { cn } from '../../lib/utils';
+
 import { toast } from 'sonner';
 import { Calendar, CloudDownload, Loader2, Search, MapPin, Settings as SettingsIcon } from 'lucide-react';
 import { format } from 'date-fns';
@@ -12,6 +12,7 @@ import { CITIES, MONTHS, DEFAULT_CITY_ID, DATE_FORMAT_API } from '../../constant
 import { Input } from '../../components/ui/Input';
 import { Select } from '../../components/ui/Select';
 import { ActionButton } from '../../components/ui/ActionButton';
+import { handleFormError } from '../../utils/form-error';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -33,7 +34,7 @@ export const PrayerTimePage = () =>
     const { data: displayConfig, isLoading: isConfigLoading } = useDisplayConfig();
 
     // --- State: Sync Form ---
-    const { register, handleSubmit, setValue, formState: { errors } } = useForm<SyncPrayerRequest>({
+    const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm<SyncPrayerRequest>({
         defaultValues: 
         {
             cityId: DEFAULT_CITY_ID,
@@ -60,7 +61,6 @@ export const PrayerTimePage = () =>
         if (!displayConfig?.cityId) 
         {
              toast.error("Please set a city in Display Config first.");
-
              return;
         }
 
@@ -78,13 +78,12 @@ export const PrayerTimePage = () =>
             {
                 toast.success('Schedule successfully synchronized!');
                 queryClient.invalidateQueries({ queryKey: ['prayer-times'] });
-                
                 setSelectedDate(format(new Date(), DATE_FORMAT_API));
             },
             onError: (err) => 
             {
                 console.error(err);
-                toast.error('Sync failed. Please check server connection.');
+                handleFormError(err, setError);
             }
         });
     };
@@ -126,7 +125,7 @@ export const PrayerTimePage = () =>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Card 1: Sync Form */}
-                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden h-fit">
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm h-fit">
                     <div className="p-6 border-b border-slate-100 bg-emerald-50/50 flex items-center gap-3">
                         <div className="p-2 bg-white rounded-lg border border-emerald-100 shadow-sm">
                              <CloudDownload className="w-5 h-5 text-emerald-600" />
@@ -142,11 +141,21 @@ export const PrayerTimePage = () =>
                         <input type="hidden" {...register('cityId')} />
 
                         <div className="grid grid-cols-[2fr_1fr] gap-4">
-                            <Select
-                                label="Month"
-                                options={MONTH_OPTIONS}
-                                {...register('month', { required: true })}
-                                error={errors.month?.message}
+                            <Controller
+                                control={control}
+                                name="month"
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                    <Select
+                                        label="Month"
+                                        options={MONTH_OPTIONS}
+                                        value={value}
+                                        onChange={onChange}
+                                        error={errors.month?.message}
+                                        placeholder="Select Month"
+                                        searchable
+                                    />
+                                )}
                             />
                             
                             <Input

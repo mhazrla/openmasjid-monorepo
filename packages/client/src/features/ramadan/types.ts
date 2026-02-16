@@ -1,9 +1,4 @@
-export interface Person 
-{
-    id: number;
-    name: string;
-    type: 'jamaah' | 'ustadz' | 'pengurus';
-}
+import type { Person } from "../people/types";
 
 export interface RamadanSchedule 
 {
@@ -25,6 +20,7 @@ export interface RamadanSchedule
     // 3. Iftar Meal & Lecture
     iftarSpeakerId?: number | null;
     iftarSpeaker?: Person;
+    iftarKajianTitle?: string | null;
     iftarMealQty: number;
     iftarMealStatus: 'open' | 'close';
 

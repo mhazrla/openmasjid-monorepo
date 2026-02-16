@@ -6,11 +6,11 @@ export class MosqueController
 {
   constructor(private mosqueService: MosqueService) {}
 
-  async getProfile(req: FastifyRequest, reply: FastifyReply) 
+  async get(req: FastifyRequest, reply: FastifyReply) 
   {
     try 
     {
-      const profile = await this.mosqueService.getProfile();
+      const profile = await this.mosqueService.get();
       
       return reply.code(200).send({
         success: true,
@@ -25,13 +25,22 @@ export class MosqueController
     }
   }
 
-  async updateProfile(req: FastifyRequest, reply: FastifyReply) 
+  async update(req: FastifyRequest, reply: FastifyReply) 
   {
     try 
     {
-      const body = updateMosqueProfileSchema.parse(req.body);
+      const result = updateMosqueProfileSchema.safeParse(req.body);
+
+      if (!result.success) 
+      {
+        return reply.code(400).send({
+          success: false,
+          message: 'Validation Error',
+          errors: result.error.issues
+        });
+      }
       
-      const updated = await this.mosqueService.updateProfile(body);
+      const updated = await this.mosqueService.update(result.data);
       
       return reply.code(200).send({
         success: true,
@@ -41,11 +50,6 @@ export class MosqueController
     } 
     catch (error: any) 
     {
-      if (error.issues) 
-      {
-        return reply.code(400).send({ success: false, message: 'Validation Error', errors: error.issues });
-      }
-      
       console.error(error);
       
       return reply.code(500).send({ success: false, message: 'Internal Server Error' });

@@ -13,6 +13,13 @@ export const displayConfigSchema = z.object({
   iqomahDelayAshar: z.number().default(10),
   iqomahDelayMaghrib: z.number().default(10),
   iqomahDelayIsya: z.number().default(10),
+  shalatDuration: z.number().default(10),
+
+  // Mode Toggles
+  enablePreAdzan: z.boolean().default(true),
+  enableAdzan: z.boolean().default(true),
+  enableIqomah: z.boolean().default(true),
+  enableShalat: z.boolean().default(true),
   
   // Time Adjustments
   adjSubuh: z.number().default(0),

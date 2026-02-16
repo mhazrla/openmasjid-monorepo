@@ -12,6 +12,8 @@ import { StandbyView } from './pages/display/StandbyView';
 import { SetupGuard } from './components/guards/SetupGuard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { RamadanPage } from './pages/admin/RamadanPage';
+import { KajianManagerPage } from './pages/admin/KajianManagerPage';
+import { PeopleManagerPage } from './pages/admin/PeopleManagerPage';
 
 function App() 
 {
@@ -41,7 +43,9 @@ function App()
                  <Route path="prayer" element={<PrayerTimePage />} />
                  <Route path="display" element={<DisplayConfigPage />} />
                  <Route path="shortlinks" element={<ShortlinkPage />} />
+                 <Route path="kajian" element={<KajianManagerPage />} />
                  <Route path="ramadan" element={<RamadanPage />} />
+                 <Route path="people" element={<PeopleManagerPage />} />
               </Route>
           </Route>
         </Routes>

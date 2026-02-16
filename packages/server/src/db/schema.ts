@@ -12,6 +12,8 @@ export const mosqueProfile = sqliteTable('mosque_profile', {
   id: integer('id').primaryKey(),
   name: text('name').notNull(),
   address: text('address').notNull(),
+  bankName: text('bank_name'),
+  bankAccountName: text('bank_account_name'),
   bankAccountNumber: text('no_rekening'),
   logoUrl: text('logo_url'),
   qrisUrl: text('qris_url'),
@@ -36,6 +38,13 @@ export const displayConfig = sqliteTable('display_config', {
   iqomahDelayAshar: integer('iqomah_delay_ashar').notNull().default(10),
   iqomahDelayMaghrib: integer('iqomah_delay_maghrib').notNull().default(10),
   iqomahDelayIsya: integer('iqomah_delay_isya').notNull().default(10),
+  shalatDuration: integer('shalat_duration').notNull().default(10),
+
+  // Mode Toggles
+  enablePreAdzan: integer('enable_pre_adzan', { mode: 'boolean' }).notNull().default(true),
+  enableAdzan: integer('enable_adzan', { mode: 'boolean' }).notNull().default(true),
+  enableIqomah: integer('enable_iqomah', { mode: 'boolean' }).notNull().default(true),
+  enableShalat: integer('enable_shalat', { mode: 'boolean' }).notNull().default(true),
 
   // Time Adjustments (Minutes)
   adjSubuh: integer('adj_subuh').notNull().default(0),
@@ -70,7 +79,7 @@ export const people = sqliteTable('people', {
   type: text('type').$type<'jamaah' | 'ustadz' | 'pengurus'>().notNull(),
   phoneNumber: text('no_hp'),
   address: text('address'),
-  status: text('status').$type<'active' | 'inactive'>().default('active'),
+  status: integer('status', { mode: 'boolean' }).default(true),
   ...{ createdAt, updatedAt }
 });
 
@@ -177,6 +186,7 @@ export const ramadanSchedules = sqliteTable('ramadan_schedules', {
 
   // 3. Iftar Meal
   iftarSpeakerId: integer('iftar_speaker_id').references(() => people.id),
+  iftarKajianTitle: text('iftar_kajian_title'),
   iftarMealQty: integer('iftar_meal_qty').default(0),
   iftarMealStatus: text('iftar_meal_status').$type<'open' | 'close'>().default('open'),
 
@@ -202,9 +212,23 @@ export const kajianEvents = sqliteTable('kajian_events', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   title: text('title').notNull(),
   speakerId: integer('speaker_id').references(() => people.id).notNull(),
-  date: integer('date', timestampConfig).notNull(),
+  date: integer('date', timestampConfig), 
+  dayOfWeek: integer('day_of_week'),
+  time: text('time'), 
   posterUrl: text('poster_url'),
-  type: text('type').$type<'subuh' | 'tematik' | 'tabligh_akbar'>().default('tematik'),
+  type: text('type').$type<'kajian_rutin' | 'kajian_tematik' | 'tabligh_akbar'>().default('kajian_tematik'),
+  status: integer('status', { mode: 'boolean' }).default(true), 
+  ...{ createdAt, updatedAt }
+});
+
+export const hadisEnc = sqliteTable('hadis_enc', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  apiId: integer('api_id').unique().notNull(),
+  teksArab: text('teks_arab'),
+  teksIndo: text('teks_indo'),
+  takhrij: text('takhrij'),
+  hikmah: text('hikmah'),
+  grade: text('grade'),
   ...{ createdAt, updatedAt }
 });
 

@@ -84,4 +84,23 @@ export class ShortlinkService {
   {
     return this.repository.delete(id);
   }
+  
+  async update(id: number, data: Partial<CreateShortlinkDto>) 
+  {
+    if (data.slug) 
+    {
+      const slugExists = await this.repository.checkSlugExists(data.slug);
+      
+      if (slugExists) 
+      {
+        const existing = await this.repository.findBySlug(data.slug);
+        if (existing && existing.id !== id) 
+        {
+          throw new Error('Slug already exists');
+        }
+      }
+    }
+
+    return this.repository.update(id, data);
+  }
 }

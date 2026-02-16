@@ -11,6 +11,7 @@ export async function shortlinkApiRoutes(app: FastifyInstance)
 {
     app.get('/', controller.getAll.bind(controller));
     app.post('/', controller.create.bind(controller));
+    app.put('/:id', controller.update.bind(controller));
     app.delete('/:id', controller.delete.bind(controller));
 }
 

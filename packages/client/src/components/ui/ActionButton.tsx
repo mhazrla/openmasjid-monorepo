@@ -3,12 +3,14 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> 
 {
     isLoading?: boolean;
     icon?: ReactNode;
     variant?: ButtonVariant;
+    size?: ButtonSize;
     children?: ReactNode;
 }
 
@@ -21,12 +23,21 @@ const VARIANT_STYLES: Record<ButtonVariant, string> =
     ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
 };
 
-const BASE_STYLES = "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200";
+const SIZE_STYLES: Record<ButtonSize, string> = 
+{
+    sm: "h-8 px-3 text-xs",
+    md: "h-10 px-4 py-2 text-sm",
+    lg: "h-12 px-6 text-base",
+    icon: "h-9 w-9 p-0",
+};
+
+const BASE_STYLES = "inline-flex items-center justify-center gap-2 font-medium rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200";
 
 export const ActionButton = ({
     isLoading = false,
     icon,
     variant = 'primary',
+    size = 'md',
     children,
     className,
     disabled,
@@ -36,14 +47,19 @@ export const ActionButton = ({
     return (
         <button
             disabled={isLoading || disabled}
-            className={cn(BASE_STYLES, VARIANT_STYLES[variant], className)}
+            className={cn(
+                BASE_STYLES, 
+                VARIANT_STYLES[variant], 
+                SIZE_STYLES[size], 
+                className
+            )}
             {...props}
         >
-            {/* Wrapper Icon: Pastikan flex dan centered juga */}
+            {/* Wrapper Icon */}
             {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                <Loader2 className={cn("animate-spin shrink-0", size === 'sm' ? "w-3.5 h-3.5" : "w-4 h-4")} />
             ) : icon ? (
-                <span className="flex items-center justify-center shrink-0 w-4 h-4">
+                <span className={cn("flex items-center justify-center shrink-0", size === 'sm' ? "w-3.5 h-3.5" : "w-4 h-4")}>
                     {icon}
                 </span>
             ) : null}

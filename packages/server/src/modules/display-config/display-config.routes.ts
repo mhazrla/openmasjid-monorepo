@@ -13,6 +13,6 @@ const controller    = new DisplayConfigController(service);
 
 export async function displayConfigRoutes(app: FastifyInstance) 
 {
-  app.get('/', controller.getConfig.bind(controller));
-  app.patch('/', controller.updateConfig.bind(controller));
+  app.get('/', controller.get.bind(controller));
+  app.patch('/', controller.update.bind(controller));
 }

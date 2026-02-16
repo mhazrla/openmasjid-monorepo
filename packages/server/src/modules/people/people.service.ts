@@ -6,9 +6,9 @@ export class PeopleService
 {
   constructor(private repository: PeopleRepository) {}
 
-  async getAllPeople(type?: string) 
+  async getAllPeople(filters: { type?: string; search?: string; status?: boolean }) 
   {
-    return await this.repository.findAll(type);
+    return await this.repository.findAll(filters);
   }
 
   async getPersonById(id: number) 

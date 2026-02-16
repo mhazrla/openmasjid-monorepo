@@ -73,4 +73,31 @@ export class ShortlinkController
           return reply.code(500).send({ success: false, message: 'Internal Error' });
       }
   }
+  
+  async update(req: FastifyRequest, reply: FastifyReply) 
+  {
+      try 
+      {
+          const params = z.object({ id: z.coerce.number() }).parse(req.params);
+          const body = createShortlinkSchema.partial().parse(req.body);
+          
+          const result = await this.service.update(params.id, body);
+          return reply.send({ success: true, data: result });
+      } 
+      catch (error: any) 
+      {
+          if (error.issues) 
+          {
+              return reply.code(400).send({ success: false, message: 'Validation Error', errors: error.issues });
+          }
+          if (error.message === 'Slug already exists') 
+          {
+               return reply.code(409).send({ success: false, message: 'Slug already taken' });
+          }
+
+          console.error(error);
+          
+          return reply.code(500).send({ success: false, message: 'Internal Error' });
+      }
+  }
 }

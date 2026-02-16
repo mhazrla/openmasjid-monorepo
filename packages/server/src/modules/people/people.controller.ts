@@ -12,9 +12,32 @@ export class PeopleController
     try 
     {
       const queryValidation = getPeopleQuerySchema.safeParse(req.query);
-      const type = queryValidation.success ? queryValidation.data.type : undefined;
+      
+      if (!queryValidation.success) 
+      {
+          return reply.code(400).send({ message: 'Invalid query params' });
+      }
 
-      const data = await this.service.getAllPeople(type);
+      let typeFilter = queryValidation.data.type;
+
+      if (typeFilter === 'all') 
+      {
+          typeFilter = undefined;
+      }
+
+      let statusFilter: boolean | undefined;
+
+      if (queryValidation.data.status === 'active') statusFilter = true;
+      else if (queryValidation.data.status === 'inactive') statusFilter = false;
+      else statusFilter = undefined;
+
+      const filters = {
+        type: typeFilter as string,
+        status: statusFilter,
+        search: queryValidation.data.search,
+      };
+
+      const data = await this.service.getAllPeople(filters);
 
       return reply.code(200).send({ data });
     } 
@@ -107,12 +130,15 @@ export class PeopleController
       
       if (!result) return reply.code(404).send({ message: 'Person not found' });
 
-      return reply.code(200).send({ message: 'Person deleted' });
+      return reply.code(200).send({ 
+          message: 'Person deactivated successfully', 
+          data: result 
+      });
     } 
     catch (error) 
     {
       req.log.error(error);
-      return reply.code(500).send({ message: 'Failed to delete person' });
+      return reply.code(500).send({ message: 'Failed to deactivate person' });
     }
   }
 }

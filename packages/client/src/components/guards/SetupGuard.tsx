@@ -48,8 +48,6 @@ export const SetupGuard = ({ children }: SetupGuardProps) =>
 
     if (!config || !config.cityId) 
     {
-        // Redirect to admin display settings if not configured
-        // ProtectedRoute will catch this if user is not logged in
         return <Navigate to="/admin/display" replace />;
     }
 

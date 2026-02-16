@@ -1,37 +1,73 @@
 import type { UseFormSetError, FieldValues, Path } from 'react-hook-form';
 import { toast } from 'sonner';
 
-interface ValidationError {
+interface ValidationError 
+{
     code: string;
     message: string;
     path: string[];
 }
 
-interface ApiErrorResponse {
+interface ZodFormattedError 
+{
+    _errors: string[];
+}
+
+interface ApiErrorResponse 
+{
     message?: string;
-    errors?: ValidationError[];
+    errors?: ValidationError[] | Record<string, ZodFormattedError>;
 }
 
 export const handleFormError = <T extends FieldValues>(
     error: any,
     setError: UseFormSetError<T>
-) => {
+) => 
+{
     const responseData = error?.response?.data as ApiErrorResponse;
+    const backendErrors = responseData?.errors;
 
-    if (responseData?.errors && Array.isArray(responseData.errors)) {
-        responseData.errors.forEach((err) => {
-            // Join path array to dot notation (e.g. ['contact', 'email'] -> 'contact.email')
-            const fieldName = err.path.join('.') as Path<T>;
-            
-            setError(fieldName, {
-                type: 'server',
-                message: err.message,
+    if (backendErrors) 
+    {
+        if (Array.isArray(backendErrors)) 
+        {
+            backendErrors.forEach((err) => 
+            {
+                const fieldName = err.path.join('.') as Path<T>;
+                setError(fieldName, 
+                {
+                    type: 'server',
+                    message: err.message,
+                });
             });
-        });
+        } 
+        
+        else if (typeof backendErrors === 'object') 
+        {
+            let hasMappedError = false;
 
-        toast.error('Validation failed. Please check the form.');
-    } else {
-        // Fallback for generic errors or network issues
+            Object.entries(backendErrors).forEach(([key, value]) => 
+            {
+                const errorItem = value as ZodFormattedError;
+                
+                if (errorItem && Array.isArray(errorItem._errors) && errorItem._errors.length > 0) 
+                {
+                    setError(key as Path<T>, {
+                        type: 'server',
+                        message: errorItem._errors[0]
+                    });
+                    hasMappedError = true;
+                }
+            });
+
+            if (!hasMappedError) 
+            {
+                toast.error(responseData?.message || 'Validation error occurred');
+            }
+        }
+    } 
+    else 
+    {
         const errorMessage = responseData?.message || error.message || 'An unexpected error occurred.';
         toast.error(errorMessage);
     }

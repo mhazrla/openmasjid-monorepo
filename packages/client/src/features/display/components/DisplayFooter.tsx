@@ -1,5 +1,5 @@
 import Marquee from 'react-fast-marquee';
-import { cn } from '../../../lib/utils'; // Sesuaikan path ini
+import { cn } from '../../../lib/utils'; 
 import type { PrayerTime } from '../../prayer/types';
 
 interface DisplayFooterProps 

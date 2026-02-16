@@ -16,6 +16,7 @@ export interface RamadanScheduleUI
   waterItikafQty: number;
   tarawihImam?: { name: string } | null;
   iftarSpeaker?: { name: string } | null;
+  iftarKajianTitle?: string | null;
   description?: string | null;
 }
 
@@ -33,6 +34,17 @@ export interface HaditsData
   source: string;
   arabic?: string;
 }
+export interface Hadith 
+{
+  id: number;
+  apiId: number;
+  teksArab: string | null;
+  teksIndo: string | null;
+  takhrij: string | null;
+  hikmah: string | null;
+  grade: string | null;
+}
+
 
 export interface RamadanTableWidgetProps 
 {
@@ -62,16 +74,9 @@ export interface HaditsWidgetProps
   data: HaditsData;
 }
 
-export type SlideContent =
-  | { type: 'lelang_table'; data: RamadanScheduleUI[] }
-  | { type: 'tarawih_today'; data: RamadanScheduleUI }
-  | { type: 'kajian_today'; data: RamadanScheduleUI }
-  | { type: 'poster'; data: PosterData }
-  | { type: 'hadits'; data: HaditsData };
-
 export type SlideType = SlideContent['type'];
 
-export type DisplayMode = 'normal' | 'pre_adzan' | 'adzan' | 'iqomah';
+export type DisplayMode = 'normal' | 'pre_adzan' | 'adzan' | 'iqomah' | 'shalat';
 
 export interface PrayerCountdownWidgetProps 
 {
@@ -88,3 +93,36 @@ export interface PrayerState
     targetTime: Date | null;
     prayerName: string;
 }
+
+export interface KajianSlideData 
+{
+  id: number;
+  title: string;
+  speaker: string;
+  type: string;
+  dateRaw: string;
+  posterUrl?: string;
+}
+
+export interface BankInfoData 
+{
+    bankName?: string;
+    bankAccountName?: string;
+    accountNumber?: string;
+    qrisUrl?: string;
+    mosqueName: string;
+}
+
+export interface BankInfoWidgetProps 
+{
+    data: BankInfoData;
+}
+
+export type SlideContent =
+  | { type: 'lelang_table'; data: RamadanScheduleUI[] }
+  | { type: 'tarawih_today'; data: RamadanScheduleUI }
+  | { type: 'kajian_today'; data: RamadanScheduleUI }
+  | { type: 'kajian_event'; data: KajianSlideData }
+  | { type: 'poster'; data: PosterData }
+  | { type: 'hadits'; data: HaditsData }
+  | { type: 'bank_info'; data: BankInfoData };

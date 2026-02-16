@@ -11,6 +11,7 @@ import { calculateDistance } from '../../lib/geo';
 import { ActionButton } from '../../components/ui/ActionButton';
 import { cn } from '../../lib/utils';
 import { useBeep } from '../../hooks/use-beep';
+import { handleFormError } from '../../utils/form-error';
 
 const CITY_OPTIONS = CITIES.map(c => ({ value: c.id, label: c.name }));
 
@@ -19,7 +20,7 @@ export const DisplayConfigPage = () =>
     const { data: config, isLoading }   = useDisplayConfig();
     const updateMutation                = useUpdateDisplayConfig();
     const [isLocating, setIsLocating]   = useState(false);
-    const { register, control, handleSubmit, reset, setValue, watch, formState: { errors, isDirty } } = useForm<UpdateDisplayConfigDto>();
+    const { register, control, handleSubmit, reset, setValue, watch, formState: { errors, isDirty }, setError } = useForm<UpdateDisplayConfigDto>();
     const enableBeepWatch               = watch('enableBeep');
     const { playBeep }                  = useBeep(enableBeepWatch);
 
@@ -36,6 +37,13 @@ export const DisplayConfigPage = () =>
                 // Durations
                 preAdzanDuration: config.preAdzanDuration,
                 adzanDuration: config.adzanDuration,
+                shalatDuration: config.shalatDuration ?? 10,
+
+                // Toggles
+                enablePreAdzan: config.enablePreAdzan ?? true,
+                enableAdzan: config.enableAdzan ?? true,
+                enableIqomah: config.enableIqomah ?? true,
+                enableShalat: config.enableShalat ?? true,
                 
                 // Iqomah
                 iqomahDelaySubuh: config.iqomahDelaySubuh,
@@ -98,42 +106,50 @@ export const DisplayConfigPage = () =>
         );
     };
 
-    const onSubmit = (data: UpdateDisplayConfigDto) => 
+    const onSubmit = async (data: UpdateDisplayConfigDto) => 
     {
-        const payload: UpdateDisplayConfigDto = {
-            ...data,
-            // Number casting safety
-            preAdzanDuration: Number(data.preAdzanDuration),
-            adzanDuration: Number(data.adzanDuration),
-            beepReminderDuration: Number(data.beepReminderDuration),
-            
-            iqomahDelaySubuh: Number(data.iqomahDelaySubuh),
-            iqomahDelayDzuhur: Number(data.iqomahDelayDzuhur),
-            iqomahDelayAshar: Number(data.iqomahDelayAshar),
-            iqomahDelayMaghrib: Number(data.iqomahDelayMaghrib),
-            iqomahDelayIsya: Number(data.iqomahDelayIsya),
-            
-            adjSubuh: Number(data.adjSubuh),
-            adjTerbit: Number(data.adjTerbit),
-            adjDhuha: Number(data.adjDhuha),
-            adjDzuhur: Number(data.adjDzuhur),
-            adjAshar: Number(data.adjAshar),
-            adjMaghrib: Number(data.adjMaghrib),
-            adjIsya: Number(data.adjIsya),
-            
-            enableBeep: Boolean(data.enableBeep),
-            runningText: data.runningText,
-        };
+        try 
+        {
+            const payload: UpdateDisplayConfigDto = {
+                ...data,
+                // Number casting safety
+                preAdzanDuration: Number(data.preAdzanDuration),
+                adzanDuration: Number(data.adzanDuration),
+                shalatDuration: Number(data.shalatDuration),
+                
+                enablePreAdzan: Boolean(data.enablePreAdzan),
+                enableAdzan: Boolean(data.enableAdzan),
+                enableIqomah: Boolean(data.enableIqomah),
+                enableShalat: Boolean(data.enableShalat),
+                beepReminderDuration: Number(data.beepReminderDuration),
+                
+                iqomahDelaySubuh: Number(data.iqomahDelaySubuh),
+                iqomahDelayDzuhur: Number(data.iqomahDelayDzuhur),
+                iqomahDelayAshar: Number(data.iqomahDelayAshar),
+                iqomahDelayMaghrib: Number(data.iqomahDelayMaghrib),
+                iqomahDelayIsya: Number(data.iqomahDelayIsya),
+                
+                adjSubuh: Number(data.adjSubuh),
+                adjTerbit: Number(data.adjTerbit),
+                adjDhuha: Number(data.adjDhuha),
+                adjDzuhur: Number(data.adjDzuhur),
+                adjAshar: Number(data.adjAshar),
+                adjMaghrib: Number(data.adjMaghrib),
+                adjIsya: Number(data.adjIsya),
+                
+                enableBeep: Boolean(data.enableBeep),
+                runningText: data.runningText,
+            };
 
-        updateMutation.mutate(payload, {
-            onSuccess: () => {
-                toast.success('Configuration updated successfully!');
-                reset(payload);
-            },
-            onError: () => {
-                toast.error('Failed to update configuration.');
-            }
-        });
+            await updateMutation.mutateAsync(payload);
+            toast.success('Configuration updated successfully!');
+            reset(payload);
+        } 
+        catch (err: any) 
+        {
+            console.error(err);
+            handleFormError(err, setError);
+        }
     };
 
     if (isLoading) {
@@ -177,10 +193,20 @@ export const DisplayConfigPage = () =>
                                     Auto Detect
                                 </ActionButton>
                             </div>
-                            <Select
-                                options={CITY_OPTIONS}
-                                {...register('cityId', { required: 'City is required' })}
-                                error={errors.cityId?.message}
+                            <Controller
+                                control={control}
+                                name="cityId"
+                                rules={{ required: 'City is required' }}
+                                render={({ field: { value, onChange } }) => (
+                                    <Select
+                                        options={CITY_OPTIONS}
+                                        value={value}
+                                        onChange={onChange}
+                                        error={errors.cityId?.message}
+                                        searchable
+                                        placeholder="Select City"
+                                    />
+                                )}
                             />
                         </div>
 
@@ -267,29 +293,122 @@ export const DisplayConfigPage = () =>
                     </div>
                 </div>
 
-                {/* --- Section 2: Global Timings (Hanya positif) --- */}
+                {/* --- Section 2: Display Modes & Timings --- */}
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
                         <Clock className="w-4 h-4 text-slate-500" />
-                        <h2 className="font-semibold text-slate-900">Global Timings (Minutes)</h2>
+                        <h2 className="font-semibold text-slate-900">Display Modes & Timings</h2>
                     </div>
-                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Input
-                            label="Pre-Adzan Duration"
-                            description="How long standby screen appears before Adzan"
-                            type="number"
-                            min="0"
-                            {...register('preAdzanDuration', { min: 0 })}
-                            error={errors.preAdzanDuration && "Must be 0 or more"}
-                        />
-                        <Input
-                            label="Adzan Duration"
-                            description="Duration of Adzan display before Iqomah countdown"
-                            type="number"
-                            min="0"
-                            {...register('adzanDuration', { min: 0 })}
-                            error={errors.adzanDuration && "Must be 0 or more"}
-                        />
+                    <div className="p-0 divide-y divide-slate-100">
+                        {/* 1. Pre-Adzan */}
+                        <div className="p-4 flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <Controller
+                                        control={control}
+                                        name="enablePreAdzan"
+                                        render={({ field: { value, onChange } }) => (
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" className="sr-only peer" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
+                                                <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                            </label>
+                                        )}
+                                    />
+                                    <span className="font-medium text-slate-900">Pre-Adzan</span>
+                                </div>
+                                <p className="text-xs text-slate-500 pl-12">Countdown to Adzan.</p>
+                            </div>
+                            <div className="w-24">
+                                <Input 
+                                    type="number" 
+                                    min="0" 
+                                    className="h-8 text-sm"
+                                    placeholder="Min"
+                                    {...register('preAdzanDuration', { min: 0 })}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 2. Adzan */}
+                        <div className="p-4 flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <Controller
+                                        control={control}
+                                        name="enableAdzan"
+                                        render={({ field: { value, onChange } }) => (
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" className="sr-only peer" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
+                                                <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                            </label>
+                                        )}
+                                    />
+                                    <span className="font-medium text-slate-900">Adzan</span>
+                                </div>
+                                <p className="text-xs text-slate-500 pl-12">"Adzan Berkumandang" screen.</p>
+                            </div>
+                            <div className="w-24">
+                                <Input 
+                                    type="number" 
+                                    min="0" 
+                                    className="h-8 text-sm"
+                                    placeholder="Min"
+                                    {...register('adzanDuration', { min: 0 })}
+                                />
+                            </div>
+                        </div>
+
+                        {/* 3. Iqomah */}
+                        <div className="p-4 flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <Controller
+                                        control={control}
+                                        name="enableIqomah"
+                                        render={({ field: { value, onChange } }) => (
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" className="sr-only peer" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
+                                                <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                            </label>
+                                        )}
+                                    />
+                                    <span className="font-medium text-slate-900">Iqomah</span>
+                                </div>
+                                <p className="text-xs text-slate-500 pl-12">Countdown to Shalat. (Durations set below)</p>
+                            </div>
+                             <div className="w-24 opacity-50 text-xs text-center flex items-center justify-center">
+                                See Below
+                            </div>
+                        </div>
+
+                        {/* 4. Shalat */}
+                        <div className="p-4 flex items-center justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <Controller
+                                        control={control}
+                                        name="enableShalat"
+                                        render={({ field: { value, onChange } }) => (
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input type="checkbox" className="sr-only peer" checked={!!value} onChange={(e) => onChange(e.target.checked)} />
+                                                <div className="w-9 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                                            </label>
+                                        )}
+                                    />
+                                    <span className="font-medium text-slate-900">Shalat Mode</span>
+                                </div>
+                                <p className="text-xs text-slate-500 pl-12">"Luruskan Shaf" screen / dark screen.</p>
+                            </div>
+                            <div className="w-24">
+                                <Input 
+                                    type="number" 
+                                    min="0" 
+                                    className="h-8 text-sm"
+                                    placeholder="Min"
+                                    {...register('shalatDuration', { min: 0 })}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 

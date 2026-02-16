@@ -37,6 +37,7 @@ export const updateRamadanScheduleSchema = z.object({
 
   // 3. Iftar Meal & Lecture (Makan Berat & Kajian)
   iftarSpeakerId: z.number().int().optional().nullable(),
+  iftarKajianTitle: z.string().optional().nullable(),
   iftarMealQty: z.number().int().optional(),
   iftarMealStatus: z.enum(['open', 'close']).optional(),
 

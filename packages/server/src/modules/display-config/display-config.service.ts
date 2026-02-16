@@ -12,12 +12,12 @@ export class DisplayConfigService
     private prayerTimeService: PrayerTimeService
   ) {}
 
-  async getConfig() 
+  async get() 
   {
     return this.repository.getOrInit();
   }
 
-  async updateConfig(data: UpdateDisplayConfigDto) 
+  async update(data: UpdateDisplayConfigDto) 
   {
     const currentConfig = await this.repository.getOrInit();
     const isCityChanged = data.cityId && data.cityId !== currentConfig.cityId;
