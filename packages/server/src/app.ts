@@ -45,7 +45,7 @@ export const buildApp = async () =>
     decorateReply: false
   });
 
-  const frontendDistPath = path.resolve(__dirname, '../../client/dist');
+  const frontendDistPath = process.env.FRONTEND_PATH || path.resolve(process.cwd(), '../client/dist');
   
   if (fs.existsSync(frontendDistPath)) 
   {
