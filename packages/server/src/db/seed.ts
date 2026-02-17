@@ -1,8 +1,10 @@
   import 'dotenv/config';
   import { db } from './index'; 
-  import { users, people, mosqueProfile, displayConfig, accounts, coaCategories } from './schema';
+  import { users, people, mosqueProfile, displayConfig, accounts, coaCategories, hadisEnc } from './schema';
   import { eq } from 'drizzle-orm';
   import bcrypt from 'bcryptjs';
+  import fs from 'fs';
+  import path from 'path';
 
   const IMAM_LIST = [
     "Ust. Dr. Muhammad Yasir, M.A.",
@@ -117,6 +119,40 @@
           {
           console.log(`   . Skipped: ${name} (Already exists)`);
         }
+      }
+
+      // 4. Seed Hadiths
+      try 
+      {
+        const hadithPath = path.resolve(__dirname, './seeds/data/hadiths.json');
+        if (fs.existsSync(hadithPath)) 
+          {
+            console.log('📖 Seeding Hadiths from JSON...');
+            const hadithData = JSON.parse(fs.readFileSync(hadithPath, 'utf-8'));
+            
+            if (hadithData.length > 0) 
+            {
+                 // SQLite limit variables, better to batch
+                const batchSize = 100;
+                for (let i = 0; i < hadithData.length; i += batchSize) 
+                {
+                    const batch = hadithData.slice(i, i + batchSize).map((item: any) => ({
+                        ...item,
+                        createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+                        updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date(),
+                    }));
+                    await db.insert(hadisEnc).values(batch).onConflictDoNothing();
+                }
+                console.log(`   + Seeded ${hadithData.length} hadiths.`);
+            }
+        } 
+        else 
+        {
+             console.log('   ! No hadiths.json found, skipping hadith seeding.');
+        }
+      } catch (e) 
+      {
+         console.warn('   ! Failed to seed hadiths:', e);
       }
 
       console.log('🏁 Seeding completed successfully!');

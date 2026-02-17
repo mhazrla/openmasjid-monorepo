@@ -25,10 +25,10 @@ export class DisplayConfigService
     if (isCityChanged) 
     {
       // Atomic Transaction (Wipe + Update)
-      db.transaction(() => 
+      await db.transaction(async (tx) => 
       {
-        db.delete(dailyPrayerTimes).run();
-        db.update(displayConfig)
+        await tx.delete(dailyPrayerTimes).run();
+        await tx.update(displayConfig)
           .set({ ...data, updatedAt: new Date() })
           .where(eq(displayConfig.id, 1))
           .run();

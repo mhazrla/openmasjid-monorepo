@@ -36,17 +36,17 @@ export class RamadanRepository
     return config || null;
   }
 
-  initializeConfig(data: CreateRamadanConfigDto) 
+  async initializeConfig(data: CreateRamadanConfigDto) 
   {
-    return db.transaction((tx) => 
+    return await db.transaction(async (tx) => 
     {
       
-      tx.update(ramadanConfigs)
+      await tx.update(ramadanConfigs)
         .set({ isActive: false })
         .where(eq(ramadanConfigs.isActive, true))
         .run(); 
 
-      const insertResult = tx.insert(ramadanConfigs).values({
+      const insertResult: any = await tx.insert(ramadanConfigs).values({
         hijriYear: data.hijriYear,
         gregorianYear: data.gregorianYear,
         title: data.title,
@@ -88,7 +88,7 @@ export class RamadanRepository
 
       if (schedulesToInsert.length > 0) 
       {
-        tx.insert(ramadanSchedules).values(schedulesToInsert).run();
+        await tx.insert(ramadanSchedules).values(schedulesToInsert).run();
       }
 
       return newConfig;

@@ -1,16 +1,18 @@
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
+import { migrate } from 'drizzle-orm/sqlite-proxy/migrator';
 import { db } from './index';
 
-const runMigrate = () => {
+const runMigrate = async () => {
   console.log('⏳ Migrating database...');
 
-  try 
-  {
-    migrate(db, { migrationsFolder: 'drizzle' });
+  try {
+    await migrate(db, async (queries) => {
+      for (const query of queries) {
+        await db.run(query as any);
+      }
+    }, { migrationsFolder: 'drizzle' });
     console.log('✅ Migrasi SUCCESS! Database sqlite.db is ready to use.');
-  } 
-  catch (error) 
-  {
+    process.exit(0);
+  } catch (error) {
     console.error('❌ Migrasi FAILED:', error);
     process.exit(1);
   }
