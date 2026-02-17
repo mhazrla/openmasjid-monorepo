@@ -1,6 +1,9 @@
 {
   "name": "openmasjid-monorepo",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "concurrently \"pnpm dev:server\" \"pnpm dev:client\" --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\"",
     "dev:client": "pnpm --filter client dev",
