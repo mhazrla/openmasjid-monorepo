@@ -1,8 +1,10 @@
   import 'dotenv/config';
-  import { db } from './index'; 
-  import { users, people, mosqueProfile, displayConfig, accounts, coaCategories } from './schema';
-  import { eq } from 'drizzle-orm';
+  import fs from 'fs';
+  import path from 'path';
   import bcrypt from 'bcryptjs';
+  import { eq } from 'drizzle-orm';
+  import { db } from './index'; 
+  import { users, people, mosqueProfile, displayConfig, accounts, coaCategories, hadisEnc } from './schema';
 
   const IMAM_LIST = [
     "Ust. Dr. Muhammad Yasir, M.A.",
@@ -59,36 +61,36 @@
         console.log('✅ Admin user created');
       }
 
-      // 2. Master Data (Idempotent)
-      await db.insert(mosqueProfile).values({
-        id: 1,
-        name: 'Masjid Jami At-Tadzkirah',
-        address: 'Sindangmulya, Kec. Cibarusah, Kabupaten Bekasi, Jawa Barat 17340',
-        logoUrl: '',
-        qrisUrl: '',
-        letterheadConfig: {
-          headerText: '',
-          logoPosition: 'left',
-          font: 'Arial'
-        }
-      }).onConflictDoNothing();
+    // 2. Master Data (Idempotent)
+    await db.insert(mosqueProfile).values({
+      id: 1,
+      name: 'Masjid Jami At-Tadzkirah',
+      address: 'Sindangmulya, Kec. Cibarusah, Kabupaten Bekasi, Jawa Barat 17340',
+      logoUrl: '',
+      qrisUrl: '',
+      letterheadConfig: {
+        headerText: '',
+        logoPosition: 'left',
+        font: 'Arial'
+      }
+    }).onConflictDoNothing();
 
-      await db.insert(displayConfig).values({
-        id: 1,
-        cityId: process.env.DEFAULT_CITY_ID as string || '1204', // Default Bekasi
-        runningText: 'Mohon lurus dan rapatkan shaf.',
-      }).onConflictDoNothing();
+    await db.insert(displayConfig).values({
+      id: 1,
+      cityId: process.env.DEFAULT_CITY_ID as string || '1204', // Default Bekasi
+      runningText: 'Mohon lurus dan rapatkan shaf.',
+    }).onConflictDoNothing();
 
-      await db.insert(coaCategories).values([
-        { name: 'Infaq Jumat', type: 'income' },
-        { name: 'Operasional', type: 'expense' },
-      ]).onConflictDoNothing();
+    await db.insert(coaCategories).values([
+      { name: 'Infaq Jumat', type: 'income' },
+      { name: 'Operasional', type: 'expense' },
+    ]).onConflictDoNothing();
 
-      await db.insert(accounts).values({
-        name: 'Kas Tunai',
-        balance: 0,
-        isActive: true
-      }).onConflictDoNothing();
+    await db.insert(accounts).values({
+      name: 'Kas Tunai',
+      balance: 0,
+      isActive: true
+    }).onConflictDoNothing();
 
       // 3. Seed Imams (NEW SECTION)
       console.log('Start seeding Imams...');
@@ -117,6 +119,30 @@
           {
           console.log(`   . Skipped: ${name} (Already exists)`);
         }
+      }
+
+      // 4. Seed Hadiths
+      try {
+        const hadithsPath = path.resolve(__dirname, 'seeds/data/hadiths.json');
+        if (fs.existsSync(hadithsPath)) {
+          console.log('Start seeding Hadiths...');
+          const hadithsData = JSON.parse(fs.readFileSync(hadithsPath, 'utf-8'));
+          
+          if (Array.isArray(hadithsData) && hadithsData.length > 0) {
+            // Batch insert in chunks of 50
+            const batchSize = 50;
+            for (let i = 0; i < hadithsData.length; i += batchSize) {
+              const batch = hadithsData.slice(i, i + batchSize);
+              await db.insert(hadisEnc).values(batch).onConflictDoNothing();
+              process.stdout.write(`\r   + Inserted batch ${i / batchSize + 1}/${Math.ceil(hadithsData.length / batchSize)}`);
+            }
+            console.log('\n   ✅ Hadiths seeded');
+          }
+        } else {
+          console.log('   . Skipped hadiths (File not found)');
+        }
+      } catch (e) {
+        console.error('   ❌ Failed to seed hadiths:', e);
       }
 
       console.log('🏁 Seeding completed successfully!');

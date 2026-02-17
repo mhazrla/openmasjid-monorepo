@@ -36,17 +36,15 @@ export class RamadanRepository
     return config || null;
   }
 
-  initializeConfig(data: CreateRamadanConfigDto) 
+  async initializeConfig(data: CreateRamadanConfigDto) 
   {
-    return db.transaction((tx) => 
+    return await db.transaction(async (tx) => 
     {
-      
-      tx.update(ramadanConfigs)
+      await tx.update(ramadanConfigs)
         .set({ isActive: false })
-        .where(eq(ramadanConfigs.isActive, true))
-        .run(); 
+        .where(eq(ramadanConfigs.isActive, true));
 
-      const insertResult = tx.insert(ramadanConfigs).values({
+      const [insertedConfig] = await tx.insert(ramadanConfigs).values({
         hijriYear: data.hijriYear,
         gregorianYear: data.gregorianYear,
         title: data.title,
@@ -54,16 +52,14 @@ export class RamadanRepository
         badalImamText: data.badalImamText,
         footerNote: data.footerNote,
         isActive: true
-      }).run(); 
+      }).returning(); 
 
-      const newConfigId = Number(insertResult.lastInsertRowid);
+      const newConfigId = insertedConfig.id;
       const newConfig = {
-        id: newConfigId,
+        ...insertedConfig,
         ...data,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date()
       };
+
       const startDate = new Date(data.startDate); 
       const schedulesToInsert: InsertRamadanSchedule[] = [];
 
@@ -88,7 +84,7 @@ export class RamadanRepository
 
       if (schedulesToInsert.length > 0) 
       {
-        tx.insert(ramadanSchedules).values(schedulesToInsert).run();
+        await tx.insert(ramadanSchedules).values(schedulesToInsert);
       }
 
       return newConfig;

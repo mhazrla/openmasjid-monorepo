@@ -1,47 +1,69 @@
 
-import { db } from '../db';
-import { hadisEnc } from '../db/schema';
-import { sql } from 'drizzle-orm';
+import fs from 'fs';
+import path from 'path';
 
 const API_URL = 'https://api.myquran.com/v3/hadis/enc/explore';
-const DELAY_MIN = 500;
-const DELAY_MAX = 1500;
+const TARGET_FILE = path.resolve(__dirname, '../db/seeds/data/hadiths.json');
+const TARGET_COUNT = 500;
+const DELAY_MIN = 7000;
+const DELAY_MAX = 10000;
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 const randomDelay = () => Math.floor(Math.random() * (DELAY_MAX - DELAY_MIN + 1) + DELAY_MIN);
 
-async function main() {
-    console.log('\x1b[36m%s\x1b[0m', '=== Hadith Enc Scraper Bot Started (All Grades) ===');
-    console.log('Target: api.myquran.com/v3/hadis/enc/explore');
-    console.log('Filter: None (Fetch All)\n');
+let accumulatedHadiths: any[] = [];
+
+// Handle interruption
+process.on('SIGINT', () => 
+{
+    console.log('\n\nCaught interrupt signal.');
+    saveData();
+    process.exit(0);
+});
+
+function saveData() 
+{
+    if (accumulatedHadiths.length === 0) 
+    {
+        console.log('No data to save.');
+        return;
+    }
+    console.log(`Writing ${accumulatedHadiths.length} hadiths to file...`);
+    const dir = path.dirname(TARGET_FILE);
+    if (!fs.existsSync(dir)) 
+    {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(TARGET_FILE, JSON.stringify(accumulatedHadiths, null, 2));
+    console.log(`✅ Saved to ${TARGET_FILE}`);
+}
+
+async function main() 
+{
+    console.log('\x1b[36m%s\x1b[0m', '=== Hadith Enc Scraper & Exporter Started ===');
+    console.log(`Target: Fetch ${TARGET_COUNT} hadiths -> ${TARGET_FILE}\n`);
 
     let page = 1;
-    let limit = 10;
+    let limit = 10; 
     let hasNext = true;
-    let totalProcessed = 0;
-    let totalInserted = 0;
-    let stats = {
-        Shahih: 0,
-        Hasan: 0,
-        Dhaif: 0,
-        Maudhu: 0,
-        Other: 0
-    };
-
-    try {
-        while (hasNext) {
-            process.stdout.write(`\r\x1b[KFetching page ${page}...`);
+    
+    try 
+    {
+        while (hasNext && accumulatedHadiths.length < TARGET_COUNT) 
+        {
+            process.stdout.write(`\r\x1b[KFetching page ${page} (Got ${accumulatedHadiths.length}/${TARGET_COUNT})...`);
 
             const response = await fetch(`${API_URL}?page=${page}&limit=${limit}`);
-            if (!response.ok) {
-                console.error(`\nFailed to fetch page ${page}: ${response.statusText}`);
-                // Simple retry logic or skip? Let's skip to next page if it's a specific error, but loop breaks usually.
-                // If 429, maybe wait longer?
-                 if (response.status === 429) {
+            if (!response.ok) 
+            {
+                console.error(`\nFailed to fetch page ${page}: ${response.status} ${response.statusText}`);
+                const text = await response.text();
+                console.error('Response body:', text);
+                if (response.status === 429) 
+                {
                     console.log('\nRate limit hit. Waiting 10s...');
                     await delay(10000);
-                    continue; // Retry same page
+                    continue; 
                 }
                 break;
             }
@@ -50,59 +72,43 @@ async function main() {
             const hadiths = data.data.hadis;
             const paging = data.data.paging;
 
-            if (!hadiths || hadiths.length === 0) {
+            if (!hadiths || hadiths.length === 0) 
+            {
                 console.log('\nNo more data found.');
                 break;
             }
 
-            for (const h of hadiths) {
-                totalProcessed++;
-                
-                // Categorize for stats
-                const g = h.grade ? h.grade.trim() : 'Unknown';
-                if (g.toLowerCase().includes('shahih') || g.toLowerCase().includes('sahih')) stats.Shahih++;
-                else if (g.toLowerCase().includes('hasan')) stats.Hasan++;
-                else if (g.toLowerCase().includes('dhaif') || g.toLowerCase().includes('daif')) stats.Dhaif++;
-                else if (g.toLowerCase().includes('maudhu')) stats.Maudhu++;
-                else stats.Other++;
+            for (const h of hadiths) 
+            {
+                if (accumulatedHadiths.length >= TARGET_COUNT) break;
 
-                try {
-                    const result = await db.insert(hadisEnc).values({
-                        apiId: h.id,
-                        teksArab: h.text?.ar,
-                        teksIndo: h.text?.id,
-                        takhrij: h.takhrij,
-                        hikmah: h.hikmah,
-                        grade: g
-                    }).onConflictDoNothing().returning();
-
-                    if (result.length > 0) {
-                        totalInserted++;
-                    }
-                } catch (err) {
-                    console.error(`\nError inserting hadith ${h.id}:`, err);
-                }
+                accumulatedHadiths.push({
+                    apiId: h.id,
+                    teksArab: h.text?.ar,
+                    teksIndo: h.text?.id,
+                    takhrij: h.takhrij,
+                    hikmah: h.hikmah,
+                    grade: h.grade ? h.grade.trim() : 'Unknown'
+                });
             }
 
-            // Dashboard Update
-            process.stdout.write(`\r\x1b[K\x1b[32m[RUNNING]\x1b[0m Page: ${page} | Processed: ${totalProcessed} | Inserted: ${totalInserted} | Grades: S:${stats.Shahih} H:${stats.Hasan} D:${stats.Dhaif}`);
-
-            if (!paging.has_next) {
+            if (!paging.has_next) 
+            {
                 hasNext = false;
-            } else {
+            } 
+            else 
+            {
                 page++;
-                const waitTime = randomDelay();
-                await delay(waitTime);
+                await delay(randomDelay());
             }
         }
 
-        console.log('\n\n\x1b[32m=== SCRAPING COMPLETED ===\x1b[0m');
-        console.log(`Total Pages: ${page}`);
-        console.log(`Total Processed: ${totalProcessed}`);
-        console.log(`Total Inserted: ${totalInserted}`);
-        console.log('Stats:', stats);
+        console.log('\n\nScraping finished normally.');
+        saveData();
 
-    } catch (error) {
+    } 
+    catch (error) 
+    {
         console.error('\n\x1b[31mFatal Error:\x1b[0m', error);
         process.exit(1);
     }

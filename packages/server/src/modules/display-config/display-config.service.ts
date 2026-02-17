@@ -24,14 +24,12 @@ export class DisplayConfigService
 
     if (isCityChanged) 
     {
-      // Atomic Transaction (Wipe + Update)
-      db.transaction(() => 
+      await db.transaction(async (tx) => 
       {
-        db.delete(dailyPrayerTimes).run();
-        db.update(displayConfig)
+        await tx.delete(dailyPrayerTimes);
+        await tx.update(displayConfig)
           .set({ ...data, updatedAt: new Date() })
-          .where(eq(displayConfig.id, 1))
-          .run();
+          .where(eq(displayConfig.id, 1));
       });
 
       await this.triggerAutoSync(data.cityId!); // Fire and forget or await? User said "SETELAH transaction sukses".

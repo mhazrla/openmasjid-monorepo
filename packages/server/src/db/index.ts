@@ -1,13 +1,13 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from './schema';
+import 'dotenv/config';
 
-import path from 'path';
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is not set');
+}
 
-// Resolve database path relative to this file (src/db/index.ts)
-// Production: dist/db/index.js -> ../../sqlite.db
-// Development: src/db/index.ts -> ../../sqlite.db
-const dbPath = path.resolve(__dirname, '../../sqlite.db');
+// Disable prefetch as it is not supported for "Transaction" pool mode
+const client = postgres(process.env.DATABASE_URL, { prepare: false });
 
-const sqlite = new Database(dbPath);
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });

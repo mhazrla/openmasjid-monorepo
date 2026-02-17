@@ -1,15 +1,14 @@
 import { sql, relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { pgTable, text, integer, boolean, timestamp, json, doublePrecision, serial } from 'drizzle-orm/pg-core';
 
 // Helper for timestamps
-const timestampConfig = { mode: 'timestamp' as const };
-const createdAt = integer('created_at', timestampConfig).notNull().default(sql`(unixepoch())`);
-const updatedAt = integer('updated_at', timestampConfig).notNull().default(sql`(unixepoch())`).$onUpdate(() => new Date());
+const createdAt = timestamp('created_at').notNull().defaultNow();
+const updatedAt = timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date());
 
 // --- 1. Core & Config ---
 
-export const mosqueProfile = sqliteTable('mosque_profile', {
-  id: integer('id').primaryKey(),
+export const mosqueProfile = pgTable('mosque_profile', {
+  id: serial('id').primaryKey(),
   name: text('name').notNull(),
   address: text('address').notNull(),
   bankName: text('bank_name'),
@@ -17,16 +16,16 @@ export const mosqueProfile = sqliteTable('mosque_profile', {
   bankAccountNumber: text('no_rekening'),
   logoUrl: text('logo_url'),
   qrisUrl: text('qris_url'),
-  letterheadConfig: text('kop_surat_config', { mode: 'json' }).$type<{
+  letterheadConfig: json('kop_surat_config').$type<{
     headerText: string;
     logoPosition: 'left' | 'center' | 'right';
     font: string;
   }>(),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const displayConfig = sqliteTable('display_config', {
-  id: integer('id').primaryKey(), // Singleton ID 1
+export const displayConfig = pgTable('display_config', {
+  id: serial('id').primaryKey(), // Singleton ID 1
   cityId: text('city_id').notNull(),
   runningText: text('running_text').default('Please straighten and tighten the rows...'),
   
@@ -41,10 +40,10 @@ export const displayConfig = sqliteTable('display_config', {
   shalatDuration: integer('shalat_duration').notNull().default(10),
 
   // Mode Toggles
-  enablePreAdzan: integer('enable_pre_adzan', { mode: 'boolean' }).notNull().default(true),
-  enableAdzan: integer('enable_adzan', { mode: 'boolean' }).notNull().default(true),
-  enableIqomah: integer('enable_iqomah', { mode: 'boolean' }).notNull().default(true),
-  enableShalat: integer('enable_shalat', { mode: 'boolean' }).notNull().default(true),
+  enablePreAdzan: boolean('enable_pre_adzan').notNull().default(true),
+  enableAdzan: boolean('enable_adzan').notNull().default(true),
+  enableIqomah: boolean('enable_iqomah').notNull().default(true),
+  enableShalat: boolean('enable_shalat').notNull().default(true),
 
   // Time Adjustments (Minutes)
   adjSubuh: integer('adj_subuh').notNull().default(0),
@@ -56,55 +55,55 @@ export const displayConfig = sqliteTable('display_config', {
   adjIsya: integer('adj_isya').notNull().default(0),
 
   // Audio
-  enableBeep: integer('enable_beep', { mode: 'boolean' }).notNull().default(true),
+  enableBeep: boolean('enable_beep').notNull().default(true),
   beepReminderDuration: integer('beep_reminder_duration').notNull().default(30),
 
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const shortlinks = sqliteTable('shortlinks', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const shortlinks = pgTable('shortlinks', {
+  id: serial('id').primaryKey(),
   slug: text('slug').notNull().unique(), 
   originalUrl: text('original_url').notNull(),
   description: text('description'),
   clicks: integer('clicks').notNull().default(0),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
 // --- 2. People Management (SDM) ---
 
-export const people = sqliteTable('people', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const people = pgTable('people', {
+  id: serial('id').primaryKey(),
   name: text('name').notNull(),
   type: text('type').$type<'jamaah' | 'ustadz' | 'pengurus'>().notNull(),
   phoneNumber: text('no_hp'),
   address: text('address'),
-  status: integer('status', { mode: 'boolean' }).default(true),
-  ...{ createdAt, updatedAt }
+  status: boolean('status').default(true),
+  createdAt, updatedAt
 });
 
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: text('role').$type<'superadmin' | 'admin' | 'bendahara' | 'display'>().notNull().default('admin'),
   tokenVersion: integer('token_version').notNull().default(0),
   personId: integer('person_id').references(() => people.id),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const meetingMinutes = sqliteTable('meeting_minutes', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const meetingMinutes = pgTable('meeting_minutes', {
+  id: serial('id').primaryKey(),
   title: text('judul').notNull(),
-  attendanceDate: integer('tanggal', timestampConfig).notNull(),
+  attendanceDate: timestamp('tanggal').notNull(),
   content: text('isi').notNull(),
-  attendees: text('list_hadir', { mode: 'json' }).$type<string[]>(),
-  ...{ createdAt, updatedAt }
+  attendees: json('list_hadir').$type<string[]>(),
+  createdAt, updatedAt
 });
 
 // --- 3. Worship & Schedules ---
 
-export const dailyPrayerTimes = sqliteTable('daily_prayer_times', {
+export const dailyPrayerTimes = pgTable('daily_prayer_times', {
   date: text('date').primaryKey(), 
   imsak: text('imsak').notNull(),
   subuh: text('subuh').notNull(),
@@ -114,11 +113,11 @@ export const dailyPrayerTimes = sqliteTable('daily_prayer_times', {
   ashar: text('ashar').notNull(),
   maghrib: text('maghrib').notNull(),
   isya: text('isya').notNull(),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const weeklyRoster = sqliteTable('weekly_roster', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const weeklyRoster = pgTable('weekly_roster', {
+  id: serial('id').primaryKey(),
   dayOfWeek: integer('day_of_week').notNull(),
   fajrImamId: integer('fajr_imam_id').references(() => people.id),
   fajrMuadzinId: integer('fajr_muadzin_id').references(() => people.id),
@@ -130,12 +129,12 @@ export const weeklyRoster = sqliteTable('weekly_roster', {
   maghribMuadzinId: integer('maghrib_muadzin_id').references(() => people.id),
   ishaImamId: integer('isha_imam_id').references(() => people.id),
   ishaMuadzinId: integer('isha_muadzin_id').references(() => people.id),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const prayerSchedules = sqliteTable('prayer_schedules', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  date: integer('date', timestampConfig).notNull(),
+export const prayerSchedules = pgTable('prayer_schedules', {
+  id: serial('id').primaryKey(),
+  date: timestamp('date').notNull(),
   fajrImamId: integer('fajr_imam_id').references(() => people.id),
   fajrMuadzinId: integer('fajr_muadzin_id').references(() => people.id),
   dhuhurImamId: integer('dhuhur_imam_id').references(() => people.id),
@@ -146,34 +145,34 @@ export const prayerSchedules = sqliteTable('prayer_schedules', {
   maghribMuadzinId: integer('maghrib_muadzin_id').references(() => people.id),
   ishaImamId: integer('isha_imam_id').references(() => people.id),
   ishaMuadzinId: integer('isha_muadzin_id').references(() => people.id),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const fridaySchedules = sqliteTable('friday_schedules', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  date: integer('date', timestampConfig).notNull(),
+export const fridaySchedules = pgTable('friday_schedules', {
+  id: serial('id').primaryKey(),
+  date: timestamp('date').notNull(),
   khatibId: integer('khatib_id').references(() => people.id),
   imamId: integer('imam_id').references(() => people.id),
   muadzinId: integer('muadzin_id').references(() => people.id),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const ramadanConfigs = sqliteTable('ramadan_configs', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const ramadanConfigs = pgTable('ramadan_configs', {
+  id: serial('id').primaryKey(),
   hijriYear: integer('hijri_year').notNull(),
   gregorianYear: integer('gregorian_year').notNull(),
   title: text('title').notNull(),
   subtitle: text('subtitle'),
   badalImamText: text('badal_imam'),
   footerNote: text('footer_note'),
-  isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  ...{ createdAt, updatedAt }
+  isActive: boolean('is_active').default(true),
+  createdAt, updatedAt
 });
 
-export const ramadanSchedules = sqliteTable('ramadan_schedules', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const ramadanSchedules = pgTable('ramadan_schedules', {
+  id: serial('id').primaryKey(),
   configId: integer('config_id').references(() => ramadanConfigs.id).notNull(),
-  date: integer('date', timestampConfig).notNull(),
+  date: timestamp('date').notNull(),
   ramadanDay: integer('ramadan_day').notNull(),
   description: text('description'), 
 
@@ -204,82 +203,82 @@ export const ramadanSchedules = sqliteTable('ramadan_schedules', {
   charityQty: integer('charity_qty').default(0),
   charityStatus: text('charity_status').$type<'open' | 'close'>().default('close'),
 
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
 // Events & Posters
-export const kajianEvents = sqliteTable('kajian_events', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const kajianEvents = pgTable('kajian_events', {
+  id: serial('id').primaryKey(),
   title: text('title').notNull(),
   speakerId: integer('speaker_id').references(() => people.id).notNull(),
-  date: integer('date', timestampConfig), 
+  date: timestamp('date'), 
   dayOfWeek: integer('day_of_week'),
   time: text('time'), 
   posterUrl: text('poster_url'),
   type: text('type').$type<'kajian_rutin' | 'kajian_tematik' | 'tabligh_akbar'>().default('kajian_tematik'),
-  status: integer('status', { mode: 'boolean' }).default(true), 
-  ...{ createdAt, updatedAt }
+  status: boolean('status').default(true), 
+  createdAt, updatedAt
 });
 
-export const hadisEnc = sqliteTable('hadis_enc', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const hadisEnc = pgTable('hadis_enc', {
+  id: serial('id').primaryKey(),
   apiId: integer('api_id').unique().notNull(),
   teksArab: text('teks_arab'),
   teksIndo: text('teks_indo'),
   takhrij: text('takhrij'),
   hikmah: text('hikmah'),
   grade: text('grade'),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
 // --- 4. Finance ---
 
-export const coaCategories = sqliteTable('coa_categories', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const coaCategories = pgTable('coa_categories', {
+  id: serial('id').primaryKey(),
   name: text('name').notNull(),
   type: text('type').$type<'income' | 'expense'>().notNull(),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const accounts = sqliteTable('accounts', {
-    id: integer('id').primaryKey({ autoIncrement: true }),
+export const accounts = pgTable('accounts', {
+    id: serial('id').primaryKey(),
     name: text('name').notNull(), 
-    balance: real('balance').notNull().default(0),
-    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
-    ...{ createdAt, updatedAt }
+    balance: doublePrecision('balance').notNull().default(0),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt, updatedAt
 });
 
-export const transactions = sqliteTable('transactions', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  date: integer('date', timestampConfig).notNull(),
+export const transactions = pgTable('transactions', {
+  id: serial('id').primaryKey(),
+  date: timestamp('date').notNull(),
   type: text('type').$type<'debit' | 'credit'>().notNull(),
-  amount: real('amount').notNull(),
+  amount: doublePrecision('amount').notNull(),
   description: text('description').notNull(),
   categoryId: integer('category_id').references(() => coaCategories.id).notNull(),
   accountId: integer('account_id').references(() => accounts.id).notNull(),
   proofPhotoUrl: text('bukti_foto_url'),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
 // --- 5. Communication ---
 
-export const whatsappOutbox = sqliteTable('whatsapp_outbox', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const whatsappOutbox = pgTable('whatsapp_outbox', {
+  id: serial('id').primaryKey(),
   targetNumber: text('target_number').notNull(),
   message: text('message').notNull(),
   status: text('status').$type<'pending' | 'processing' | 'sent' | 'failed'>().default('pending'),
-  scheduledAt: integer('scheduled_at', timestampConfig),
-  sentAt: integer('sent_at', timestampConfig),
+  scheduledAt: timestamp('scheduled_at'),
+  sentAt: timestamp('sent_at'),
   failureReason: text('failure_reason'),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
-export const documents = sqliteTable('documents', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+export const documents = pgTable('documents', {
+  id: serial('id').primaryKey(),
   title: text('title').notNull(),
   fileUrl: text('file_url').notNull(),
   category: text('category'),
-  ...{ createdAt, updatedAt }
+  createdAt, updatedAt
 });
 
 // --- RELATIONS (Updated) ---
