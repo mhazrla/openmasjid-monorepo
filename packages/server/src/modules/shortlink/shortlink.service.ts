@@ -1,5 +1,5 @@
 import { ShortlinkRepository } from './shortlink.repository';
-import { CreateShortlinkDto } from './shortlink.interface';
+import { CreateShortlinkDto, ShortlinkFilter } from './shortlink.interface';
 
 export class ShortlinkService {
   constructor(private repository: ShortlinkRepository) {}
@@ -75,9 +75,9 @@ export class ShortlinkService {
     return shortlink.originalUrl;
   }
 
-  async getAll() 
+  async getAll(filters: ShortlinkFilter) 
   {
-    return this.repository.findAll();
+    return this.repository.findAll(filters);
   }
 
   async delete(id: number) 

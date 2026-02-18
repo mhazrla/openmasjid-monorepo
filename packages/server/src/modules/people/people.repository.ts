@@ -1,26 +1,41 @@
-import { eq, asc, and, like } from 'drizzle-orm';
+import { eq, asc, and, like, desc } from 'drizzle-orm';
 import { db } from '../../db';
 import { people } from '../../db/schema';
-import { CreatePersonDto, UpdatePersonDto } from './people.interface';
+import { CreatePersonDto, PeopleFilter, UpdatePersonDto } from './people.interface';
 
 export class PeopleRepository 
 {
-  async findAll(filters: { type?: string; search?: string; status?: boolean }) 
+  async findAll(filters: PeopleFilter) 
   {
     const conditions = [];
+    const limit = filters.limit || 10;
+    const offset = (filters.page && filters.page > 0) ? (filters.page - 1) * limit : 0;
     
-    if (filters.status !== undefined) 
+    if (filters.status && filters.status !== 'all') 
     {
-        conditions.push(eq(people.status, filters.status));
+        conditions.push(eq(people.status, filters.status === 'active'));
     }
 
-    if (filters.type) conditions.push(eq(people.type, filters.type as any)); 
-    if (filters.search) conditions.push(like(people.name, `%${filters.search}%`));
+    if (filters.type && filters.type !== 'all') 
+    {
+        conditions.push(eq(people.type, filters.type as any)); 
+    }
+
+    if (filters.search) 
+    {
+        conditions.push(like(people.name, `%${filters.search}%`));
+    }
+
+    const orderBy = filters.sortBy && (people as any)[filters.sortBy] 
+        ? (filters.sortOrder === 'asc' ? asc((people as any)[filters.sortBy]) : desc((people as any)[filters.sortBy]))
+        : asc(people.name);
 
     return await db.select()
       .from(people)
       .where(and(...conditions))
-      .orderBy(asc(people.name));
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(offset);
   }
 
   async findById(id: number) 

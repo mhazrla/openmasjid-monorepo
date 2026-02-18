@@ -1,6 +1,6 @@
-
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { HadisService } from './hadis.service';
+import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 export class HadisController 
 {
@@ -14,16 +14,15 @@ export class HadisController
             
             if (!data) 
             {
-                return reply.code(404).send({ message: 'No Hadith available' });
+                return sendError(reply, 'No Hadith available', 404);
             }
 
-            return reply.code(200).send({ data });
+            return sendSuccess(reply, data);
         } 
         catch (error) 
         {
             req.log.error(error);
-            
-            return reply.code(500).send({ message: 'Internal Server Error' });
+            return sendError(reply, 'Internal Server Error');
         }
     }
 }

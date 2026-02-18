@@ -18,7 +18,7 @@ export class RamadanRepository
       orderBy: [desc(ramadanConfigs.createdAt)],
       with: {
         schedules: {
-          orderBy: (schedules, { asc }) => [asc(schedules.ramadanDay)],
+          orderBy: (schedules: any, { asc }: any) => [asc(schedules.ramadanDay)],
           with: {
             tarawihImam: 
             {
@@ -38,7 +38,7 @@ export class RamadanRepository
 
   async initializeConfig(data: CreateRamadanConfigDto) 
   {
-    return await db.transaction(async (tx) => 
+    return await db.transaction(async (tx: any) => 
     {
       await tx.update(ramadanConfigs)
         .set({ isActive: false })

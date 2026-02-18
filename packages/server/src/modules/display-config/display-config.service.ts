@@ -24,7 +24,7 @@ export class DisplayConfigService
 
     if (isCityChanged) 
     {
-      await db.transaction(async (tx) => 
+      await db.transaction(async (tx: any) => 
       {
         await tx.delete(dailyPrayerTimes);
         await tx.update(displayConfig)
@@ -32,7 +32,7 @@ export class DisplayConfigService
           .where(eq(displayConfig.id, 1));
       });
 
-      await this.triggerAutoSync(data.cityId!); // Fire and forget or await? User said "SETELAH transaction sukses".
+      await this.triggerAutoSync(data.cityId!);
 
       return this.repository.getOrInit();
     }

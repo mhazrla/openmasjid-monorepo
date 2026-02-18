@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { baseFilterSchema, ModuleFilter } from '../../common/interfaces/filter.interface';
 
 export const createPersonSchema = z.object({
   name: z.string().min(3, 'Name must be at least 3 characters'),
@@ -12,11 +13,14 @@ export const updatePersonSchema = createPersonSchema.partial().extend({
   status: z.boolean().optional()
 });
 
-export const getPeopleQuerySchema = z.object({
+export const getPeopleQuerySchema = baseFilterSchema.extend({
   type: z.enum(['jamaah', 'ustadz', 'pengurus' ,'all']).optional(),
   status: z.enum(['active', 'inactive', 'all']).optional(), 
-  search: z.string().optional(),
 });
 
 export type CreatePersonDto = z.infer<typeof createPersonSchema>;
 export type UpdatePersonDto = z.infer<typeof updatePersonSchema>;
+export type PeopleFilter = ModuleFilter<{
+  type?: string;
+  status?: string;
+}>;

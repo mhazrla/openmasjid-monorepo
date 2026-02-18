@@ -1,7 +1,7 @@
 import { db } from '../../db';
 import { shortlinks } from '../../db/schema';
-import { eq, desc, sql } from 'drizzle-orm';
-import { InsertShortlink } from './shortlink.interface';
+import { eq, desc, sql, asc } from 'drizzle-orm';
+import { InsertShortlink, ShortlinkFilter } from './shortlink.interface';
 
 export class ShortlinkRepository 
 {
@@ -36,9 +36,20 @@ export class ShortlinkRepository
     return result.length > 0;
   }
 
-  async findAll() 
+  async findAll(filters: ShortlinkFilter) 
   {
-    return db.select().from(shortlinks).orderBy(desc(shortlinks.createdAt));
+    const limit = filters.limit || 10;
+    const offset = (filters.page && filters.page > 0) ? (filters.page - 1) * limit : 0;
+    
+    const orderBy = filters.sortBy && (shortlinks as any)[filters.sortBy] 
+        ? (filters.sortOrder === 'asc' ? asc((shortlinks as any)[filters.sortBy]) : desc((shortlinks as any)[filters.sortBy]))
+        : desc(shortlinks.createdAt);
+
+    return db.select()
+      .from(shortlinks)
+      .orderBy(orderBy)
+      .limit(limit)
+      .offset(offset);
   }
 
   async delete(id: number) 

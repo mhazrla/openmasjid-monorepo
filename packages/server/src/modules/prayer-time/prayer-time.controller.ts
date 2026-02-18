@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { PrayerTimeService } from './prayer-time.service';
 import { z } from 'zod';
+import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 export class PrayerTimeController 
 {
@@ -19,16 +20,15 @@ export class PrayerTimeController
 
       if (!data) 
       {
-        return reply.code(404).send({ success: false, message: 'Data not found' });
+        return sendError(reply, 'Data not found', 404);
       }
 
-      return reply.code(200).send({ success: true, data });
+      return sendSuccess(reply, data);
     } 
     catch (error) 
     {
-      console.error(error);
-
-      return reply.code(500).send({ success: false, message: 'Internal Server Error' });
+      req.log.error(error);
+      return sendError(reply, 'Internal Server Error');
     }
   }
 
@@ -44,17 +44,12 @@ export class PrayerTimeController
       const { month, year, cityId } = bodySchema.parse(req.body);
       const result = await this.service.syncFromExternalApi(cityId, year.toString(), month.toString());
 
-      return reply.code(200).send({ 
-        success: true, 
-        data: { count: result.length },
-        message: 'Sync successful' 
-      });
+      return sendSuccess(reply, { count: result.length }, 'Sync successful');
     } 
     catch (error) 
     {
-       console.error(error);
-       
-       return reply.code(500).send({ success: false, message: 'Sync failed' });
+       req.log.error(error);
+       return sendError(reply, 'Sync failed');
     }
   }
 }

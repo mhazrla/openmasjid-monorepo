@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { DisplayConfigService } from './display-config.service';
 import { updateDisplayConfigSchema } from './display-config.interface';
+import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 export class DisplayConfigController 
 {
@@ -11,17 +12,12 @@ export class DisplayConfigController
     try 
     {
       const config = await this.service.get();
-      
-      return reply.code(200).send({
-        success: true,
-        data: config
-      });
+      return sendSuccess(reply, config, 'Display configuration fetched');
     } 
     catch (error) 
     {
-      console.error(error);
-      
-      return reply.code(500).send({ success: false, message: 'Internal Server Error' });
+      req.log.error(error);
+      return sendError(reply, 'Internal Server Error');
     }
   }
 
@@ -33,26 +29,16 @@ export class DisplayConfigController
       
       if (!result.success) 
       {
-        return reply.code(400).send({
-          success: false,
-          message: 'Validation Error',
-          errors: result.error.issues
-        });
+        return sendError(reply, 'Validation Error', 400, result.error.issues);
       }
       
       const updated = await this.service.update(result.data);
-      
-      return reply.code(200).send({
-        success: true,
-        data: updated,
-        message: 'Display configuration updated successfully'
-      });
+      return sendSuccess(reply, updated, 'Display configuration updated successfully');
     } 
     catch (error) 
     {
-      console.error(error);
-      
-      return reply.code(500).send({ success: false, message: 'Internal Server Error' });
+      req.log.error(error);
+      return sendError(reply, 'Internal Server Error');
     }
   }
 }

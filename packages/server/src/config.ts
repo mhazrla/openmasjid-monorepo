@@ -12,6 +12,20 @@ const envSchema = z.object({
   MYQURAN_API_URL: z.string().url().default('https://api.myquran.com/v3'),
   DEFAULT_CITY_ID: z.string().default(process.env.DEFAULT_CITY_ID as string),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  DATABASE_URL: z.string().optional(),
+  JWT_SECRET: z.string().default('dummy_secret_for_dev_only'),
+}).refine((data) => 
+{
+  if (data.NODE_ENV === 'production' && !data.DATABASE_URL) 
+  {
+    return false;
+  }
+
+  return true;
+}, 
+{
+  message: "DATABASE_URL is required in production mode",
+  path: ["DATABASE_URL"],
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

@@ -53,3 +53,6 @@ ehthumbs.db
 # --- Temporary Files ---
 tmp/
 temp/
+
+# --- PGLite Data ---
+.pgdata/

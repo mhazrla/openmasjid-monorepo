@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { MosqueService } from './mosque.service';
 import { updateMosqueProfileSchema } from './mosque.interface';
+import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 export class MosqueController 
 {
@@ -11,17 +12,12 @@ export class MosqueController
     try 
     {
       const profile = await this.mosqueService.get();
-      
-      return reply.code(200).send({
-        success: true,
-        data: profile
-      });
+      return sendSuccess(reply, profile, 'Profile fetched successfully');
     } 
     catch (error) 
     {
-      console.error(error);
-      
-      return reply.code(500).send({ success: false, message: 'Internal Server Error' });
+      req.log.error(error);
+      return sendError(reply, 'Internal Server Error');
     }
   }
 
@@ -33,26 +29,16 @@ export class MosqueController
 
       if (!result.success) 
       {
-        return reply.code(400).send({
-          success: false,
-          message: 'Validation Error',
-          errors: result.error.issues
-        });
+        return sendError(reply, 'Validation Error', 400, result.error.issues);
       }
       
       const updated = await this.mosqueService.update(result.data);
-      
-      return reply.code(200).send({
-        success: true,
-        data: updated,
-        message: 'Profile updated successfully'
-      });
+      return sendSuccess(reply, updated, 'Profile updated successfully');
     } 
-    catch (error: any) 
+    catch (error) 
     {
-      console.error(error);
-      
-      return reply.code(500).send({ success: false, message: 'Internal Server Error' });
+      req.log.error(error);
+      return sendError(reply, 'Internal Server Error');
     }
   }
 }

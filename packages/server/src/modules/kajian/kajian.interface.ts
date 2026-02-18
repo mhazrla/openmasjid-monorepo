@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 import { kajianEvents } from '../../db/schema';
+import { baseFilterSchema, ModuleFilter } from '../../common/interfaces/filter.interface';
 
 // --- 1. Entity Types ---
 export type KajianEvent = InferSelectModel<typeof kajianEvents>;
@@ -71,12 +72,17 @@ export const createKajianSchema = baseKajianSchema.superRefine((data, ctx) =>
 
 export const updateKajianSchema = baseKajianSchema.partial();
 
-export const getKajianQuerySchema = z.object({
+export const getKajianQuerySchema = baseFilterSchema.extend({
   type: z.enum(['kajian_rutin', 'kajian_tematik', 'tabligh_akbar', 'all']).optional(),
   upcoming: z.enum(['true', 'false']).optional(),
-  search: z.string().optional(),
   status: z.enum(['active', 'inactive', 'all']).optional(),
 });
+
+export type KajianFilter = ModuleFilter<{
+  type?: string;
+  upcoming?: string;
+  status?: string;
+}>;
 
 export const fileValidationSchema = z.object({
   mimetype: z.enum(["image/jpeg", "image/jpg", "image/png", "image/webp"] as [string, ...string[]]),

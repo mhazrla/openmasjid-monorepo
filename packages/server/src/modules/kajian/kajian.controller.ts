@@ -1,11 +1,14 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { KajianService } from './kajian.service';
-import { createKajianSchema, updateKajianSchema, getKajianQuerySchema, fileValidationSchema } from './kajian.interface';
+import { createKajianSchema, updateKajianSchema, getKajianQuerySchema, fileValidationSchema, KajianFilter } from './kajian.interface';
 import util from 'util';
 import { pipeline } from 'stream';
-import fs from 'fs';
+import fs from 'fs/promises';
+import { createWriteStream } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { fileExists } from '../../plugins/fileChecker';
+import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 const pump = util.promisify(pipeline);
 
@@ -33,16 +36,17 @@ export class KajianController
         throw new Error('Invalid file type. Only JPG, PNG, WEBP allowed.');
     }
 
-    if (!fs.existsSync(uploadDir)) 
+    if (!(await fileExists(uploadDir))) 
     {
-      fs.mkdirSync(uploadDir, { recursive: true });
+      await fs.mkdir(uploadDir, { recursive: true });
     }
 
     const ext = mimeToExt[part.mimetype];
     const filename = `${Date.now()}-${randomUUID()}${ext}`;
     const filepath = path.join(uploadDir, filename);
 
-    await pump(part.file, fs.createWriteStream(filepath));
+    await pump(part.file, createWriteStream(filepath));
+
     return `/public/uploads/posters/${filename}`;
   }
 
@@ -57,44 +61,33 @@ export class KajianController
           return reply.code(400).send({ message: 'Invalid query params' });
       }
 
-      let typeFilter = queryValidation.data.type;
-
-      if (typeFilter === 'all') 
-      {
-          typeFilter = undefined;
-      }
-
-      const statusFilter = queryValidation.data.status === 'inactive' ? false : (queryValidation.data.status === 'active' ? true : undefined);
-
-      const filters = 
-      {
-        type: typeFilter,
-        upcoming: (req.query as any).upcoming,
-        search: queryValidation.data.search,
-        status: statusFilter,
-      };
+      const filters = queryValidation.data as KajianFilter;
       
       const data = await this.service.getAll(filters);
       
-      return reply.code(200).send({ data });
+      return sendSuccess(reply, data, 'Data fetched successfully', 200, 
+      {
+        page: filters.page || 1,
+        limit: filters.limit || 10,
+      });
     } 
     catch (error) 
     {
       req.log.error(error);
-      
-      return reply.code(500).send({ message: 'Internal Server Error' });
+
+      return sendError(reply, 'Internal Server Error');
     }
   }
 
   async getById(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) 
   {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return reply.code(400).send({ message: 'Invalid ID' });
+    if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
 
     const data = await this.service.getById(id);
-    if (!data) return reply.code(404).send({ message: 'Event not found' });
+    if (!data) return sendError(reply, 'Event not found', 404);
     
-    return reply.code(200).send({ data });
+    return sendSuccess(reply, data);
   }
 
   async create(req: FastifyRequest, reply: FastifyReply) 
@@ -130,15 +123,15 @@ export class KajianController
           else if (fieldname === 'status') 
           {
              body[fieldname] = value === 'true' || value === 'active';
-          }
+          } 
           else if (fieldname === 'isActive') 
           {
              body['status'] = value === 'true';
-          }
+          } 
           else if (fieldname === 'date' && !value) 
           {
              body[fieldname] = null;
-          }
+          } 
           else 
           {
              body[fieldname] = value;
@@ -150,44 +143,45 @@ export class KajianController
 
       if (!validation.success) 
       {
-        if (uploadedPath && fs.existsSync(path.join(process.cwd(), uploadedPath))) 
+        if (uploadedPath && await fileExists(path.join(process.cwd(), uploadedPath))) 
         {
-            fs.unlinkSync(path.join(process.cwd(), uploadedPath));
+          await fs.unlink(path.join(process.cwd(), uploadedPath));
         }
-        return reply.code(400).send({ 
-          message: 'Validation Error', 
-          errors: validation.error.format() 
-        });
+
+        return sendError(reply, 'Validation Error', 400, validation.error.format());
       }
 
       const result = await this.service.create(validation.data, uploadedPath);
-      return reply.code(201).send({ data: result, message: 'Event created' });
+      return sendSuccess(reply, result, 'Event created', 201);
 
-    } catch (error: any) 
+    } 
+    catch (error: any) 
     {
       req.log.error(error);
       if (uploadedPath) 
-      {
-          try 
-          { 
-            fs.unlinkSync(path.join(process.cwd(), uploadedPath)); 
-          } 
-          catch {}
+      { 
+        try 
+        { 
+          const fullPath = path.join(process.cwd(), uploadedPath);
+          if (await fileExists(fullPath)) await fs.unlink(fullPath); 
+        } 
+        catch {}
       }
       
       const status = error.message.includes('Invalid file') ? 400 : 500;
-      return reply.code(status).send({ message: error.message || 'Internal Error' });
+      return sendError(reply, error.message || 'Internal Error', status);
     }
   }
 
   async update(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) 
   {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return reply.code(400).send({ message: 'Invalid ID' });
+    if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
 
     let uploadedPath: string | undefined;
 
-    try {
+    try 
+    {
       const parts = req.parts();
       const body: Record<string, any> = {};
 
@@ -207,51 +201,47 @@ export class KajianController
 
       if (!validation.success) 
       {
-        if (uploadedPath) fs.unlinkSync(path.join(process.cwd(), uploadedPath));
-        return reply.code(400).send({ message: 'Validation Error', errors: validation.error.format() });
+        if (uploadedPath) 
+        {
+           const fullPath = path.join(process.cwd(), uploadedPath);
+           if (await fileExists(fullPath)) await fs.unlink(fullPath);
+        }
+
+        return sendError(reply, 'Validation Error', 400, validation.error.format());
       }
 
       const result = await this.service.update(id, validation.data, uploadedPath);
-      if (!result) return reply.code(404).send({ message: 'Event not found' });
+      if (!result) return sendError(reply, 'Event not found', 404);
 
-      return reply.code(200).send({ data: result, message: 'Event updated' });
+      return sendSuccess(reply, result, 'Event updated');
 
     } 
     catch (error: any) 
     {
-      if (uploadedPath) try { fs.unlinkSync(path.join(process.cwd(), uploadedPath)); } catch {}
-      req.log.error(error);
+      if (uploadedPath) 
+      {
+         try 
+         {
+            const fullPath = path.join(process.cwd(), uploadedPath);
+            if (await fileExists(fullPath)) await fs.unlink(fullPath);
+         }
+        catch {}
+      }
 
-      return reply.code(500).send({ message: 'Internal Server Error' });
+      req.log.error(error);
+      return sendError(reply, 'Internal Server Error');
     }
   }
 
   async delete(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) 
   {
     const id = parseInt(req.params.id);
-    if (isNaN(id)) return reply.code(400).send({ message: 'Invalid ID' });
-
-    const existing = await this.service.getById(id);
-    if (!existing) return reply.code(404).send({ message: 'Event not found' });
+    if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
 
     const result = await this.service.delete(id);
 
-    if (existing.posterUrl) 
-    {
-      try 
-      {
-        const filePath = path.join(process.cwd(), existing.posterUrl);
-        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      } 
-      catch (e) 
-      {
-        req.log.warn(`Failed to delete poster file for id ${id}`);
-      }
-    }
+    if (!result) return sendError(reply, 'Event not found', 404);
 
-    return reply.code(200).send({ 
-       message: 'Event deleted successfully',
-       data: result
-    });
+    return sendSuccess(reply, result, 'Event deleted successfully');
   }
 }

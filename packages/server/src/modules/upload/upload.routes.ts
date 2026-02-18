@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { pipeline } from 'stream';
 import util from 'util';
+import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 const pump = util.promisify(pipeline);
 
@@ -18,27 +19,35 @@ export async function uploadRoutes(app: FastifyInstance)
 
     app.post('/upload', async (req, reply) => 
     {
-        const data = await req.file();
-
-        if (!data) 
+        try 
         {
-            return reply.status(400).send({ message: 'No file uploaded' });
-        }
+            const data = await req.file();
 
-        const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!data) 
+            {
+                return sendError(reply, 'No file uploaded', 400);
+            }
 
-        if (!ALLOWED_TYPES.includes(data.mimetype)) 
+            const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+            if (!ALLOWED_TYPES.includes(data.mimetype)) 
+            {
+                return sendError(reply, 'Invalid file type. Only JPEG, PNG, and WebP are allowed', 400);
+            }
+
+            const ext       = path.extname(data.filename);
+            const fileName  = `${randomUUID()}${ext}`;
+            const filePath  = path.join(UPLOAD_DIR, fileName);
+
+            await pump(data.file, fs.createWriteStream(filePath));
+            const fileUrl   = `/public/uploads/${fileName}`;
+
+            return sendSuccess(reply, { url: fileUrl }, 'File uploaded successfully', 201);
+        } 
+        catch (error) 
         {
-            return reply.status(400).send({ message: 'Invalid file type. Only JPEG, PNG, and WebP are allowed' });
+            req.log.error(error);
+            return sendError(reply, 'Internal Server Error');
         }
-
-        const ext       = path.extname(data.filename);
-        const fileName  = `${randomUUID()}${ext}`;
-        const filePath  = path.join(UPLOAD_DIR, fileName);
-
-        await pump(data.file, fs.createWriteStream(filePath));
-        const fileUrl   = `/public/uploads/${fileName}`;
-
-        return { url: fileUrl };
     });
 }

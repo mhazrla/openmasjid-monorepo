@@ -1,12 +1,11 @@
-
 import { PeopleRepository } from './people.repository';
-import { CreatePersonDto, UpdatePersonDto } from './people.interface';
+import { CreatePersonDto, PeopleFilter, UpdatePersonDto } from './people.interface';
 
 export class PeopleService 
 {
   constructor(private repository: PeopleRepository) {}
 
-  async getAllPeople(filters: { type?: string; search?: string; status?: boolean }) 
+  async getAllPeople(filters: PeopleFilter) 
   {
     return await this.repository.findAll(filters);
   }

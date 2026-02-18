@@ -1,7 +1,7 @@
-
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { PeopleService } from './people.service';
-import { createPersonSchema, updatePersonSchema, getPeopleQuerySchema } from './people.interface';
+import { createPersonSchema, updatePersonSchema, getPeopleQuerySchema, PeopleFilter } from './people.interface';
+import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 export class PeopleController 
 {
@@ -15,36 +15,21 @@ export class PeopleController
       
       if (!queryValidation.success) 
       {
-          return reply.code(400).send({ message: 'Invalid query params' });
+          return sendError(reply, 'Invalid query params', 400, queryValidation.error.format());
       }
 
-      let typeFilter = queryValidation.data.type;
-
-      if (typeFilter === 'all') 
-      {
-          typeFilter = undefined;
-      }
-
-      let statusFilter: boolean | undefined;
-
-      if (queryValidation.data.status === 'active') statusFilter = true;
-      else if (queryValidation.data.status === 'inactive') statusFilter = false;
-      else statusFilter = undefined;
-
-      const filters = {
-        type: typeFilter as string,
-        status: statusFilter,
-        search: queryValidation.data.search,
-      };
-
+      const filters = queryValidation.data as PeopleFilter;
       const data = await this.service.getAllPeople(filters);
 
-      return reply.code(200).send({ data });
+      return sendSuccess(reply, data, 'Data fetched successfully', 200, {
+        page: filters.page || 1,
+        limit: filters.limit || 10
+      });
     } 
     catch (error) 
     {
       req.log.error(error);
-      return reply.code(500).send({ message: 'Internal Server Error' });
+      return sendError(reply, 'Internal Server Error');
     }
   }
 
@@ -53,18 +38,18 @@ export class PeopleController
     try 
     {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) return reply.code(400).send({ message: 'Invalid ID' });
+      if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
 
       const data = await this.service.getPersonById(id);
       
-      if (!data) return reply.code(404).send({ message: 'Person not found' });
+      if (!data) return sendError(reply, 'Person not found', 404);
 
-      return reply.code(200).send({ data });
+      return sendSuccess(reply, data);
     } 
     catch (error) 
     {
       req.log.error(error);
-      return reply.code(500).send({ message: 'Internal Server Error' });
+      return sendError(reply, 'Internal Server Error');
     }
   }
 
@@ -76,19 +61,16 @@ export class PeopleController
       
       if (!validation.success) 
       {
-        return reply.code(400).send({ 
-          message: 'Validation Error', 
-          errors: validation.error.format() 
-        });
+        return sendError(reply, 'Validation Error', 400, validation.error.format());
       }
 
       const result = await this.service.createPerson(validation.data);
-      return reply.code(201).send({ data: result, message: 'Person created' });
+      return sendSuccess(reply, result, 'Person created', 201);
     } 
     catch (error) 
     {
       req.log.error(error);
-      return reply.code(500).send({ message: 'Failed to create person' });
+      return sendError(reply, 'Failed to create person');
     }
   }
 
@@ -97,25 +79,25 @@ export class PeopleController
     try 
     {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) return reply.code(400).send({ message: 'Invalid ID' });
+      if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
 
       const validation = updatePersonSchema.safeParse(req.body);
 
       if (!validation.success) 
       {
-        return reply.code(400).send({ message: 'Validation Error', errors: validation.error.errors });
+        return sendError(reply, 'Validation Error', 400, validation.error.errors);
       }
 
       const result = await this.service.updatePerson(id, validation.data);
       
-      if (!result) return reply.code(404).send({ message: 'Person not found' });
+      if (!result) return sendError(reply, 'Person not found', 404);
 
-      return reply.code(200).send({ data: result, message: 'Person updated' });
+      return sendSuccess(reply, result, 'Person updated');
     } 
     catch (error) 
     {
       req.log.error(error);
-      return reply.code(500).send({ message: 'Failed to update person' });
+      return sendError(reply, 'Failed to update person');
     }
   }
 
@@ -124,21 +106,18 @@ export class PeopleController
     try 
     {
       const id = parseInt(req.params.id);
-      if (isNaN(id)) return reply.code(400).send({ message: 'Invalid ID' });
+      if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
 
       const result = await this.service.deletePerson(id);
       
-      if (!result) return reply.code(404).send({ message: 'Person not found' });
+      if (!result) return sendError(reply, 'Person not found', 404);
 
-      return reply.code(200).send({ 
-          message: 'Person deactivated successfully', 
-          data: result 
-      });
+      return sendSuccess(reply, result, 'Person deactivated successfully');
     } 
     catch (error) 
     {
       req.log.error(error);
-      return reply.code(500).send({ message: 'Failed to deactivate person' });
+      return sendError(reply, 'Failed to deactivate person');
     }
   }
 }

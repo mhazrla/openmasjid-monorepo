@@ -9,7 +9,6 @@ export type InsertDisplayConfig = InferInsertModel<typeof displayConfig>;
 // Zod Schema for Validation
 export const updateDisplayConfigSchema = z.object({
   cityId: z.string().min(1, 'City ID required'),
-  mosqueName: z.string().optional(),
   runningText: z.string().optional(),
   
   // Timings - Must be positive integers

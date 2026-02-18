@@ -11,9 +11,9 @@ export const updateMosqueProfileSchema = z.object(
 {
   name: z.string().min(3, 'Mosque name must be at least 3 characters'),
   address: z.string().min(5, 'Address must be at least 5 characters'),
-  bankName: z.string().optional(),
-  bankAccountName: z.string().optional(),
-  bankAccountNumber: z.string().optional(),
+  bankName: z.string().min(3, 'Bank name must be at least 3 characters').optional(),
+  bankAccountName: z.string().min(3, 'Bank account name must be at least 3 characters').optional(),
+  bankAccountNumber: z.string().min(3, 'Bank account number must be at least 3 characters').optional(),
   logoUrl: z.string().optional(),
   qrisUrl: z.string().optional(),
   letterheadConfig: z.object({

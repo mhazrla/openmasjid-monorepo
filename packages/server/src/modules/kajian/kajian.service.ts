@@ -1,23 +1,30 @@
 import { KajianRepository } from './kajian.repository';
-import { CreateKajianDto, UpdateKajianDto } from './kajian.interface';
+import { CreateKajianDto, KajianFilter, UpdateKajianDto } from './kajian.interface';
 import { calculateNextOccurrence } from '../../plugins/date';
 import path from 'path';
-import fs from 'fs';
+import fs from 'fs/promises';
+import { constants } from 'fs';
+import { InferSelectModel } from 'drizzle-orm';
+import { kajianEvents, people } from '../../db/schema';
+import { fileExists } from '../../plugins/fileChecker';
+
+type KajianEvent = InferSelectModel<typeof kajianEvents>;
+type Speaker = InferSelectModel<typeof people>;
 
 export class KajianService 
 {
   constructor(private repository: KajianRepository) {}
 
-  async getAll(filters: { type?: string; upcoming?: boolean; search?: string; status?: boolean })
+  async getAll(filters: KajianFilter) 
   {
     const rawData = await this.repository.findAll(filters);
 
-    if (!filters.upcoming) return rawData;
+    if (filters.upcoming !== 'true') return rawData;
 
-    const processedData = (rawData as any[]).map((row) => 
+    const processedData = (rawData as { event: KajianEvent; speaker: Speaker | null }[]).map((row) => 
     {
-        const event = row.event || row; 
-        const speaker = row.speaker || row.speaker;
+        const event = row.event; 
+        const speaker = row.speaker;
         let displayDate: Date;
 
         if (event.type === 'kajian_rutin') 
@@ -33,14 +40,10 @@ export class KajianService
         } 
         else 
         {
-            displayDate = new Date(event.date);
+            displayDate = event.date ? new Date(event.date) : new Date();
         }
 
-        return {
-            ...event,
-            speaker,
-            displayDate,
-        };
+        return { ...event, speaker, displayDate };
     });
 
     processedData.sort((a, b) => a.displayDate.getTime() - b.displayDate.getTime());
@@ -60,6 +63,7 @@ export class KajianService
   async update(id: number, data: UpdateKajianDto, uploadedPosterUrl?: string) 
   {
     const existing = await this.repository.findById(id);
+    if (!existing) return null;
     
     let finalPosterUrl: string | null | undefined = uploadedPosterUrl;
 
@@ -67,7 +71,8 @@ export class KajianService
     {
         finalPosterUrl = data.posterUrl;
     }
-    const updatePayload: any = { ...data };
+    
+    const updatePayload: UpdateKajianDto & { posterUrl?: string | null } = { ...data };
     if (finalPosterUrl !== undefined) 
     {
         updatePayload.posterUrl = finalPosterUrl;
@@ -75,7 +80,7 @@ export class KajianService
 
     const result = await this.repository.update(id, updatePayload);
 
-    if (result && existing?.posterUrl) 
+    if (result && existing.posterUrl) 
     {
         const hasChanged = finalPosterUrl !== undefined && finalPosterUrl !== existing.posterUrl;
         
@@ -84,7 +89,7 @@ export class KajianService
             try 
             {
                 const filePath = path.join(process.cwd(), existing.posterUrl);
-                if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+                if (await fileExists(filePath)) await fs.unlink(filePath);
             } 
             catch (e) 
             {
@@ -98,6 +103,24 @@ export class KajianService
 
   async delete(id: number) 
   {
-    return await this.repository.delete(id);
+    const existing = await this.repository.findById(id);
+    if (!existing) return null;
+
+    const result = await this.repository.delete(id);
+
+    if (existing.posterUrl) 
+    {
+      try 
+      {
+        const filePath = path.join(process.cwd(), existing.posterUrl);
+        if (await fileExists(filePath)) await fs.unlink(filePath);
+      } 
+      catch (e) 
+      {
+        console.warn(`Failed to delete poster file for id ${id}`);
+      }
+    }
+
+    return result;
   }
 }

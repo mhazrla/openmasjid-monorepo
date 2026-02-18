@@ -1,13 +1,38 @@
-import { drizzle } from 'drizzle-orm/postgres-js';
+import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js';
+import { drizzle as drizzlePGLite } from 'drizzle-orm/pglite';
+import { PGlite } from '@electric-sql/pglite';
 import postgres from 'postgres';
 import * as schema from './schema';
-import 'dotenv/config';
+import { config } from '../config';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL is not set');
+// Debugging Log: Cek apa yang dibaca oleh sistem
+console.log('----------------------------------------');
+console.log('🔧 DB Init Check:');
+console.log(`   NODE_ENV: ${config.NODE_ENV}`);
+console.log(`   DATABASE_URL exists?: ${!!config.DATABASE_URL}`);
+console.log('----------------------------------------');
+
+export let db: any;
+
+if (config.NODE_ENV === 'production') 
+{
+  console.log('🔌 Mode: PRODUCTION (Connecting to Supabase/Postgres...)');
+  
+  if (!config.DATABASE_URL) {
+    throw new Error('❌ DATABASE_URL is missing in production mode!');
+  }
+
+  // Gunakan postgres-js client
+  const client = postgres(config.DATABASE_URL);
+  db = drizzlePg(client, { schema });
+} 
+else 
+{
+  console.log('📂 Mode: DEV/TEST (Using Local PGLite)');
+  
+  const dbPath = config.NODE_ENV === 'test' ? 'memory://' : './.pgdata';
+  console.log(`   Path: ${dbPath}`);
+  
+  const client = new PGlite(dbPath);
+  db = drizzlePGLite(client, { schema });
 }
-
-// Disable prefetch as it is not supported for "Transaction" pool mode
-const client = postgres(process.env.DATABASE_URL, { prepare: false });
-
-export const db = drizzle(client, { schema });

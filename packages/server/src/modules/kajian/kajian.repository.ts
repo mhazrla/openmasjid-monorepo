@@ -1,22 +1,36 @@
 import { eq, desc, asc, and, gte, or, ne, like } from 'drizzle-orm';
 import { db } from '../../db'; 
 import { kajianEvents, people } from '../../db/schema';
-import { CreateKajianDto, UpdateKajianDto } from './kajian.interface';
+import { CreateKajianDto, KajianFilter, UpdateKajianDto } from './kajian.interface';
 
 export class KajianRepository 
 {
-  async findAll(filters: { type?: string; search?: string; status?: boolean; upcoming?: boolean }) 
+  async findAll(filters: KajianFilter) 
   {
     const conditions = [];
+    const limit = filters.limit || 10;
+
+    const offset = (filters.page && filters.page > 0) 
+      ? (filters.page - 1) * limit 
+      : 0;
 
     if (filters?.type && filters.type !== 'all') 
     {
         conditions.push(eq(kajianEvents.type, filters.type as any));
     }
 
-    if (filters.search) conditions.push(like(kajianEvents.title, `%${filters.search}%`));
+    if (filters.search) 
+    {
+        conditions.push(like(kajianEvents.title, `%${filters.search}%`));
+    }
 
-    if (filters?.upcoming)
+    if (filters.status !== 'all' && filters.status !== undefined) 
+    {
+       const isActive = filters.status === 'active';
+       conditions.push(eq(kajianEvents.status, isActive));
+    }
+    
+    if (filters.upcoming === 'true') 
     {
        return await db.select({
           event: kajianEvents,
@@ -28,27 +42,18 @@ export class KajianRepository
           and(
             ...conditions,
             or(
-                and(
-                    eq(kajianEvents.type, 'kajian_rutin'), 
-                    eq(kajianEvents.status, true) 
-                ),
-                and(
-                    ne(kajianEvents.type, 'kajian_rutin'),
-                    gte(kajianEvents.date, new Date())
-                )
+                and(eq(kajianEvents.type, 'kajian_rutin'), eq(kajianEvents.status, true)),
+                and(ne(kajianEvents.type, 'kajian_rutin'), gte(kajianEvents.date, new Date()))
             )
           )
         )
-        .orderBy(asc(kajianEvents.date));
-    }
+        .orderBy(asc(kajianEvents.date))
+        .limit(limit)
+        .offset(offset);
+    } 
     else 
     {
-        if (filters.status !== undefined) 
-        {
-            conditions.push(eq(kajianEvents.status, filters.status));
-        }
-
-        return await db.select({
+        const rows = await db.select({
             event: kajianEvents,
             speaker: people
         })
@@ -56,12 +61,15 @@ export class KajianRepository
         .leftJoin(people, eq(kajianEvents.speakerId, people.id))
         .where(and(...conditions))
         .orderBy(desc(kajianEvents.createdAt)) 
-        .then(rows => rows.map(row => ({
+        .limit(limit)
+        .offset(offset);
+
+        return rows.map((row: any) => ({
             ...row.event,
             speaker: row.speaker
-        })));
+        }));
     }
-  }
+}
 
   async findById(id: number) 
   {
@@ -95,7 +103,7 @@ export class KajianRepository
     return newItem;
   }
 
-  async update(id: number, data: UpdateKajianDto & { posterUrl?: string }) 
+  async update(id: number, data: UpdateKajianDto & { posterUrl?: string | null }) 
   {
     const payload: any = { ...data, updatedAt: new Date() };
 

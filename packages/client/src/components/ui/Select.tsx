@@ -277,6 +277,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
     );
 });
 
-Select.displayName = "Select";
+const MemoizedSelect = React.memo(Select);
+MemoizedSelect.displayName = "Select";
 
-export { Select };
+export { MemoizedSelect as Select };
