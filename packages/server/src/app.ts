@@ -32,6 +32,8 @@ export const buildApp = async () =>
   }
 
   // --- Plugins ---
+  await app.register(import('@fastify/compress'), { global: true });
+
   await app.register(import('@fastify/multipart'), 
   {
     limits: { fileSize: 2 * 1024 * 1024 }
@@ -61,7 +63,7 @@ export const buildApp = async () =>
     {
       if (req.raw.url && req.raw.url.startsWith('/api')) 
       {
-        reply.status(404).send({ error: 'Endpoint API tidak ditemukan', url: req.raw.url });
+        reply.status(404).send({ error: 'API Endpoint not found', url: req.raw.url });
       } 
       else 
       {

@@ -13,7 +13,12 @@ export const DisplayHeader = ({ profile, currentTime }: DisplayHeaderProps) => (
     <header className="relative z-30 px-6 py-3 flex items-center justify-between shrink-0 h-20 border-b border-white/5 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/5 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10 shadow-xl">
-                <img src={profile?.logoUrl ? getImageUrl(profile.logoUrl) : "/images/logo1.webp"} alt="Logo" className="w-full h-full object-contain p-1.5" />
+                <img 
+                    src={profile?.logoUrl ? getImageUrl(profile.logoUrl) : "/images/logo1.webp"} 
+                    alt="Logo" 
+                    className="w-full h-full object-contain p-1.5"
+                    fetchPriority="high"
+                />
             </div>
             <div>
                 <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white drop-shadow-lg leading-none">{profile?.name}</h1>

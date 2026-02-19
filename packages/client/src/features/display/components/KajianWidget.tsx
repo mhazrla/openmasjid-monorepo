@@ -14,13 +14,13 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 const SocialMediaBadges = () => (
   <div className="flex flex-wrap gap-2 mt-3">
     <div className="flex items-center gap-1.5 bg-red-600/20 px-3 py-1.5 rounded-lg border border-red-500/30 text-red-200 text-xs font-semibold">
-      <Youtube className="w-3.5 h-3.5" /> @at-tadzkirahtv
+      <Youtube className="w-3.5 h-3.5" /> at-tadzkirahtv
     </div>
     <div className="flex items-center gap-1.5 bg-blue-600/20 px-3 py-1.5 rounded-lg border border-blue-500/30 text-blue-200 text-xs font-semibold">
-      <Facebook className="w-3.5 h-3.5" /> Jonggol Mengaji
+      <Facebook className="w-3.5 h-3.5" /> At-tadzkirahtv Masjid
     </div>
     <div className="flex items-center gap-1.5 bg-pink-600/20 px-3 py-1.5 rounded-lg border border-pink-500/30 text-pink-200 text-xs font-semibold">
-      <TikTokIcon className="w-3.5 h-3.5" /> @at_tadzkirahtv
+      <TikTokIcon className="w-3.5 h-3.5" /> at_tadzkirahtv
     </div>
   </div>
 );
@@ -119,7 +119,7 @@ const KajianWithPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, d
           src={data.posterUrl}
           alt={data.title}
           className="w-full h-full object-cover"
-          loading="eager"
+          loading="lazy"
         />
       </div>
 

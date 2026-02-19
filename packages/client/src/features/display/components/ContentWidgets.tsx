@@ -165,7 +165,12 @@ export const PosterWidget = memo(({ data }: PosterWidgetProps) => (
             <>
                 <div className="absolute inset-0 bg-cover bg-center blur-[100px] opacity-60 scale-150 z-0" style={{ backgroundImage: `url(${data.imageUrl})` }} />
                 <div className="relative z-10 w-full h-full flex items-center justify-center p-10">
-                    <img src={data.imageUrl} alt={data.title || "Poster"} className="max-h-full max-w-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl border-4 border-white/10" />
+                    <img 
+                        src={data.imageUrl} 
+                        alt={data.title || "Poster"} 
+                        className="max-h-full max-w-full object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl border-4 border-white/10" 
+                        loading="lazy"
+                    />
                 </div>
             </>
         )}
@@ -242,9 +247,14 @@ export const BankInfoWidget = memo(({ data }: BankInfoWidgetProps) => (
             {/* LEFT / TOP: QRIS - Only show if URL exists */ }
             { data.qrisUrl && (
                 <div className="w-full md:w-1/2 bg-white p-8 flex flex-col items-center justify-center relative group">
-                    <img src={data.qrisUrl} alt="QRIS" className="w-full h-full object-contain max-h-[400px] z-10 drop-shadow-xl" />
+                    <img 
+                        src={data.qrisUrl} 
+                        alt="QRIS" 
+                        className="w-full h-full object-contain max-h-[400px] z-10 drop-shadow-xl" 
+                        loading="lazy"
+                    />
                     <div className="absolute top-2 right-2 z-20">
-                        <img src="/images/qris-icon.webp" alt="QRIS Logo" className="h-6 md:h-8 opacity-80" />
+                        <img src="/images/qris-icon.webp" alt="QRIS Logo" className="h-6 md:h-8 opacity-80" loading="lazy" />
                     </div>
                 </div>
             )}
