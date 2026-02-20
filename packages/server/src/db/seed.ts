@@ -1,4 +1,3 @@
-  import 'dotenv/config';
   import fs from 'fs';
   import path from 'path';
   import bcrypt from 'bcryptjs';
@@ -28,126 +27,142 @@
     "Akh. M. Katsirun Abu Fattan",
     "Akh. Ammar",
     "Akh. Yazid",
+    "Akh. M. Zaki",
+    "Akh. Fauzan",
+    "Akh. Hanif",
+    "Akh. Farhan",
+    "Akh. Rizki",
   ];
 
-  async function seed() 
+  export type SeedOptions = {
+    type?: 'all' | 'user' | 'master' | 'content';
+  };
+
+  export async function seed(options: SeedOptions = { type: 'all' }) 
   {
-    console.log('🌱 Starting seeding process...');
+    console.log(`🌱 Starting seeding process (Type: ${options.type})...`);
 
     try 
     {
-      // 1. Admin User & Person
-      const existingUser = await db.query.users.findFirst({
-        where: eq(users.username, 'admin'),
-      });
+      // 1. Admin User & Person (Always run for 'all' or 'user')
+      if (options.type === 'all' || options.type === 'user') {
+          const existingUser = await db.query.users.findFirst({
+            where: eq(users.username, 'admin'),
+          });
 
-      if (!existingUser) 
-      {
-        const [adminPerson] = await db.insert(people).values({
-          name: 'System Administrator',
-          type: 'pengurus',
-          status: true,
-        }).returning();
+          if (!existingUser) 
+          {
+            const [adminPerson] = await db.insert(people).values({
+              name: 'System Administrator',
+              type: 'pengurus',
+              status: true,
+            }).returning();
 
-        const password = process.env.ADMIN_PASSWORD as string || 'admin123'; // Fallback if env not set
-        const hashedPassword = await bcrypt.hash(password, 10);
+            const password = process.env.ADMIN_PASSWORD as string || 'admin123'; // Fallback if env not set
+            const hashedPassword = await bcrypt.hash(password, 10);
 
-        await db.insert(users).values({
-          username: 'admin',
-          passwordHash: hashedPassword,
-          role: 'superadmin',
-          personId: adminPerson.id,
-        });
-        console.log('✅ Admin user created');
+            await db.insert(users).values({
+              username: 'admin',
+              passwordHash: hashedPassword,
+              role: 'superadmin',
+              personId: adminPerson.id,
+            });
+            console.log('✅ Admin user created');
+          }
       }
 
     // 2. Master Data (Idempotent)
-    await db.insert(mosqueProfile).values({
-      id: 1,
-      name: 'Masjid Jami At-Tadzkirah',
-      address: 'Sindangmulya, Kec. Cibarusah, Kabupaten Bekasi, Jawa Barat 17340',
-      logoUrl: '',
-      qrisUrl: '',
-      letterheadConfig: {
-        headerText: '',
-        logoPosition: 'left',
-        font: 'Arial'
-      }
-    }).onConflictDoNothing();
+    if (options.type === 'all' || options.type === 'master') 
+    {
+        await db.insert(mosqueProfile).values({
+        id: 1,
+        name: 'Masjid Jami At-Tadzkirah',
+        address: 'Sindangmulya, Kec. Cibarusah, Kabupaten Bekasi, Jawa Barat 17340',
+        logoUrl: '',
+        qrisUrl: '',
+        letterheadConfig: {
+            headerText: '',
+            logoPosition: 'left',
+            font: 'Arial'
+        }
+        }).onConflictDoNothing();
 
-    await db.insert(displayConfig).values({
-      id: 1,
-      cityId: process.env.DEFAULT_CITY_ID as string || '1204', // Default Bekasi
-      runningText: 'Mohon lurus dan rapatkan shaf.',
-    }).onConflictDoNothing();
+        await db.insert(displayConfig).values({
+        id: 1,
+        cityId: process.env.DEFAULT_CITY_ID as string || '1204', // Default Bekasi
+        runningText: 'Mohon lurus dan rapatkan shaf.',
+        }).onConflictDoNothing();
 
-    await db.insert(coaCategories).values([
-      { name: 'Infaq Jumat', type: 'income' },
-      { name: 'Operasional', type: 'expense' },
-    ]).onConflictDoNothing();
+        await db.insert(coaCategories).values([
+        { name: 'Infaq Jumat', type: 'income' },
+        { name: 'Operasional', type: 'expense' },
+        ]).onConflictDoNothing();
 
-    await db.insert(accounts).values({
-      name: 'Kas Tunai',
-      balance: 0,
-      isActive: true
-    }).onConflictDoNothing();
+        await db.insert(accounts).values({
+        name: 'Kas Tunai',
+        balance: 0,
+        isActive: true
+        }).onConflictDoNothing();
+    }
 
       // 3. Seed Imams (NEW SECTION)
-      console.log('Start seeding Imams...');
-      
-      for (const name of IMAM_LIST) 
-      {
-        const existingPerson = await db.query.people.findFirst({
-          where: eq(people.name, name)
-        });
-
-        if (!existingPerson) 
-        {
-          const isAkh = name.toLowerCase().startsWith('akh');
-          const personType = isAkh ? 'jamaah' : 'ustadz';
-
-          await db.insert(people).values({
-            name: name,
-            type: personType, 
-            status: true,
-            phoneNumber: '-', 
-            address: '-'      
-          });
-          console.log(`   + Added: ${name} as [${personType}]`);
-        } 
-        else 
+      if (options.type === 'all' || options.type === 'master') {
+          console.log('Start seeding Imams...');
+          
+          for (const name of IMAM_LIST) 
           {
-          console.log(`   . Skipped: ${name} (Already exists)`);
-        }
+            const existingPerson = await db.query.people.findFirst({
+              where: eq(people.name, name)
+            });
+
+            if (!existingPerson) 
+            {
+              const isAkh = name.toLowerCase().startsWith('akh');
+              const personType = isAkh ? 'jamaah' : 'ustadz';
+
+              await db.insert(people).values({
+                name: name,
+                type: personType, 
+                status: true,
+                phoneNumber: '-', 
+                address: '-'      
+              });
+              console.log(`   + Added: ${name} as [${personType}]`);
+            } 
+            else 
+              {
+              console.log(`   . Skipped: ${name} (Already exists)`);
+            }
+          }
       }
 
       // 4. Seed Hadiths
-      try {
-        const hadithsPath = path.resolve(__dirname, 'seeds/data/hadiths.json');
-        if (fs.existsSync(hadithsPath)) {
-          console.log('Start seeding Hadiths...');
-          const hadithsData = JSON.parse(fs.readFileSync(hadithsPath, 'utf-8'));
-          
-          if (Array.isArray(hadithsData) && hadithsData.length > 0) {
-            // Batch insert in chunks of 50
-            const batchSize = 50;
-            for (let i = 0; i < hadithsData.length; i += batchSize) {
-              const batch = hadithsData.slice(i, i + batchSize);
-              await db.insert(hadisEnc).values(batch).onConflictDoNothing();
-              process.stdout.write(`\r   + Inserted batch ${i / batchSize + 1}/${Math.ceil(hadithsData.length / batchSize)}`);
+      if (options.type === 'all' || options.type === 'content') {
+          try {
+            const hadithsPath = path.resolve(__dirname, 'seeds/data/hadiths.json');
+            if (fs.existsSync(hadithsPath)) {
+              console.log('Start seeding Hadiths...');
+              const hadithsData = JSON.parse(fs.readFileSync(hadithsPath, 'utf-8'));
+              
+              if (Array.isArray(hadithsData) && hadithsData.length > 0) {
+                // Batch insert in chunks of 50
+                const batchSize = 50;
+                for (let i = 0; i < hadithsData.length; i += batchSize) {
+                  const batch = hadithsData.slice(i, i + batchSize);
+                  await db.insert(hadisEnc).values(batch).onConflictDoNothing();
+                  process.stdout.write(`\r   + Inserted batch ${i / batchSize + 1}/${Math.ceil(hadithsData.length / batchSize)}`);
+                }
+                console.log('\n   ✅ Hadiths seeded');
+              }
+            } else {
+              console.log('   . Skipped hadiths (File not found)');
             }
-            console.log('\n   ✅ Hadiths seeded');
+          } catch (e) {
+            console.error('   ❌ Failed to seed hadiths:', e);
           }
-        } else {
-          console.log('   . Skipped hadiths (File not found)');
-        }
-      } catch (e) {
-        console.error('   ❌ Failed to seed hadiths:', e);
       }
 
       console.log('🏁 Seeding completed successfully!');
-      process.exit(0);
-
     } 
     catch (err) 
     {
@@ -156,4 +171,7 @@
     }
   }
 
-  seed();
+  // Allow standalone execution
+  if (require.main === module) {
+      seed({ type: 'all' });
+  }

@@ -1,7 +1,14 @@
 import axios from 'axios';
 
+const baseURL = '/api';
+console.log('🔌 API Base URL:', baseURL);
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL,
+  validateStatus: (status) => status < 500,
+  headers: {
+    'Bypass-Tunnel-Reminder': 'true',
+  },
 });
 
 api.interceptors.response.use(

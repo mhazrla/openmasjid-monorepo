@@ -11,13 +11,9 @@
     "build:client": "pnpm --filter client build",
     "build:server": "pnpm --filter server build",
     "build": "concurrently \"pnpm run build:client\" \"pnpm run build:server\"",
-    "start:prod": "pnpm --filter server start:prod",
-    "db:push": "pnpm --filter server db:push",
+    "start": "pnpm --filter server start",
     "db:studio": "pnpm --filter server db:studio",
-    "db:seed": "pnpm --filter server db:seed",
-    "db:fresh": "pnpm --filter server db:fresh",
-    "db:reset": "pnpm --filter server db:reset",
-    "db:migrate:pglite": "pnpm --filter server db:migrate:pglite"
+    "db": "pnpm --filter server db"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

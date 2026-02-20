@@ -13,16 +13,19 @@ export const buildApp = async () =>
     logger: isDev ? { transport: { target: 'pino-pretty' } } : true
   });
 
-  const corsOrigins = process.env.CORS_ORIGIN 
-      ? process.env.CORS_ORIGIN.split(',') 
-      : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
-
+  // CORS: Allow everything for troubleshooting
   await app.register(cors, 
   { 
-    origin: corsOrigins,
+    origin: true, // Reflects the request origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], 
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    // allowedHeaders: ['Content-Type', 'Authorization'],
+    // credentials: true
+  });
+
+  // Troubleshooting: Log incoming requests
+  app.addHook('onRequest', async (request, reply) => {
+      const ip = request.ip || request.headers['x-forwarded-for'] || 'unknown';
+      console.log(`📥 [${request.method}] ${request.url} from ${ip}`);
   });
 
   const jwtSecret = process.env.JWT_SECRET;
