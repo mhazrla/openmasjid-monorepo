@@ -1,6 +1,6 @@
 
 import * as React from "react"
-import { createPortal } from "react-dom"
+
 import { ChevronDown, Check, X, Search } from "lucide-react"
 import { cn } from "../../lib/utils"
 
@@ -54,30 +54,15 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
     const searchInputRef = React.useRef<HTMLInputElement>(null);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-    // Calculate position when opening
     React.useLayoutEffect(() => 
     {
         if (isOpen && containerRef.current) 
         {
-            const updatePosition = () => 
-            {
-                const rect = containerRef.current!.getBoundingClientRect();
-                setPosition({
-                    top: rect.bottom + window.scrollY,
-                    left: rect.left + window.scrollX,
-                    width: rect.width
-                });
-            };
-
-            updatePosition();
-            window.addEventListener('resize', updatePosition);
-            window.addEventListener('scroll', updatePosition, true);
-
-            return () => 
-            {
-                window.removeEventListener('resize', updatePosition);
-                window.removeEventListener('scroll', updatePosition, true);
-            };
+            setPosition({
+                top: containerRef.current.offsetHeight,
+                left: 0,
+                width: containerRef.current.offsetWidth
+            });
         }
     }, [isOpen]);
 
@@ -182,7 +167,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
     const dropdownContent = (
         <div 
             ref={dropdownRef}
-            className="absolute z-[100] mt-1 overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 flex flex-col"
+            className="absolute z-100 mt-1 overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 flex flex-col"
             style={{
                 top: position.top,
                 left: position.left,
@@ -268,7 +253,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
                     <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", isOpen && "rotate-180")} />
                 </div>
 
-                {isOpen && createPortal(dropdownContent, document.body)}
+                {isOpen && dropdownContent}
             </div>
 
             {description && !error && <p className="text-xs text-slate-500">{description}</p>}

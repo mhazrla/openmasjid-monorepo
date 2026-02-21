@@ -4,6 +4,9 @@
   import { eq } from 'drizzle-orm';
   import { db } from './index'; 
   import { users, people, mosqueProfile, displayConfig, accounts, coaCategories, hadisEnc } from './schema';
+  import { PrayerTimeService } from '../modules/prayer-time/prayer-time.service';
+  import { PrayerTimeRepository } from '../modules/prayer-time/prayer-time.repository';
+  import { DisplayConfigRepository } from '../modules/display-config/display-config.repository';
 
   const IMAM_LIST = [
     "Ust. Dr. Muhammad Yasir, M.A.",
@@ -34,7 +37,8 @@
     "Akh. Rizki",
   ];
 
-  export type SeedOptions = {
+  export type SeedOptions = 
+  {
     type?: 'all' | 'user' | 'master' | 'content';
   };
 
@@ -103,6 +107,13 @@
         balance: 0,
         isActive: true
         }).onConflictDoNothing();
+
+        console.log('Fetching 1-year default prayer times...');
+        const prayerRepo = new PrayerTimeRepository();
+        const configRepo = new DisplayConfigRepository();
+        const prayerService = new PrayerTimeService(prayerRepo, configRepo);
+        const cityId = process.env.DEFAULT_CITY_ID as string || '1204';
+        await prayerService.syncYearlyFromExternalApi(cityId);
     }
 
       // 3. Seed Imams (NEW SECTION)

@@ -16,8 +16,10 @@ export const usePeople = (params?: UsePeopleParams) =>
             
             if (params?.search) queryParams.append('search', params.search);
             
-            const { data } = await api.get<{ data: Person[] }>('/people', { params: queryParams });
-            return data.data;
+            if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
+            
+            const { data } = await api.get<any>('/people', { params: queryParams });
+            return data.data || data;
         },
         staleTime: 1000 * 60 * 5, 
         placeholderData: (previousData) => previousData, 

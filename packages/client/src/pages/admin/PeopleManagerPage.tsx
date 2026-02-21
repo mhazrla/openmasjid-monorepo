@@ -51,7 +51,8 @@ export const PeopleManagerPage = () =>
     // --- Hooks ---
     // Fetch ALL people for client-side filtering
     const { data: people = [], isLoading } = usePeople({ 
-        status: 'all' 
+        status: 'all',
+        limit: 0
     });
 
     // --- Client-Side Filtering ---
@@ -59,7 +60,7 @@ export const PeopleManagerPage = () =>
     {
         if (!people) return [];
 
-        return people.filter(person => 
+        return people.filter((person: any) => 
         {
             // 1. Filter by Status
             if (statusFilter === 'active' && !person.status) return false;

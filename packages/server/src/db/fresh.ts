@@ -15,7 +15,7 @@ export async function fresh(
   }
 
   // Development: Delete local data
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env.NODE_ENV === 'development' && !databaseUrl) {
      const dbPath = path.resolve(process.cwd(), '.pgdata');
      console.log(`🗑️  [PGLite] Removing database directory: ${dbPath}`);
      

@@ -44,13 +44,9 @@ export class DisplayConfigService
 
   private async triggerAutoSync(cityId: string) 
   {
-    const now = new Date();
-    const currentYear = now.getFullYear().toString();
-    const currentMonth = (now.getMonth() + 1).toString();
-
     try 
     {
-      await this.prayerTimeService.syncFromExternalApi(cityId, currentYear, currentMonth);
+      await this.prayerTimeService.syncYearlyFromExternalApi(cityId);
     } 
     catch (error) 
     {

@@ -106,4 +106,6 @@ export interface ScheduleRowProps
 {
     schedule: RamadanSchedule;
     ustadzList: { value: string, label: string }[];
+    index: number;
+    totalRows: number;
 }

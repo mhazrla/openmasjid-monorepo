@@ -123,4 +123,42 @@ export class PrayerTimeService
       throw error;
     }
   }
+
+  async syncYearlyFromExternalApi(cityId: string) 
+  {
+    console.log(`[PrayerTime] Initiating 1-year sync for city: ${cityId}`);
+    const now = new Date();
+    let currentYear = now.getFullYear();
+    let currentMonth = now.getMonth() + 1;
+
+    let totalSchedules: ParsedPrayerSchedule[] = [];
+
+    // Fetch for the next 12 months sequentially avoiding rate limit blasts
+    for (let i = 0; i < 12; i++) 
+    {
+      const yearStr = currentYear.toString();
+      const monthStr = currentMonth.toString().padStart(2, '0');
+
+      try 
+      {
+        const schedules = await this.syncFromExternalApi(cityId, yearStr, monthStr);
+        totalSchedules.push(...schedules);
+      } 
+      catch (e) 
+      {
+        console.warn(`[PrayerTime] Skipping month ${yearStr}-${monthStr} due to error`);
+      }
+
+      // Increment Month, handle year rollover
+      currentMonth++;
+      if (currentMonth > 12) 
+      {
+        currentMonth = 1;
+        currentYear++;
+      }
+    }
+
+    console.log(`[PrayerTime] Completed 1-year sync. Total days fetched: ${totalSchedules.length}`);
+    return totalSchedules;
+  }
 }

@@ -9,4 +9,9 @@ export default defineConfig({
   },
   verbose: true,
   strict: true,
+  schemaFilter: ['public'],
+  extensionsFilters: ["postgis"],
+  introspect: {
+    casing: "preserve"
+  }
 });

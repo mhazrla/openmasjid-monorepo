@@ -13,7 +13,7 @@ export type ModuleFilter<T = {}> = BaseFilter & T;
 
 export const baseFilterSchema = z.object({
   page: z.preprocess((val) => (val ? Number(val) : 1), z.number().min(1).default(1)),
-  limit: z.preprocess((val) => (val ? Number(val) : 10), z.number().min(1).max(100).default(10)),
+  limit: z.preprocess((val) => (val !== undefined ? Number(val) : 10), z.number().min(0).max(100).default(10)),
   search: z.string().optional(),
   sortBy: z.string().optional(),
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),

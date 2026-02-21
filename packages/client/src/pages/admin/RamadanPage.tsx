@@ -11,7 +11,7 @@ import type {
     MinimalInputProps 
 } from '../../features/ramadan/types';
 import { 
-    Loader2, Moon, Save, Edit3, User, Coffee, Utensils, Droplets, Calendar, ChevronDown 
+    Loader2, Moon, Save, Edit3, User, Coffee, Utensils, Droplets, Calendar, ChevronDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -147,7 +147,7 @@ const InitRamadanForm = () =>
     );
 };
 
-const ScheduleRow = memo(({ schedule, ustadzList }: ScheduleRowProps) => 
+const ScheduleRow = memo(({ schedule, ustadzList, index, totalRows }: ScheduleRowProps) => 
 {
     const { mutate: updateSchedule, isPending } = useUpdateRamadanSchedule();
     const [isDirty, setIsDirty] = useState(false);
@@ -214,10 +214,13 @@ const ScheduleRow = memo(({ schedule, ustadzList }: ScheduleRowProps) =>
     const dateObj = parseISO(schedule.date);
 
     return (
-        <tr className={cn(
-            "group transition-all duration-200 border-b border-slate-50 last:border-0",
-             isDirty ? "bg-amber-50/30" : "hover:bg-slate-50/50"
-        )}>
+        <tr 
+            className={cn(
+                "group transition-all duration-200 border-b border-slate-50 last:border-0 relative",
+                 isDirty ? "bg-amber-50/30" : "hover:bg-slate-50/50"
+            )}
+            style={{ zIndex: totalRows - index }}
+        >
             {/* 1. Date */}
             <td className="pl-6 py-4 w-20">
                 <div className="flex flex-col items-center justify-center">
@@ -425,7 +428,8 @@ const ScheduleRow = memo(({ schedule, ustadzList }: ScheduleRowProps) =>
 // --- MAIN PAGE ---
 export const RamadanPage = () => {
     const { data: activeConfig, isLoading } = useActiveRamadan();
-    const { data: people } = usePeople();
+    const { data: people = [] } = usePeople({ limit: 0 });
+    console.log(people);
     const { register: registerGlobal, handleSubmit: submitGlobal, reset: resetGlobal } = useForm();
     const { mutate: updateConfig, isPending: isUpdatingConfig } = useUpdateRamadanConfig();
 
@@ -443,7 +447,7 @@ export const RamadanPage = () => {
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-emerald-600" /></div>;
     if (!activeConfig) return <InitRamadanForm />;
 
-    const ustadzList = people?.filter(p => p.type === 'ustadz' || p.type === 'pengurus').map(p => ({ value: p.id.toString(), label: p.name })) || [];
+    const ustadzList = people?.filter((p: any) => p.type === 'ustadz' || p.type === 'pengurus' || p.type === 'jamaah').map((p: any) => ({ value: p.id.toString(), label: p.name })) || [];
 
     return (
         <div className="max-w-[1600px] mx-auto pb-20 relative">
@@ -572,11 +576,13 @@ export const RamadanPage = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {activeConfig.schedules?.map((schedule) => (
+                            {activeConfig.schedules?.map((schedule, index) => (
                                 <ScheduleRow 
                                     key={schedule.id} 
                                     schedule={schedule} 
                                     ustadzList={ustadzList} 
+                                    index={index}
+                                    totalRows={activeConfig.schedules?.length || 1}
                                 />
                             ))}
                         </tbody>

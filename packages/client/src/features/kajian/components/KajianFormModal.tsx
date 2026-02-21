@@ -14,7 +14,7 @@ import { handleFormError } from '../../../utils/form-error';
 
 export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormModalProps) => 
 {
-    const { data: people } = usePeople();
+    const { data: people = [] } = usePeople({ limit: 0 });
     const { mutate: createKajian, isPending: isCreating } = useCreateKajian();
     const { mutate: updateKajian, isPending: isUpdating } = useUpdateKajian(); 
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -172,8 +172,8 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
     {
         if (!people) return [];
         return people
-            .filter(p => p.type === 'ustadz' || p.type === 'pengurus')
-            .map(p => ({ value: String(p.id), label: p.name }));
+            .filter((p: any) => p.type === 'ustadz' || p.type === 'pengurus' || p.type === 'jamaah')
+            .map((p: any) => ({ value: String(p.id), label: p.name }));
     }, [people]);
 
     const isPending = isCreating || isUpdating;

@@ -34,4 +34,5 @@ export interface UsePeopleParams
     type?: PersonType | 'all';
     status?: 'active' | 'inactive' | 'all';
     search?: string;
+    limit?: number;
 }

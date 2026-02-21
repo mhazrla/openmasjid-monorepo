@@ -8,7 +8,7 @@ export class PeopleRepository
   async findAll(filters: PeopleFilter) 
   {
     const conditions = [];
-    const limit = filters.limit || 10;
+    const limit = filters.limit !== undefined ? filters.limit : 10;
     const offset = (filters.page && filters.page > 0) ? (filters.page - 1) * limit : 0;
     
     if (filters.status && filters.status !== 'all') 
@@ -30,10 +30,17 @@ export class PeopleRepository
         ? (filters.sortOrder === 'asc' ? asc((people as any)[filters.sortBy]) : desc((people as any)[filters.sortBy]))
         : asc(people.name);
 
-    return await db.select()
+    const baseQuery = db.select()
       .from(people)
       .where(and(...conditions))
-      .orderBy(orderBy)
+      .orderBy(orderBy);
+
+    // If limit is exactly 0, fetch ALL without pagination
+    if (filters.limit === 0) {
+        return await baseQuery;
+    }
+
+    return await baseQuery
       .limit(limit)
       .offset(offset);
   }

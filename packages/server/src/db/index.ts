@@ -14,12 +14,12 @@ console.log('----------------------------------------');
 
 export let db: any;
 
-if (config.NODE_ENV === 'production') 
+if (config.NODE_ENV === 'production' || config.DATABASE_URL) 
 {
-  console.log('🔌 Mode: PRODUCTION (Connecting to Supabase/Postgres...)');
+  console.log(`🔌 Mode: ${config.NODE_ENV.toUpperCase()} (Connecting to Postgres...)`);
   
   if (!config.DATABASE_URL) {
-    throw new Error('❌ DATABASE_URL is missing in production mode!');
+    throw new Error('❌ DATABASE_URL is missing!');
   }
 
   // Gunakan postgres-js client

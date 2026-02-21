@@ -92,12 +92,15 @@ async function main() {
       } else {
           console.log('🚀 Pushing schema changes...');
           
-          const isPGLite = values.env === 'development';
-          const args = ['push'];
+          const isPGLite = values.env === 'development' && !process.env.DATABASE_URL;
+          const args = ['push', '--force'];
           
           if (isPGLite) {
               args.push('--config=drizzle.config.pglite.ts');
               console.log('   (Using PGLite config)');
+          } else {
+              args.push('--config=drizzle.config.ts');
+              console.log('   (Using standard Postgres config)');
           }
 
           await runCommand('drizzle-kit', args);

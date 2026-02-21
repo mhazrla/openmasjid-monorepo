@@ -22,10 +22,13 @@ import { DUMMY_HADITS, getNextPrayer } from '../../features/display/utils/displa
 import { getImageUrl } from '../../lib/utils';
 import type { SlideContent, RamadanScheduleUI } from '../../features/display/types';
 
+// --- Constants ---
+const REFETCH_INTERVAL = 5000;
+
 // --- Helper Hook: Slide Data ---
 const useSlideData = (ramadanConfig: any | undefined, todayStr: string, profile: any) => 
 {
-    const { data: kajianEvents }    = useKajianEvents({ upcoming: true, refetchInterval: 60000 });
+    const { data: kajianEvents }    = useKajianEvents({ upcoming: true, refetchInterval: REFETCH_INTERVAL });
     const { data: hadith }          = useHadithDisplay();
 
     return useMemo(() => 
@@ -40,7 +43,26 @@ const useSlideData = (ramadanConfig: any | undefined, todayStr: string, profile:
 
         if (ramadanConfig?.isActive && ramadanSchedules.length > 0) 
         {
-            items.push({ type: 'lelang_table', data: ramadanSchedules.slice(0, 3) }); // Simplified logic for brevity
+            let startIndex = 0;
+            const todayIndex = ramadanSchedules.findIndex(s => s.date.startsWith(todayStr));
+            
+            if (todayIndex !== -1) 
+            {
+                // Today is during Ramadan, show today and the next two days (max 3)
+                startIndex = Math.min(todayIndex, Math.max(0, ramadanSchedules.length - 3));
+            } 
+            else if (todayStr > ramadanSchedules[ramadanSchedules.length - 1].date) 
+            {
+                // Past Ramadan, show the last 3 days
+                startIndex = Math.max(0, ramadanSchedules.length - 3);
+            } 
+            else 
+            {
+                // Before Ramadan, show the first 3 days
+                startIndex = 0;
+            }
+
+            items.push({ type: 'lelang_table', data: ramadanSchedules.slice(startIndex, startIndex + 3) });
             if (todaysRamadanSchedule?.tarawihImam) items.push({ type: 'tarawih_today', data: todaysRamadanSchedule });
             if (todaysRamadanSchedule?.iftarSpeaker) items.push({ type: 'kajian_today', data: todaysRamadanSchedule });
         }
@@ -114,7 +136,7 @@ const SlideRenderer = memo(({ currentSlide, ramadanConfig }: { currentSlide: Sli
     switch (currentSlide.type) 
     {
         case 'lelang_table': return <Wrapper><RamadanTableWidget schedules={currentSlide.data} config={ramadanConfig} /></Wrapper>;
-        case 'tarawih_today': return <Wrapper><TarawihWidget data={{ ...currentSlide.data, description: "Mari Luruskan & Rapatkan Shaf" }} hijriYear={ramadanConfig?.hijriYear} /></Wrapper>;
+        case 'tarawih_today': return <Wrapper><TarawihWidget data={{ ...currentSlide.data, description: ramadanConfig?.badalImamText || "Mari Luruskan & Rapatkan Shaf" }} hijriYear={ramadanConfig?.hijriYear} /></Wrapper>;
         case 'kajian_today': return <Wrapper><TarawihWidget data={{ ramadanDay: currentSlide.data.ramadanDay, imam: currentSlide.data.iftarSpeaker, description: currentSlide.data.iftarKajianTitle || "Kajian Menjelang Berbuka Puasa" }} title="Kajian Ifthor" hijriYear={ramadanConfig?.hijriYear} /></Wrapper>;
         case 'kajian_event': return <KajianWidget data={currentSlide.data} />;
         case 'poster': return <Wrapper><PosterWidget data={currentSlide.data} /></Wrapper>;
@@ -128,9 +150,9 @@ const SlideRenderer = memo(({ currentSlide, ramadanConfig }: { currentSlide: Sli
 export const StandbyView = () => 
 {
     // 1. Data Hooks
-    const { data: profile } = useMosqueProfile({ refetchInterval: 60000 }); 
-    const { data: config } = useDisplayConfig({ refetchInterval: 60000 });
-    const { data: ramadanConfig } = useActiveRamadan({ refetchInterval: 60000 });
+    const { data: profile } = useMosqueProfile({ refetchInterval: REFETCH_INTERVAL }); 
+    const { data: config } = useDisplayConfig({ refetchInterval: REFETCH_INTERVAL });
+    const { data: ramadanConfig } = useActiveRamadan({ refetchInterval: REFETCH_INTERVAL });
     
     // 2. Local State & Clock
     const [now, setNow] = useState(new Date());
@@ -144,7 +166,7 @@ export const StandbyView = () =>
 
     // 3. Derived Data
     const todayStr = useMemo(() => format(now, 'yyyy-MM-dd'), [now]);
-    const { data: prayerTimes } = usePrayerTime(todayStr, { refetchInterval: 60000 });
+    const { data: prayerTimes } = usePrayerTime(todayStr, { refetchInterval: REFETCH_INTERVAL });
     const nextPrayer = useMemo(() => getNextPrayer(prayerTimes, now), [prayerTimes, now]);
     
     // 4. Custom Logic Hooks (Cleaned Up)
