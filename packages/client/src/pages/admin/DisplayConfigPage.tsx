@@ -60,6 +60,7 @@ export const DisplayConfigPage = () =>
                 adjAshar: config.adjAshar,
                 adjMaghrib: config.adjMaghrib,
                 adjIsya: config.adjIsya,
+                hijriAdj: config.hijriAdj ?? 0,
             });
         }
     }, [config, reset]);
@@ -136,6 +137,7 @@ export const DisplayConfigPage = () =>
                 adjAshar: Number(data.adjAshar),
                 adjMaghrib: Number(data.adjMaghrib),
                 adjIsya: Number(data.adjIsya),
+                hijriAdj: Number(data.hijriAdj),
                 
                 enableBeep: Boolean(data.enableBeep),
                 runningText: data.runningText,
@@ -431,12 +433,15 @@ export const DisplayConfigPage = () =>
                 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
                         <Settings className="w-4 h-4 text-slate-500" />
-                        <h2 className="font-semibold text-slate-900">Time Corrections (Minutes)</h2>
+                        <h2 className="font-semibold text-slate-900">Time & Date Corrections</h2>
                     </div>
                     <div className="p-6">
-                         <p className="text-sm text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100 inline-block">
-                            Use <strong>negative values</strong> to subtract minutes (e.g. -2). Used to match mosque clock.
-                         </p>
+                         <div className="mb-2">
+                             <h3 className="text-sm font-semibold text-slate-900 mb-2">Prayer Times (Minutes)</h3>
+                             <p className="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100 inline-block">
+                                Use <strong>negative values</strong> to subtract minutes (e.g. -2). Used to match mosque clock.
+                             </p>
+                         </div>
                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
                             <Input label="Subuh" type="number" placeholder="0" {...register('adjSubuh')} />
                             <Input label="Terbit" type="number" placeholder="0" {...register('adjTerbit')} />
@@ -445,6 +450,16 @@ export const DisplayConfigPage = () =>
                             <Input label="Ashar" type="number" placeholder="0" {...register('adjAshar')} />
                             <Input label="Maghrib" type="number" placeholder="0" {...register('adjMaghrib')} />
                             <Input label="Isya" type="number" placeholder="0" {...register('adjIsya')} />
+                        </div>
+                        
+                        <div className="mt-8 pt-6 border-t border-slate-100">
+                             <h3 className="text-sm font-semibold text-slate-900 mb-2">Hijri Date (Days)</h3>
+                             <p className="text-xs text-slate-500 mb-4 bg-slate-50 p-2 rounded border border-slate-100 inline-block">
+                                Adjust the Hijri date for the calendar. Use <strong>-1</strong> or <strong>+1</strong> to fix inaccuracies.
+                             </p>
+                             <div className="w-1/2 sm:w-1/3 md:w-1/4 lg:w-40">
+                                <Input label="Offset" type="number" placeholder="0" {...register('hijriAdj')} />
+                             </div>
                         </div>
                     </div>
                 </div>

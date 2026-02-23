@@ -45,7 +45,7 @@ describe('Ramadan Module', () => {
     const updateRes = await request(app.server)
       .patch(`/api/ramadan/config/${id}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ title: 'Ramadan Updated', cityId: '1204' }); // Add cityId if required or just title
+      .send({ title: 'Ramadan Updated', cityId: '9766527f2b5d3e95d4a733fcfb77bd7e' }); // Add cityId if required or just title
 
     expect(updateRes.status).toBe(200);
     expect(updateRes.body.data.title).toBe('Ramadan Updated');

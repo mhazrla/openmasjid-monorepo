@@ -3,7 +3,6 @@ import { CreateKajianDto, KajianFilter, UpdateKajianDto } from './kajian.interfa
 import { calculateNextOccurrence } from '../../plugins/date';
 import path from 'path';
 import fs from 'fs/promises';
-import { constants } from 'fs';
 import { InferSelectModel } from 'drizzle-orm';
 import { kajianEvents, people } from '../../db/schema';
 import { fileExists } from '../../plugins/fileChecker';

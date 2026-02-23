@@ -18,6 +18,7 @@ const StandbyView = lazy(() => import('./pages/display/StandbyView').then(m => (
 const RamadanPage = lazy(() => import('./pages/admin/RamadanPage').then(m => ({ default: m.RamadanPage })));
 const KajianManagerPage = lazy(() => import('./pages/admin/KajianManagerPage').then(m => ({ default: m.KajianManagerPage })));
 const PeopleManagerPage = lazy(() => import('./pages/admin/PeopleManagerPage').then(m => ({ default: m.PeopleManagerPage })));
+const FinanceManagerPage = lazy(() => import('./pages/admin/FinanceManagerPage').then(m => ({ default: m.FinanceManagerPage })));
 
 function App() 
 {
@@ -51,6 +52,7 @@ function App()
                    <Route path="kajian" element={<KajianManagerPage />} />
                    <Route path="ramadan" element={<RamadanPage />} />
                    <Route path="people" element={<PeopleManagerPage />} />
+                   <Route path="finance" element={<FinanceManagerPage />} />
                 </Route>
             </Route>
           </Routes>

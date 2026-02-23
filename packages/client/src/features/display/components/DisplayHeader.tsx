@@ -2,14 +2,16 @@ import { MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { getImageUrl } from '../../../lib/utils';
+import type { DisplayConfig } from '../types';
 
 interface DisplayHeaderProps 
 {
     profile: any;
     currentTime: Date;
+    config?: DisplayConfig;
 }
 
-export const DisplayHeader = ({ profile, currentTime }: DisplayHeaderProps) => (
+export const DisplayHeader = ({ profile, currentTime, config }: DisplayHeaderProps) => (
     <header className="relative z-30 px-6 py-3 flex items-center justify-between shrink-0 h-20 border-b border-white/5 bg-black/20 backdrop-blur-sm">
         <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-white/5 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/10 shadow-xl">
@@ -29,14 +31,16 @@ export const DisplayHeader = ({ profile, currentTime }: DisplayHeaderProps) => (
             </div>
         </div>
 
-        <div className="text-right">
+        <div className="text-right flex flex-col items-end">
             <h2 className="text-4xl lg:text-5xl font-bold font-mono tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none">
                 {format(currentTime, 'HH:mm')}
                 <span className="text-xl text-slate-500 ml-1.5 font-light">{format(currentTime, 'ss')}</span>
             </h2>
-            <p className="text-xs text-emerald-400 font-medium uppercase tracking-widest mt-0.5">
-                {format(currentTime, 'EEEE, dd MMMM yyyy', { locale: id })}
-            </p>
+            <div className="flex flex-col items-end mt-1">
+                <p className="text-xs text-emerald-400 font-medium uppercase tracking-widest leading-tight">
+                    {format(currentTime, 'EEEE, dd MMMM yyyy', { locale: id })} {config?.cachedHijriDate && (<span className="text-[11px] text-slate-400 font-medium tracking-wide mt-0.5 animate-in fade-in duration-500">/ {config.cachedHijriDate}</span>)}
+                </p>
+            </div>
         </div>
     </header>
 );

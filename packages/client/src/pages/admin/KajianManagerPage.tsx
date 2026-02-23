@@ -214,7 +214,7 @@ export const KajianManagerPage = () =>
                     variant="primary"
                     icon={<Plus className="w-4 h-4" />}
                     onClick={handleOpenCreate}
-                    className="cursor-pointer"
+                    className="cursor-pointer hidden md:flex"
                 >
                     Add Event
                 </ActionButton>
@@ -280,6 +280,15 @@ export const KajianManagerPage = () =>
                 data={filteredData}
                 isLoading={isLoading}
             />
+
+            {/* Mobile FAB for Add Event */}
+            <ActionButton 
+                onClick={handleOpenCreate}
+                variant="primary"
+                className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg shadow-emerald-900/40 p-0 flex items-center justify-center transition-transform active:scale-95 cursor-pointer"
+            >
+                <Plus className="w-6 h-6" />
+            </ActionButton>
 
             {/* Modal */}
             <KajianFormModal

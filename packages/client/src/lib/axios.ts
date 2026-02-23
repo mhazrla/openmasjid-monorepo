@@ -5,7 +5,6 @@ console.log('🔌 API Base URL:', baseURL);
 
 export const api = axios.create({
   baseURL,
-  validateStatus: (status) => status < 500,
   headers: {
     'Bypass-Tunnel-Reminder': 'true',
   },

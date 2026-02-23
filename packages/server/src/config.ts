@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   HOST: z.string().default('0.0.0.0'),
-  MYQURAN_API_URL: z.string().url().default('https://api.myquran.com/v3'),
+  MYQURAN_API_URL: z.string().url().default(process.env.MYQURAN_API_URL as string),
   DEFAULT_CITY_ID: z.string().default(process.env.DEFAULT_CITY_ID as string),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().optional(),

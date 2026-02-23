@@ -17,12 +17,12 @@ const uploadFile = async (file: File): Promise<string> =>
     const formData = new FormData();
     formData.append('file', file);
 
-    const { data } = await api.post<{ url: string }>('/upload', formData, 
+    const { data } = await api.post<{ data: { url: string } }>('/upload', formData, 
     {
         headers: { 'Content-Type': 'multipart/form-data' },
     });
 
-    return data.url;
+    return data.data.url;
 };
 
 export const MosqueProfilePage = () => 
@@ -161,22 +161,28 @@ export const MosqueProfilePage = () =>
                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-6">
                              <h3 className="text-lg font-medium text-slate-900">Bank Information</h3>
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input
-                                    id="bankName"
-                                    placeholder="Bank Name (e.g. BSI, BCA)"
-                                    {...register('bankName')}
-                                />
-                                <Input
-                                    id="bankAccountName"
-                                    placeholder="Account Name (Optional)"
-                                    {...register('bankAccountName')}
-                                />
-                                <div className="md:col-span-2">
-                                     <Input
-                                        id="bankAccountNumber"
-                                        placeholder="Account Number (e.g. 12345678)"
-                                        {...register('bankAccountNumber')}
+                                <FormItem error={errors.bankName?.message}>
+                                    <Input
+                                        id="bankName"
+                                        placeholder="Bank Name (e.g. BSI, BCA)"
+                                        {...register('bankName')}
                                     />
+                                </FormItem>
+                                <FormItem error={errors.bankAccountName?.message}>
+                                    <Input
+                                        id="bankAccountName"
+                                        placeholder="Account Name (Optional)"
+                                        {...register('bankAccountName')}
+                                    />
+                                </FormItem>
+                                <div className="md:col-span-2">
+                                     <FormItem error={errors.bankAccountNumber?.message}>
+                                         <Input
+                                            id="bankAccountNumber"
+                                            placeholder="Account Number (e.g. 12345678)"
+                                            {...register('bankAccountNumber')}
+                                        />
+                                     </FormItem>
                                 </div>
                             </div>
                         </div>

@@ -8,41 +8,55 @@ export function cn(...inputs: ClassValue[])
   return twMerge(clsx(inputs));
 }
 
-// --- Date Utilities ---
+export const formatCurrency = (amount: number) => 
+{
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+};
+
+export const formatDate = (dateString: string | Date, includeTime = false) => 
+{
+    const options: Intl.DateTimeFormatOptions = {
+        day: '2-digit', 
+        month: 'short', 
+        year: 'numeric',
+    };
+    
+    if (includeTime) {
+        options.hour = '2-digit';
+        options.minute = '2-digit';
+    }
+
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+};
 
 /**
  * Calculates the next occurrence of a specific day and time.
  * Used for recurring events (Kajian Rutin).
  */
-export const calculateNextRecurringDate = (dayOfWeek: string, time: string): Date => {
+export const calculateNextRecurringDate = (dayOfWeek: string, time: string): Date => 
+{
     const [hours, minutes] = (time || '00:00').split(':').map(Number);
     const targetDay = parseInt(dayOfWeek || '0'); // 0 = Sunday, 1 = Monday, etc.
     
     const today = new Date();
     
-    // Start by finding the next occurrence of the target day
-    // Note: nextDay from date-fns returns the next date *after* today
     let nextDate = nextDay(today, targetDay as any);
     
-    // If today IS the target day, we need to check the time specific logic
     if (today.getDay() === targetDay) 
     {
         const potentialDate = set(today, { hours, minutes, seconds: 0, milliseconds: 0 });
         
-        // If the time hasn't passed yet today, use today
         if (isBefore(today, potentialDate)) 
         {
             nextDate = potentialDate;
         } 
         else 
         {
-            // Otherwise, move to next week
             nextDate = addWeeks(potentialDate, 1);
         }
     } 
     else 
     {
-        // Set the time on the calculated next day
         nextDate = set(nextDate, { hours, minutes, seconds: 0, milliseconds: 0 });
     }
 
@@ -58,7 +72,8 @@ export const calculateEventDate = (
     singleDate: string | Date, 
     dayOfWeek?: string, 
     time?: string
-): Date => {
+): Date => 
+{
     if (type === 'kajian_rutin') 
     {
         if (!dayOfWeek || !time) 

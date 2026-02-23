@@ -15,29 +15,35 @@ export const ShortlinkFormModal = ({ isOpen, onClose, editingShortlink }: Shortl
 {
     const createMutation = useCreateShortlink();
     const updateMutation = useUpdateShortlink();
-    const { register, handleSubmit, reset, setError, setValue, formState: { errors } } = useForm<CreateShortlinkRequests>();
+    const { register, handleSubmit, reset, setError, setValue, clearErrors, formState: { errors } } = useForm<CreateShortlinkRequests>();
 
     const isEditing = !!editingShortlink;
     const isLoading = createMutation.isPending || updateMutation.isPending;
+
+    const handleReset = () => 
+    {
+        clearErrors();
+        if (editingShortlink) 
+        {
+            setValue('slug', editingShortlink.slug);
+            setValue('originalUrl', editingShortlink.originalUrl);
+            setValue('description', editingShortlink.description || '');
+        } 
+        else 
+        {
+            reset({
+                slug: '',
+                originalUrl: '',
+                description: ''
+            });
+        }
+    };
 
     useEffect(() => 
     {
         if (isOpen) 
         {
-            if (editingShortlink) 
-            {
-                setValue('slug', editingShortlink.slug);
-                setValue('originalUrl', editingShortlink.originalUrl);
-                setValue('description', editingShortlink.description || '');
-            } 
-            else 
-            {
-                reset({
-                    slug: '',
-                    originalUrl: '',
-                    description: ''
-                });
-            }
+            handleReset();
         }
     }, [isOpen, editingShortlink, reset, setValue]);
 
@@ -128,14 +134,12 @@ export const ShortlinkFormModal = ({ isOpen, onClose, editingShortlink }: Shortl
                 </FormItem>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
-                    <ActionButton variant="secondary" onClick={onClose} type="button" disabled={isLoading}>
-                        Cancel
+                    <ActionButton variant="secondary" onClick={handleReset} type="button" disabled={isLoading} className="cursor-pointer">
+                        Reset
                     </ActionButton>
-                    <ActionButton 
-                        variant="primary" 
-                        type="submit" 
-                        isLoading={isLoading} 
+                    <ActionButton variant="primary" type="submit" isLoading={isLoading} 
                         icon={isEditing ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                        className="cursor-pointer"
                     >
                         {isEditing ? 'Save Changes' : 'Create Shortlink'}
                     </ActionButton>

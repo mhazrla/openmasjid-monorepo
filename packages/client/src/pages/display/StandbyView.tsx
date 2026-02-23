@@ -9,11 +9,12 @@ import { usePrayerTime } from '../../features/prayer/hooks';
 import { useActiveRamadan } from '../../features/ramadan/hooks';
 import { useKajianEvents } from '../../features/kajian/hooks';
 import { usePrayerStateMachine, useHadithDisplay } from '../../features/display/hooks';
+import { useFinanceSummaryData } from '../../features/finance/hooks';
 
 // --- Imports: Components ---
 import { DisplayHeader } from '../../features/display/components/DisplayHeader';
 import { DisplayFooter } from '../../features/display/components/DisplayFooter';
-import { TarawihWidget, PosterWidget, HaditsWidget, RamadanTableWidget, BankInfoWidget } from '../../features/display/components/ContentWidgets';
+import { TarawihWidget, PosterWidget, HaditsWidget, RamadanTableWidget, BankInfoWidget, FinanceSummaryWidget } from '../../features/display/components/ContentWidgets';
 import PrayerCountdownWidget from '../../features/display/components/PrayerCountdownWidget';
 import { KajianWidget } from '../../features/display/components/KajianWidget';
 
@@ -30,6 +31,7 @@ const useSlideData = (ramadanConfig: any | undefined, todayStr: string, profile:
 {
     const { data: kajianEvents }    = useKajianEvents({ upcoming: true, refetchInterval: REFETCH_INTERVAL });
     const { data: hadith }          = useHadithDisplay();
+    const { data: financeSummary }  = useFinanceSummaryData({ refetchInterval: REFETCH_INTERVAL });
 
     return useMemo(() => 
     {
@@ -119,9 +121,15 @@ const useSlideData = (ramadanConfig: any | undefined, todayStr: string, profile:
         {
              items.push({ type: 'hadits', data: DUMMY_HADITS[0] });
         }
+
+        // 5. Finance Summary
+        if (financeSummary) 
+        {
+             items.push({ type: 'finance_summary', data: financeSummary });
+        }
         
         return items;
-    }, [ramadanConfig, todayStr, kajianEvents, profile, hadith]);
+    }, [ramadanConfig, todayStr, kajianEvents, profile, hadith, financeSummary]);
 };
 
 // --- Component: Slide Renderer ---
@@ -142,6 +150,7 @@ const SlideRenderer = memo(({ currentSlide, ramadanConfig }: { currentSlide: Sli
         case 'poster': return <Wrapper><PosterWidget data={currentSlide.data} /></Wrapper>;
         case 'bank_info': return <Wrapper><BankInfoWidget data={currentSlide.data} /></Wrapper>;
         case 'hadits': return <Wrapper><HaditsWidget data={currentSlide.data} /></Wrapper>;
+        case 'finance_summary': return <Wrapper><FinanceSummaryWidget data={currentSlide.data} /></Wrapper>;
         default: return null;
     }
 });
@@ -171,7 +180,7 @@ export const StandbyView = () =>
     
     // 4. Custom Logic Hooks (Cleaned Up)
     const slides = useSlideData(ramadanConfig, todayStr, profile);
-    const prayerState = usePrayerStateMachine(now, prayerTimes, config); 
+    const prayerState = usePrayerStateMachine(now, prayerTimes, config as any); 
 
     // 5. Slide Rotation Effect
     useEffect(() => 
@@ -258,7 +267,7 @@ export const StandbyView = () =>
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black z-0 pointer-events-none" />
             
             {/* Header */}
-            {prayerState.mode === 'normal' && <DisplayHeader profile={profile} currentTime={now} />}
+            {prayerState.mode === 'normal' && <DisplayHeader profile={profile} currentTime={now} config={config as any} />}
             
             {/* Main */}
             <main className={`relative z-10 flex-1 flex flex-col items-center justify-center w-full overflow-hidden transition-all duration-500 

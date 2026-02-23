@@ -36,6 +36,7 @@ export const updateDisplayConfigSchema = z.object({
   adjImsak: z.number().int().optional(),
   adjTerbit: z.number().int().optional(),
   adjDhuha: z.number().int().optional(),
+  hijriAdj: z.number().int().optional(),
 
   // Audio
   enableBeep: z.boolean().optional(),

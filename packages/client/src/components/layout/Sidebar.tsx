@@ -11,6 +11,7 @@ import {
     User,
     PanelLeftClose,
     X,
+    Wallet
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../features/auth/hooks';
@@ -24,7 +25,8 @@ const MENU_ITEMS = [
     { label: 'Shortlinks', path: '/admin/shortlinks', icon: LinkIcon },
     { label: 'Ramadan', path: '/admin/ramadan', icon: Moon },
     { label: 'Kajian', path: '/admin/kajian', icon: BookOpen },
-    { label: 'People', path: '/admin/people', icon: User }
+    { label: 'People', path: '/admin/people', icon: User },
+    { label: 'Financial Report', path: '/admin/finance', icon: Wallet }
 ];
 
 interface SidebarProps {

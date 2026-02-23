@@ -16,7 +16,7 @@ export const DisplayFooter = ({ runningText, prayerTimes, nextPrayer }: DisplayF
                 Informasi
             </div>
             <Marquee gradient={false} speed={40} className="text-lg font-medium text-emerald-50 py-1">
-                {(runningText || "Selamat Datang").split('||').map((s, i) => <span key={i} className="mx-8 flex items-center gap-2">✨ {s}</span>)}
+                {(runningText || "Mohon lurus dan rapatkan shaf.").split('||').map((s, i) => <span key={i} className="mx-8 flex items-center gap-2">✨ {s}</span>)}
             </Marquee>
         </div>
 

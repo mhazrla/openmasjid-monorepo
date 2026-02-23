@@ -93,26 +93,29 @@
 
         await db.insert(displayConfig).values({
         id: 1,
-        cityId: process.env.DEFAULT_CITY_ID as string || '1204', // Default Bekasi
+        cityId: process.env.DEFAULT_CITY_ID as string || '9766527f2b5d3e95d4a733fcfb77bd7e', // Default Bekasi
         runningText: 'Mohon lurus dan rapatkan shaf.',
+        hijriAdj: 0,
         }).onConflictDoNothing();
 
         await db.insert(coaCategories).values([
-        { name: 'Infaq Jumat', type: 'income' },
+        { name: 'Infaq/Sedekah', type: 'income' },
+        { name: 'Zakat/Wakaf', type: 'income' },
         { name: 'Operasional', type: 'expense' },
+        { name: 'Bisyarah/Honor', type: 'expense' },
+        { name: 'Dakwah & Sosial', type: 'expense' },
         ]).onConflictDoNothing();
 
-        await db.insert(accounts).values({
-        name: 'Kas Tunai',
-        balance: 0,
-        isActive: true
-        }).onConflictDoNothing();
+        await db.insert(accounts).values([
+        { name: 'Kas Tunai', balance: 0, isActive: true },
+        { name: 'Bank BSI', balance: 0, isActive: true }
+        ]).onConflictDoNothing();
 
         console.log('Fetching 1-year default prayer times...');
         const prayerRepo = new PrayerTimeRepository();
         const configRepo = new DisplayConfigRepository();
         const prayerService = new PrayerTimeService(prayerRepo, configRepo);
-        const cityId = process.env.DEFAULT_CITY_ID as string || '1204';
+        const cityId = process.env.DEFAULT_CITY_ID as string || '9766527f2b5d3e95d4a733fcfb77bd7e';
         await prayerService.syncYearlyFromExternalApi(cityId);
     }
 

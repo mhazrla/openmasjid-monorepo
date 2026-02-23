@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, memo } from 'react';
+import { useState, useEffect, useCallback, memo, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { useActiveRamadan, useInitRamadan, useUpdateRamadanConfig, useUpdateRamadanSchedule } from '../../features/ramadan/hooks';
 import { usePeople } from '../../features/people/hooks';
@@ -71,21 +71,32 @@ const MinimalInput = memo(({ className, type, ...props }: MinimalInputProps) => 
 
 import { Select } from '../../components/ui/Select';
 
-const UserSelect = memo(({ value, onChange, options, placeholder = "Select..." }: UserSelectProps) => (
-    <div className="relative group/user w-full">
-        <div className="absolute left-3 top-2.5 z-10 pointer-events-none">
-            <User className="w-4 h-4 text-slate-400 group-focus-within/user:text-emerald-500 transition-colors" />
+const UserSelect = memo(({ value, onChange, placeholder = "Select..." }: Omit<UserSelectProps, 'options'>) => {
+    const { data: people = [] } = usePeople({ limit: 0 });
+
+    const options = useMemo(() => {
+        if (!people) return [];
+        return people
+            .filter((p: any) => p.type === 'ustadz' || p.type === 'pengurus' || p.type === 'jamaah')
+            .map((p: any) => ({ value: String(p.id), label: p.name }));
+    }, [people]);
+
+    return (
+        <div className="relative group/user w-full">
+            <div className="absolute left-3 top-2.5 z-10 pointer-events-none">
+                <User className="w-4 h-4 text-slate-400 group-focus-within/user:text-emerald-500 transition-colors" />
+            </div>
+            <Select
+                value={value}
+                onChange={(val) => onChange({ target: { value: String(val) } } as any)}
+                options={options}
+                placeholder={placeholder}
+                searchable
+                triggerClassName="pl-9"
+            />
         </div>
-        <Select
-            value={value}
-            onChange={(val) => onChange({ target: { value: String(val) } } as any)}
-            options={options}
-            placeholder={placeholder}
-            searchable
-            triggerClassName="pl-9"
-        />
-    </div>
-));
+    );
+});
 
 const InitRamadanForm = () => 
 {
@@ -147,7 +158,7 @@ const InitRamadanForm = () =>
     );
 };
 
-const ScheduleRow = memo(({ schedule, ustadzList, index, totalRows }: ScheduleRowProps) => 
+const ScheduleRow = memo(({ schedule, index, totalRows }: ScheduleRowProps) => 
 {
     const { mutate: updateSchedule, isPending } = useUpdateRamadanSchedule();
     const [isDirty, setIsDirty] = useState(false);
@@ -238,7 +249,6 @@ const ScheduleRow = memo(({ schedule, ustadzList, index, totalRows }: ScheduleRo
                         <Moon className="w-3 h-3" /> Imam Tarawih
                     </span>
                     <UserSelect 
-                        options={ustadzList} 
                         value={formData.tarawihImamId} 
                         onChange={(e) => handleChange('tarawihImamId', e.target.value)}
                         placeholder="Pilih Imam"
@@ -299,7 +309,6 @@ const ScheduleRow = memo(({ schedule, ustadzList, index, totalRows }: ScheduleRo
                     </div>
                     
                     <UserSelect 
-                        options={ustadzList} 
                         value={formData.iftarSpeakerId} 
                         onChange={(e) => handleChange('iftarSpeakerId', e.target.value)}
                         placeholder="Pilih Pemateri"
@@ -428,8 +437,7 @@ const ScheduleRow = memo(({ schedule, ustadzList, index, totalRows }: ScheduleRo
 // --- MAIN PAGE ---
 export const RamadanPage = () => {
     const { data: activeConfig, isLoading } = useActiveRamadan();
-    const { data: people = [] } = usePeople({ limit: 0 });
-    console.log(people);
+
     const { register: registerGlobal, handleSubmit: submitGlobal, reset: resetGlobal } = useForm();
     const { mutate: updateConfig, isPending: isUpdatingConfig } = useUpdateRamadanConfig();
 
@@ -446,8 +454,6 @@ export const RamadanPage = () => {
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader2 className="w-10 h-10 animate-spin text-emerald-600" /></div>;
     if (!activeConfig) return <InitRamadanForm />;
-
-    const ustadzList = people?.filter((p: any) => p.type === 'ustadz' || p.type === 'pengurus' || p.type === 'jamaah').map((p: any) => ({ value: p.id.toString(), label: p.name })) || [];
 
     return (
         <div className="max-w-[1600px] mx-auto pb-20 relative">
@@ -580,9 +586,9 @@ export const RamadanPage = () => {
                                 <ScheduleRow 
                                     key={schedule.id} 
                                     schedule={schedule} 
-                                    ustadzList={ustadzList} 
                                     index={index}
                                     totalRows={activeConfig.schedules?.length || 1}
+                                    ustadzList={[]}
                                 />
                             ))}
                         </tbody>

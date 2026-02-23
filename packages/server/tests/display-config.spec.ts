@@ -20,7 +20,7 @@ describe('Display Config Module', () => {
     token = await getAuthToken(app);
 
     await db.insert(displayConfig).values({
-      cityId: '1204',
+      cityId: '9766527f2b5d3e95d4a733fcfb77bd7e',
       runningText: 'Luruskan dan rapatkan shaf...',
     });
   });
@@ -29,14 +29,14 @@ describe('Display Config Module', () => {
     const response = await request(app.server).get('/api/display-config');
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
-    expect(response.body.data.cityId).toBe('1204');
+    expect(response.body.data.cityId).toBe('9766527f2b5d3e95d4a733fcfb77bd7e');
   });
 
   it('PATCH /api/display-config should update config', async () => {
     const response = await request(app.server)
       .patch('/api/display-config')
       .set('Authorization', `Bearer ${token}`)
-      .send({ cityId: '1204', runningText: 'New text', adzanDuration: 5 });
+      .send({ cityId: '9766527f2b5d3e95d4a733fcfb77bd7e', runningText: 'New text', adzanDuration: 5 });
 
     expect(response.status).toBe(200);
     expect(response.body.data.runningText).toBe('New text');

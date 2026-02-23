@@ -9,6 +9,7 @@ import { ramadanRoutes } from './modules/ramadan/ramadan.routes';
 import { peopleRoutes } from './modules/people/people.routes';
 import { kajianRoutes } from './modules/kajian/kajian.routes';
 import { hadisRoutes } from './modules/hadis/hadis.routes';
+import { financeRoutes } from './modules/finance/finance.routes';
 
 export async function appRoutes(app: FastifyInstance) 
 {
@@ -28,6 +29,7 @@ export async function appRoutes(app: FastifyInstance)
     api.register(peopleRoutes, { prefix: '/people' });
     api.register(kajianRoutes, { prefix: '/kajian' });
     api.register(hadisRoutes, { prefix: '/hadis' });
+    api.register(financeRoutes, { prefix: '/finance' });
 
     // Auth Routes
     api.register(authRoutes, { prefix: '/auth' });

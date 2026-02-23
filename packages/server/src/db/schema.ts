@@ -1,5 +1,5 @@
 import { sql, relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import { pgTable, text, integer, boolean, timestamp, json, doublePrecision, serial } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, boolean, timestamp, json, doublePrecision, serial, index } from 'drizzle-orm/pg-core';
 
 // Helper for timestamps
 const createdAt = timestamp('created_at').notNull().defaultNow();
@@ -53,9 +53,14 @@ export const displayConfig = pgTable('display_config', {
   adjAshar: integer('adj_ashar').notNull().default(0),
   adjMaghrib: integer('adj_maghrib').notNull().default(0),
   adjIsya: integer('adj_isya').notNull().default(0),
+  hijriAdj: integer('hijri_adj').notNull().default(0),
+
+  // Cache
+  cachedHijriDate: text('cached_hijri_date'),
+  cachedHijriDateAt: text('cached_hijri_date_at'),
 
   // Audio
-  enableBeep: boolean('enable_beep').notNull().default(true),
+  enableBeep: boolean('enable_beep').notNull().default(true), 
   beepReminderDuration: integer('beep_reminder_duration').notNull().default(30),
 
   createdAt, updatedAt
@@ -256,8 +261,13 @@ export const transactions = pgTable('transactions', {
   description: text('description').notNull(),
   categoryId: integer('category_id').references(() => coaCategories.id).notNull(),
   accountId: integer('account_id').references(() => accounts.id).notNull(),
-  proofPhotoUrl: text('bukti_foto_url'),
   createdAt, updatedAt
+}, (table) => {
+  return {
+    accountIdIdx: index("transactions_account_id_idx").on(table.accountId),
+    categoryIdIdx: index("transactions_category_id_idx").on(table.categoryId),
+    dateIdx: index("transactions_date_idx").on(table.date),
+  };
 });
 
 // --- 5. Communication ---

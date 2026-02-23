@@ -118,6 +118,59 @@ export interface BankInfoWidgetProps
     data: BankInfoData;
 }
 
+export interface DisplayConfig 
+{
+  id: number;
+  cityId: string;
+  runningText?: string | null;
+  preAdzanDuration: number;
+  adzanDuration: number;
+  iqomahDelaySubuh: number;
+  iqomahDelayDzuhur: number;
+  iqomahDelayAshar: number;
+  iqomahDelayMaghrib: number;
+  iqomahDelayIsya: number;
+  shalatDuration: number;
+  enablePreAdzan: boolean;
+  enableAdzan: boolean;
+  enableIqomah: boolean;
+  enableShalat: boolean;
+  adjSubuh: number;
+  adjTerbit: number;
+  adjDhuha: number;
+  adjDzuhur: number;
+  adjAshar: number;
+  adjMaghrib: number;
+  adjIsya: number;
+  hijriAdj: number;
+  cachedHijriDate?: string | null;
+  cachedHijriDateAt?: string | null;
+  enableBeep: boolean;
+  beepReminderDuration: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FinanceSummaryData 
+{
+    totalAssets: number;
+    totalIncome: number;
+    totalExpense: number;
+    recentTransactions: 
+    {
+        id: number;
+        date: string;
+        description: string;
+        amount: number;
+        type: 'debit' | 'credit';
+    }[];
+}
+
+export interface FinanceSummaryWidgetProps
+{
+    data: FinanceSummaryData;
+}
+
 export type SlideContent =
   | { type: 'lelang_table'; data: RamadanScheduleUI[] }
   | { type: 'tarawih_today'; data: RamadanScheduleUI }
@@ -125,4 +178,5 @@ export type SlideContent =
   | { type: 'kajian_event'; data: KajianSlideData }
   | { type: 'poster'; data: PosterData }
   | { type: 'hadits'; data: HaditsData }
-  | { type: 'bank_info'; data: BankInfoData };
+  | { type: 'bank_info'; data: BankInfoData }
+  | { type: 'finance_summary'; data: FinanceSummaryData };

@@ -1,6 +1,6 @@
 
 import { memo } from 'react';
-import { Moon, Sparkles, Quote, HandHeart } from 'lucide-react';
+import { Moon, Sparkles, Quote, HandHeart, Wallet, BarChart3, ArrowUpRight, ArrowDownLeft, ArrowUp, ArrowDown } from 'lucide-react';
 import { format, parseISO, isSameDay } from 'date-fns';
 import { id } from 'date-fns/locale';
 import type 
@@ -9,9 +9,15 @@ import type
     TarawihWidgetProps, 
     PosterWidgetProps, 
     HaditsWidgetProps,
-    BankInfoWidgetProps
+    BankInfoWidgetProps,
+    FinanceSummaryWidgetProps
 } from '../types';
 import type { RamadanConfig } from '../../ramadan/types';
+
+const formatCurrency = (amount: number) => 
+{
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
+};
 
 const BigStatusBadge = memo(({ status, qty, active }: { status: string, qty: number, active: boolean }) => 
 {
@@ -301,3 +307,114 @@ export const BankInfoWidget = memo(({ data }: BankInfoWidgetProps) => (
         </div>
     </div>
 ));
+
+export const FinanceSummaryWidget = memo(({ data }: FinanceSummaryWidgetProps) => 
+{
+    const { totalAssets, totalIncome, totalExpense, recentTransactions } = data;
+    const isKasNegative = totalAssets < 0;
+
+    return (
+        <div className="flex items-center justify-center w-full h-full animate-in zoom-in duration-700 p-4 md:p-6">
+            <div className="w-full max-w-6xl h-auto max-h-[82vh] flex flex-col items-start justify-start relative z-10 bg-[#0f1423] p-5 md:p-6 rounded-3xl border border-white/10 shadow-2xl overflow-hidden shrink-0">
+                
+                {/* Header */}
+                <div className="flex items-center gap-3 mb-5 shrink-0">
+                    <div className="p-1.5 bg-linear-to-br from-slate-700 to-slate-800 rounded-lg text-emerald-400 border border-white/5 shadow-inner">
+                        <BarChart3 className="w-5 h-5" />
+                    </div>
+                    <h2 className="text-xl font-bold text-amber-500 tracking-wide">Laporan Keuangan Masjid</h2>
+                </div>
+
+                {/* Cards Container */}
+                <div className="grid grid-cols-3 gap-4 w-full mb-5 shrink-0">
+                    
+                    {/* Pemasukan Card */}
+                    <div className="bg-[#151b2b] rounded-2xl p-5 border border-white/5 flex flex-col items-center justify-center relative shadow-md">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center mb-2">
+                            <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Pemasukan</p>
+                        <p className="font-mono text-2xl lg:text-3xl font-black text-white tracking-tight">
+                            {formatCurrency(totalIncome)}
+                        </p>
+                    </div>
+
+                    {/* Total Kas Card */}
+                    <div className={`rounded-2xl p-5 flex flex-col items-center justify-center relative shadow-lg ${isKasNegative ? 'bg-rose-950/20 border border-rose-500/30' : 'bg-emerald-950/20 border border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.08)]'}`}>
+                        <div className="mb-2">
+                            <Wallet className="w-7 h-7 text-amber-500" />
+                        </div>
+                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Saldo Kas</p>
+                        <p className={`font-mono text-2xl lg:text-3xl font-black tracking-tight drop-shadow-md ${isKasNegative ? 'text-rose-400' : 'text-emerald-400'}`}>
+                            {formatCurrency(totalAssets)}
+                        </p>
+                    </div>
+
+                    {/* Pengeluaran Card */}
+                    <div className="bg-[#151b2b] rounded-2xl p-5 border border-white/5 flex flex-col items-center justify-center relative shadow-md">
+                        <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center mb-2">
+                            <ArrowDownLeft className="w-4 h-4 text-rose-400" />
+                        </div>
+                        <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Pengeluaran</p>
+                        <p className="font-mono text-2xl lg:text-3xl font-black text-white tracking-tight">
+                            {formatCurrency(totalExpense)}
+                        </p>
+                    </div>
+
+                </div>
+
+                {/* Table section */}
+                <div className="w-full bg-[#151b2b] border border-white/5 rounded-2xl p-4 md:p-5 flex flex-col flex-1 min-h-[0]">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 shrink-0">Riwayat Transaksi Terakhir</h3>
+                    
+                    <div className="w-full flex-1 flex flex-col min-h-0">
+                        {/* Table Header */}
+                        <div className="grid grid-cols-12 gap-3 pb-2 border-b border-white/10 text-[11px] text-slate-400 font-medium shrink-0">
+                            <div className="col-span-2">
+                                <span className="block text-[9px] opacity-70 mb-0.5">Bulan</span>
+                                Tgl
+                            </div>
+                            <div className="col-span-6 flex items-end">Keterangan</div>
+                            <div className="col-span-4 flex items-end justify-start">Nominal</div>
+                        </div>
+
+                        {/* Table Body */}
+                        <div className="flex flex-col gap-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
+                            {recentTransactions?.slice(0, 3).map((tx) => 
+                        {
+                                const isDebit = tx.type === 'debit';
+                                return (
+                                    <div key={tx.id} className="grid grid-cols-12 gap-3 py-3 border-b border-white/5 last:border-0 items-center">
+                                        <div className="col-span-2 text-sm text-white font-medium">
+                                            {format(parseISO(tx.date), 'dd MMM', { locale: id })}
+                                        </div>
+                                        <div className="col-span-6 text-sm text-slate-200 truncate pr-3">
+                                            {tx.description}
+                                        </div>
+                                        <div className="col-span-4 text-sm font-mono font-medium flex items-center gap-1.5">
+                                            {isDebit ? (
+                                                <ArrowUp className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                                            ) : (
+                                                <ArrowDown className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                                            )}
+                                            <span className="text-white">
+                                                {formatCurrency(tx.amount)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )
+                            })}
+                            {(!recentTransactions || recentTransactions.length === 0) && (
+                                <div className="py-8 text-center text-slate-500 text-xs">
+                                    Belum ada transaksi bulan ini
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    );
+});
+

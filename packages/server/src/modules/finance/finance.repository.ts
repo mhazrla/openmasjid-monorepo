@@ -1,0 +1,191 @@
+import { eq, desc, and, gte, lte, sql } from 'drizzle-orm';
+import { db } from '../../db'; 
+import { transactions, accounts, coaCategories } from '../../db/schema';
+import { GetTransactionsQueryDto, CreateTransactionDto, UpdateTransactionDto } from './finance.interface';
+
+export class FinanceRepository 
+{
+  async findAll(filters: GetTransactionsQueryDto) 
+  {
+    const conditions = [];
+
+    if (filters.accountId) 
+    {
+        conditions.push(eq(transactions.accountId, filters.accountId));
+    }
+    
+    if (filters.startDate) 
+    {
+        conditions.push(gte(transactions.date, new Date(filters.startDate)));
+    }
+    if (filters.endDate) 
+    {
+        conditions.push(lte(transactions.date, new Date(filters.endDate)));
+    }
+
+    const limit = filters.limit || 100;
+    const offset = (filters.page && filters.page > 0) ? (filters.page - 1) * limit : 0;
+
+    const rows = await db.query.transactions.findMany({
+        where: conditions.length > 0 ? and(...conditions) : undefined,
+        with: 
+        {
+            category: true,
+            account: true,
+        },
+        orderBy: [desc(transactions.date), desc(transactions.createdAt)],
+        limit,
+        offset,
+    });
+
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    const summaryRows = await db.select({
+      type: transactions.type,
+      total: sql<number>`sum(${transactions.amount})`.mapWith(Number)
+    })
+    .from(transactions)
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+    .groupBy(transactions.type);
+
+    for (const row of summaryRows) 
+    {
+        if (row.type === 'debit') totalDebit = row.total;
+        if (row.type === 'credit') totalCredit = row.total;
+    }
+
+    const [{ count }] = await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
+      .from(transactions)
+      .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+    return {
+        data: rows,
+        summary: { totalDebit, totalCredit },
+        pagination: {
+            total: count,
+            page: filters.page,
+            limit,
+            totalPages: Math.ceil(count / limit)
+        }
+    };
+  }
+
+  async findById(id: number) 
+  {
+    return await db.query.transactions.findFirst({
+      where: eq(transactions.id, id),
+      with: { category: true, account: true }
+    });
+  }
+
+  async create(data: CreateTransactionDto) 
+  {
+    return await db.transaction(async (tx: any) => 
+    {
+      const [newTx] = await tx.insert(transactions)
+        .values({
+            ...data,
+            date: new Date(data.date),
+            createdAt: new Date(),
+            updatedAt: new Date()
+        })
+        .returning();
+
+      const modifier = data.type === 'debit' ? data.amount : -data.amount;
+      
+      await tx.update(accounts)
+        .set({ balance: sql`balance + ${modifier}`, updatedAt: new Date() })
+        .where(eq(accounts.id, data.accountId));
+
+      return newTx;
+    });
+  }
+
+  async update(id: number, data: UpdateTransactionDto) 
+  {
+    return await db.transaction(async (tx: any) => 
+    {
+      const oldTx = await tx.query.transactions.findFirst({
+          where: eq(transactions.id, id)
+      });
+
+      if (!oldTx) throw new Error('Transaction not found');
+
+      const oldModifier = oldTx.type === 'debit' ? -oldTx.amount : oldTx.amount;
+      await tx.update(accounts)
+        .set({ balance: sql`balance + ${oldModifier}` })
+        .where(eq(accounts.id, oldTx.accountId));
+
+      const newModifier = data.type === 'debit' ? data.amount : -data.amount;
+      await tx.update(accounts)
+        .set({ balance: sql`balance + ${newModifier}`, updatedAt: new Date() })
+        .where(eq(accounts.id, data.accountId));
+
+      const [updated] = await tx.update(transactions)
+        .set({
+            ...data,
+            date: new Date(data.date),
+            updatedAt: new Date()
+        })
+        .where(eq(transactions.id, id))
+        .returning();
+
+      return updated;
+    });
+  }
+
+  async delete(id: number) 
+  {
+    return await db.transaction(async (tx: any) => 
+    {
+      const oldTx = await tx.query.transactions.findFirst({
+        where: eq(transactions.id, id)
+      });
+
+      if (!oldTx) return null;
+
+      const oldModifier = oldTx.type === 'debit' ? -oldTx.amount : oldTx.amount;
+      await tx.update(accounts)
+        .set({ balance: sql`balance + ${oldModifier}`, updatedAt: new Date() })
+        .where(eq(accounts.id, oldTx.accountId));
+
+      const [deleted] = await tx.delete(transactions)
+        .where(eq(transactions.id, id))
+        .returning();
+
+      return deleted;
+    });
+  }
+
+  async getAccounts() 
+  {
+      return await db.query.accounts.findMany();
+  }
+
+  async getCategories() 
+  {
+    return await db.query.coaCategories.findMany();
+  }
+
+  async getSuggestions(query: string = '') 
+  {
+    let condition = undefined;
+    if (query && query.length > 0) 
+    {
+      condition = sql`description ILIKE ${'%' + query + '%'}`;
+    }
+
+    const rows = await db.select({
+        description: transactions.description,
+        count: sql<number>`count(*)`.mapWith(Number)
+    })
+    .from(transactions)
+    .where(condition)
+    .groupBy(transactions.description)
+    .orderBy(desc(sql`count(*)`))
+    .limit(10);
+    
+    return rows.map((r: { description: string }) => r.description);
+  }
+}

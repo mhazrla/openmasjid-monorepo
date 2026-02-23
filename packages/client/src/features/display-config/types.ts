@@ -29,10 +29,15 @@ export const displayConfigSchema = z.object({
   adjIsya: z.number().default(0),
   adjTerbit: z.number().default(0),
   adjDhuha: z.number().default(0),
+  hijriAdj: z.number().default(0),
 
   // Audio
   enableBeep: z.boolean().default(true),
   beepReminderDuration: z.number().default(30),
+
+  // Cached data
+  cachedHijriDate: z.string().optional(),
+  cachedHijriDateAt: z.string().optional(), 
 });
 
 export type DisplayConfig = z.infer<typeof displayConfigSchema>;

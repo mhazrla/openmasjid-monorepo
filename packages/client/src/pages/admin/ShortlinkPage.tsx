@@ -171,6 +171,7 @@ export const ShortlinkPage = () =>
                     variant="primary" 
                     icon={<Plus className="w-4 h-4" />} 
                     onClick={handleOpenCreate}
+                    className="hidden md:flex"
                 >
                     Add New
                 </ActionButton>
@@ -196,6 +197,15 @@ export const ShortlinkPage = () =>
                 data={filteredData}
                 isLoading={isLoading}
             />
+
+            {/* Mobile FAB for Add Shortlink */}
+            <ActionButton 
+                onClick={handleOpenCreate}
+                variant="primary"
+                className="md:hidden fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg shadow-emerald-900/40 p-0 flex items-center justify-center transition-transform active:scale-95 cursor-pointer"
+            >
+                <Plus className="w-6 h-6" />
+            </ActionButton>
 
             <ShortlinkFormModal 
                 isOpen={isModalOpen} 
