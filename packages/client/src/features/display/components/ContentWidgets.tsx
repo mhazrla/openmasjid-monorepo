@@ -40,9 +40,9 @@ const BigStatusBadge = memo(({ status, qty, active }: { status: string, qty: num
     );
 });
 
-const RamadanRow = memo(({ row }: { row: RamadanScheduleUI }) => 
+const RamadanRow = memo(({ row, effectiveDate }: { row: RamadanScheduleUI, effectiveDate: Date }) => 
 {
-    const isToday = isSameDay(parseISO(row.date), new Date());
+    const isToday = isSameDay(parseISO(row.date), effectiveDate);
     
     return (
         <div className={`relative grid grid-cols-12 gap-3 flex-1 items-center px-2 rounded-2xl border-2 transition-all duration-500 ${
@@ -100,7 +100,7 @@ const RamadanRow = memo(({ row }: { row: RamadanScheduleUI }) =>
     );
 });
 
-export const RamadanTableWidget = memo(({ schedules, config }: { schedules: RamadanScheduleUI[], config?: RamadanConfig }) => (
+export const RamadanTableWidget = memo(({ schedules, config, effectiveDate }: { schedules: RamadanScheduleUI[], config?: RamadanConfig, effectiveDate: Date }) => (
     <div className="w-full h-full flex flex-col px-4 pt-2 pb-1 overflow-hidden font-sans bg-slate-950/40 rounded-3xl border border-white/5 backdrop-blur-sm">
         {/* HEADER */}
         <div className="min-h-[50px] flex items-center justify-between mb-2 px-6 bg-slate-900/80 rounded-2xl border border-emerald-500/20 shadow-lg shrink-0">
@@ -127,7 +127,7 @@ export const RamadanTableWidget = memo(({ schedules, config }: { schedules: Rama
         {/* BODY ROWS */}
         <div className="flex-1 flex flex-col gap-2 min-h-0 pt-1 pb-1">
             {schedules.map((row) => (
-                <RamadanRow key={row.id || row.date} row={row} />
+                <RamadanRow key={row.id || row.date} row={row} effectiveDate={effectiveDate} />
             ))}
         </div>
     </div>
@@ -315,7 +315,7 @@ export const FinanceSummaryWidget = memo(({ data }: FinanceSummaryWidgetProps) =
 
     return (
         <div className="flex items-center justify-center w-full h-full animate-in zoom-in duration-700 p-4 md:p-6">
-            <div className="w-full max-w-6xl h-auto max-h-[82vh] flex flex-col items-start justify-start relative z-10 bg-[#0f1423] p-5 md:p-6 rounded-3xl border border-white/10 shadow-2xl overflow-hidden shrink-0">
+            <div className="w-full max-w-6xl h-auto max-h-[64vh] flex flex-col items-start justify-start relative z-10 bg-[#0f1423] p-5 md:p-6 rounded-3xl border border-white/10 shadow-2xl overflow-hidden shrink-0">
                 
                 {/* Header */}
                 <div className="flex items-center gap-3 mb-5 shrink-0">
@@ -380,8 +380,8 @@ export const FinanceSummaryWidget = memo(({ data }: FinanceSummaryWidgetProps) =
 
                         {/* Table Body */}
                         <div className="flex flex-col gap-0 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:none]">
-                            {recentTransactions?.slice(0, 3).map((tx) => 
-                        {
+                            {recentTransactions?.slice(0, 2).map((tx) => 
+                            {
                                 const isDebit = tx.type === 'debit';
                                 return (
                                     <div key={tx.id} className="grid grid-cols-12 gap-3 py-3 border-b border-white/5 last:border-0 items-center">

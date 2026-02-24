@@ -108,7 +108,7 @@ const InitRamadanForm = () =>
             hijriYear: new Date().getFullYear() - 579,
             gregorianYear: new Date().getFullYear(),
             startDate: format(new Date(), 'yyyy-MM-dd'),
-            title: 'Lelang Program Ramadhan 1447H',
+            title: 'Program Ramadhan 1447H',
             subtitle: 'Konfirmasi Infaq: 0812-XXX-XXX (Pesan: INFAQ RAMADHAN)',
             footerNote: 'Mohon hadir 15 menit sebelum waktu Isya.',
             badalImamText: 'Badal Imam',
@@ -144,7 +144,7 @@ const InitRamadanForm = () =>
                         <Input label="Gregorian Year" type="number" min={0} {...register('gregorianYear', { valueAsNumber: true })} />
                     </div>
                     <Input label="Start Date (1 Ramadan)" type="date" {...register('startDate', { required: true })} />
-                    <Input label="Title" {...register('title')} placeholder="Lelang Program Ramadhan 1447H" />
+                    <Input label="Title" {...register('title')} placeholder="Program Ramadhan 1447H" />
                     <Input label="Subtitle" {...register('subtitle')} placeholder="Konfirmasi Infaq: 0812-XXX-XXX (Pesan: INFAQ RAMADHAN)" />
                     <Input label="Footer Note" {...register('footerNote')} placeholder="Running text footer..." />
                     <Input label="Badal Text" {...register('badalImamText')} placeholder="Default badal name..." />

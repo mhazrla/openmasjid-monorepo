@@ -19,15 +19,13 @@ import PrayerCountdownWidget from '../../features/display/components/PrayerCount
 import { KajianWidget } from '../../features/display/components/KajianWidget';
 
 // --- Imports: Utils & Types ---
-import { DUMMY_HADITS, getNextPrayer } from '../../features/display/utils/display-helpers';
+import { DUMMY_HADITS, getNextPrayer, getEffectiveDate } from '../../features/display/utils/display-helpers';
 import { getImageUrl } from '../../lib/utils';
 import type { SlideContent, RamadanScheduleUI } from '../../features/display/types';
-
-// --- Constants ---
-const REFETCH_INTERVAL = 5000;
+import { REFETCH_INTERVAL, SLIDE_DURATION } from '../../constants/duration';
 
 // --- Helper Hook: Slide Data ---
-const useSlideData = (ramadanConfig: any | undefined, todayStr: string, profile: any) => 
+const useSlideData = (ramadanConfig: any | undefined, effectiveDateStr: string, profile: any) => 
 {
     const { data: kajianEvents }    = useKajianEvents({ upcoming: true, refetchInterval: REFETCH_INTERVAL });
     const { data: hadith }          = useHadithDisplay();
@@ -40,20 +38,20 @@ const useSlideData = (ramadanConfig: any | undefined, todayStr: string, profile:
         // 1. Ramadan Logic
         const ramadanSchedules: RamadanScheduleUI[] = ramadanConfig?.schedules || [];
         const todaysRamadanSchedule = ramadanConfig?.isActive 
-            ? ramadanSchedules.find(s => s.date.startsWith(todayStr))
+            ? ramadanSchedules.find(s => s.date.startsWith(effectiveDateStr))
             : null;
 
         if (ramadanConfig?.isActive && ramadanSchedules.length > 0) 
         {
             let startIndex = 0;
-            const todayIndex = ramadanSchedules.findIndex(s => s.date.startsWith(todayStr));
+            const todayIndex = ramadanSchedules.findIndex(s => s.date.startsWith(effectiveDateStr));
             
             if (todayIndex !== -1) 
             {
                 // Today is during Ramadan, show today and the next two days (max 3)
                 startIndex = Math.min(todayIndex, Math.max(0, ramadanSchedules.length - 3));
             } 
-            else if (todayStr > ramadanSchedules[ramadanSchedules.length - 1].date) 
+            else if (effectiveDateStr > ramadanSchedules[ramadanSchedules.length - 1].date) 
             {
                 // Past Ramadan, show the last 3 days
                 startIndex = Math.max(0, ramadanSchedules.length - 3);
@@ -129,11 +127,11 @@ const useSlideData = (ramadanConfig: any | undefined, todayStr: string, profile:
         }
         
         return items;
-    }, [ramadanConfig, todayStr, kajianEvents, profile, hadith, financeSummary]);
+    }, [ramadanConfig, effectiveDateStr, kajianEvents, profile, hadith, financeSummary]);
 };
 
 // --- Component: Slide Renderer ---
-const SlideRenderer = memo(({ currentSlide, ramadanConfig }: { currentSlide: SlideContent | null; ramadanConfig?: any; }) => 
+const SlideRenderer = memo(({ currentSlide, ramadanConfig, effectiveDate }: { currentSlide: SlideContent | null; ramadanConfig?: any; effectiveDate: Date; }) => 
 {
     if (!currentSlide) return null;
 
@@ -143,7 +141,7 @@ const SlideRenderer = memo(({ currentSlide, ramadanConfig }: { currentSlide: Sli
 
     switch (currentSlide.type) 
     {
-        case 'lelang_table': return <Wrapper><RamadanTableWidget schedules={currentSlide.data} config={ramadanConfig} /></Wrapper>;
+        case 'lelang_table': return <Wrapper><RamadanTableWidget schedules={currentSlide.data} config={ramadanConfig} effectiveDate={effectiveDate} /></Wrapper>;
         case 'tarawih_today': return <Wrapper><TarawihWidget data={{ ...currentSlide.data, description: ramadanConfig?.badalImamText || "Mari Luruskan & Rapatkan Shaf" }} hijriYear={ramadanConfig?.hijriYear} /></Wrapper>;
         case 'kajian_today': return <Wrapper><TarawihWidget data={{ ramadanDay: currentSlide.data.ramadanDay, imam: currentSlide.data.iftarSpeaker, description: currentSlide.data.iftarKajianTitle || "Kajian Menjelang Berbuka Puasa" }} title="Kajian Ifthor" hijriYear={ramadanConfig?.hijriYear} /></Wrapper>;
         case 'kajian_event': return <KajianWidget data={currentSlide.data} />;
@@ -177,16 +175,18 @@ export const StandbyView = () =>
     const todayStr = useMemo(() => format(now, 'yyyy-MM-dd'), [now]);
     const { data: prayerTimes } = usePrayerTime(todayStr, { refetchInterval: REFETCH_INTERVAL });
     const nextPrayer = useMemo(() => getNextPrayer(prayerTimes, now), [prayerTimes, now]);
+    const effectiveDate = useMemo(() => getEffectiveDate(now, prayerTimes?.maghrib), [now, prayerTimes?.maghrib]);
+    const effectiveDateStr = useMemo(() => format(effectiveDate, 'yyyy-MM-dd'), [effectiveDate]);
     
     // 4. Custom Logic Hooks (Cleaned Up)
-    const slides = useSlideData(ramadanConfig, todayStr, profile);
+    const slides = useSlideData(ramadanConfig, effectiveDateStr, profile);
     const prayerState = usePrayerStateMachine(now, prayerTimes, config as any); 
 
     // 5. Slide Rotation Effect
     useEffect(() => 
     {
         if (slides.length <= 1 || prayerState.mode !== 'normal') return;
-        const interval = setInterval(() => setSlideIndex((prev) => (prev + 1) % slides.length), 10000);
+        const interval = setInterval(() => setSlideIndex((prev) => (prev + 1) % slides.length), SLIDE_DURATION);
         return () => clearInterval(interval);
     }, [slides.length, prayerState.mode]); 
 
@@ -258,7 +258,7 @@ export const StandbyView = () =>
         }
 
         // Mode: Normal Slides
-        return <SlideRenderer currentSlide={slides[slideIndex] || null} ramadanConfig={ramadanConfig} />;
+        return <SlideRenderer currentSlide={slides[slideIndex] || null} ramadanConfig={ramadanConfig} effectiveDate={effectiveDate} />;
     };
 
     return (
@@ -267,7 +267,7 @@ export const StandbyView = () =>
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black z-0 pointer-events-none" />
             
             {/* Header */}
-            {prayerState.mode === 'normal' && <DisplayHeader profile={profile} currentTime={now} config={config as any} />}
+            {prayerState.mode === 'normal' && <DisplayHeader profile={profile} currentTime={now} config={config as any} effectiveDate={effectiveDate} />}
             
             {/* Main */}
             <main className={`relative z-10 flex-1 flex flex-col items-center justify-center w-full overflow-hidden transition-all duration-500 

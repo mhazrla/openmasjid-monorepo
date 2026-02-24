@@ -8,9 +8,27 @@ export const DUMMY_HADITS = [
 const timeToMinutes = (time: string): number => 
 {
     const [hours, minutes] = time.split(':').map(Number);
-
     return hours * 60 + minutes;
 };
+
+export const getEffectiveDate = (now: Date, maghribTime?: string): Date => 
+{
+    if (!maghribTime) return now;
+
+    const [hours, minutes] = maghribTime.split(':').map(Number);
+    const maghribDate = new Date(now);
+    maghribDate.setHours(hours, minutes, 0, 0);
+
+    if (now >= maghribDate) 
+    {
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        return tomorrow;
+    }
+
+    return now;
+};
+
 
 export const getNextPrayer = (prayerTimes: PrayerTime | null | undefined, currentTime: Date): string => 
 {
