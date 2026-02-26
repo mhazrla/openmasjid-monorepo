@@ -37,7 +37,11 @@ export const displayConfig = pgTable('display_config', {
   iqomahDelayAshar: integer('iqomah_delay_ashar').notNull().default(10),
   iqomahDelayMaghrib: integer('iqomah_delay_maghrib').notNull().default(10),
   iqomahDelayIsya: integer('iqomah_delay_isya').notNull().default(10),
-  shalatDuration: integer('shalat_duration').notNull().default(10),
+  shalatDurationSubuh: integer('shalat_duration_subuh').notNull().default(10),
+  shalatDurationDzuhur: integer('shalat_duration_dzuhur').notNull().default(10),
+  shalatDurationAshar: integer('shalat_duration_ashar').notNull().default(10),
+  shalatDurationMaghrib: integer('shalat_duration_maghrib').notNull().default(10),
+  shalatDurationIsya: integer('shalat_duration_isya').notNull().default(10),
 
   // Mode Toggles
   enablePreAdzan: boolean('enable_pre_adzan').notNull().default(true),

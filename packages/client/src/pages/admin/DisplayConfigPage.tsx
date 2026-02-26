@@ -37,7 +37,11 @@ export const DisplayConfigPage = () =>
                 // Durations
                 preAdzanDuration: config.preAdzanDuration,
                 adzanDuration: config.adzanDuration,
-                shalatDuration: config.shalatDuration ?? 10,
+                shalatDurationSubuh: config.shalatDurationSubuh ?? 10,
+                shalatDurationDzuhur: config.shalatDurationDzuhur ?? 10,
+                shalatDurationAshar: config.shalatDurationAshar ?? 10,
+                shalatDurationMaghrib: config.shalatDurationMaghrib ?? 10,
+                shalatDurationIsya: config.shalatDurationIsya ?? 10,
 
                 // Toggles
                 enablePreAdzan: config.enablePreAdzan ?? true,
@@ -116,7 +120,11 @@ export const DisplayConfigPage = () =>
                 // Number casting safety
                 preAdzanDuration: Number(data.preAdzanDuration),
                 adzanDuration: Number(data.adzanDuration),
-                shalatDuration: Number(data.shalatDuration),
+                shalatDurationSubuh: Number(data.shalatDurationSubuh),
+                shalatDurationDzuhur: Number(data.shalatDurationDzuhur),
+                shalatDurationAshar: Number(data.shalatDurationAshar),
+                shalatDurationMaghrib: Number(data.shalatDurationMaghrib),
+                shalatDurationIsya: Number(data.shalatDurationIsya),
                 
                 enablePreAdzan: Boolean(data.enablePreAdzan),
                 enableAdzan: Boolean(data.enableAdzan),
@@ -401,14 +409,8 @@ export const DisplayConfigPage = () =>
                                 </div>
                                 <p className="text-xs text-slate-500 pl-12">"Luruskan Shaf" screen / dark screen.</p>
                             </div>
-                            <div className="w-24">
-                                <Input 
-                                    type="number" 
-                                    min="0" 
-                                    className="h-8 text-sm"
-                                    placeholder="Min"
-                                    {...register('shalatDuration', { min: 0 })}
-                                />
+                            <div className="w-24 opacity-50 text-xs text-center flex items-center justify-center">
+                                See Below
                             </div>
                         </div>
                     </div>
@@ -426,6 +428,21 @@ export const DisplayConfigPage = () =>
                         <Input label="Ashar" type="number" min="0" {...register('iqomahDelayAshar', { min: 0 })} />
                         <Input label="Maghrib" type="number" min="0" {...register('iqomahDelayMaghrib', { min: 0 })} />
                         <Input label="Isya" type="number" min="0" {...register('iqomahDelayIsya', { min: 0 })} />
+                    </div>
+                </div>
+
+                {/* --- Section 3.5: Shalat Duration (Hanya positif) --- */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                        <Settings className="w-4 h-4 text-slate-500" />
+                        <h2 className="font-semibold text-slate-900">Shalat Duration (Minutes)</h2>
+                    </div>
+                    <div className="p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                        <Input label="Subuh" type="number" min="1" {...register('shalatDurationSubuh', { min: 1 })} />
+                        <Input label="Dzuhur" type="number" min="1" {...register('shalatDurationDzuhur', { min: 1 })} />
+                        <Input label="Ashar" type="number" min="1" {...register('shalatDurationAshar', { min: 1 })} />
+                        <Input label="Maghrib" type="number" min="1" {...register('shalatDurationMaghrib', { min: 1 })} />
+                        <Input label="Isya" type="number" min="1" {...register('shalatDurationIsya', { min: 1 })} />
                     </div>
                 </div>
 

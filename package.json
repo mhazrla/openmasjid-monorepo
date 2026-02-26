@@ -13,7 +13,9 @@
     "build": "concurrently \"pnpm run build:client\" \"pnpm run build:server\"",
     "start": "pnpm --filter server start",
     "db:studio": "pnpm --filter server db:studio",
-    "db": "pnpm --filter server db"
+    "db": "pnpm --filter server db",
+    "db:migrate:cli": "pnpm --filter server db:migrate:cli",
+    "migrate": "pnpm --filter server migrate"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

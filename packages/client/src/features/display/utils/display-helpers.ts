@@ -29,6 +29,19 @@ export const getEffectiveDate = (now: Date, maghribTime?: string): Date =>
     return now;
 };
 
+export const getShalatDuration = (prayerName: string, config: any): number => 
+{
+    const name = prayerName.toLowerCase();
+    switch(name) 
+    {
+        case 'subuh': return Number(config.shalatDurationSubuh) || 10;
+        case 'dzuhur': return Number(config.shalatDurationDzuhur) || 10;
+        case 'ashar': return Number(config.shalatDurationAshar) || 10;
+        case 'maghrib': return Number(config.shalatDurationMaghrib) || 10;
+        case 'isya': return Number(config.shalatDurationIsya) || 10;
+        default: return 10;
+    }
+};
 
 export const getNextPrayer = (prayerTimes: PrayerTime | null | undefined, currentTime: Date): string => 
 {

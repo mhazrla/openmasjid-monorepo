@@ -153,6 +153,20 @@ const SlideRenderer = memo(({ currentSlide, ramadanConfig, effectiveDate }: { cu
     }
 });
 
+// --- Reusable Component: Time & Date Display ---
+const TimeAndDateDisplay = memo(({ now, hijriDate }: { now: Date, hijriDate?: string }) => (
+    <div className="absolute top-12 w-full flex flex-col items-center justify-center z-10 space-y-2">
+        <div className="text-8xl font-clock text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] tracking-wider">
+            {format(now, 'HH:mm:ss')}
+        </div>
+        <div className="flex items-center gap-6 text-xl text-emerald-200/80 font-medium tracking-wide">
+            <span>{format(now, 'EEEE, dd MMMM yyyy')}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
+            <span>{hijriDate || 'H'}</span>
+        </div>
+    </div>
+));
+
 // --- MAIN PAGE ---
 export const StandbyView = () => 
 {
@@ -202,9 +216,12 @@ export const StandbyView = () =>
             if (prayerState.mode === 'adzan') 
             {
                 return (
-                    <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700">
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-slate-900 to-black opacity-90" />
-                        <div className="relative z-10 text-center">
+                    <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 w-full h-full relative">
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-slate-900 to-black opacity-90 z-0" />
+                        
+                        <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} />
+
+                        <div className="relative z-10 text-center mt-16">
                             <h1 className="text-6xl font-bold text-emerald-400 mb-4 drop-shadow-lg tracking-wider">ADZAN</h1>
                             <p className="text-3xl text-white/80 font-light uppercase tracking-widest">{prayerState.prayerName} Berkumandang</p>
                         </div>
@@ -232,7 +249,10 @@ export const StandbyView = () =>
              return (
                 <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 w-full h-full relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-slate-950 to-black z-0" />
-                    <div className="relative z-10 text-center space-y-8 px-4">
+                    
+                    <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} />
+
+                    <div className="relative z-10 text-center space-y-8 px-4 mt-16">
                         
                         {/* Title */}
                         <div className="space-y-2">
@@ -247,7 +267,7 @@ export const StandbyView = () =>
 
                         {/* Main Message */}
                         <div className="space-y-6">
-                            <p className="text-2xl text-slate-400 font-light tracking-wide mx-auto px-8 leading-relaxed">
+                            <p className="text-3xl text-slate-300 font-light tracking-wide mx-auto px-8 leading-relaxed">
                                 Mohon <span className="text-emerald-400 font-normal">Nonaktifkan</span> Nada Dering Handphone
                             </p>
                         </div>

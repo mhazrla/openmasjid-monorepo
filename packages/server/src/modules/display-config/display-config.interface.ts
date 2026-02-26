@@ -19,7 +19,11 @@ export const updateDisplayConfigSchema = z.object({
   iqomahDelayAshar: z.number().int().min(0).optional(),
   iqomahDelayMaghrib: z.number().int().min(0).optional(),
   iqomahDelayIsya: z.number().int().min(0).optional(),
-  shalatDuration: z.number().int().min(0).optional(),
+  shalatDurationSubuh: z.number().int().min(1).optional(),
+  shalatDurationDzuhur: z.number().int().min(1).optional(),
+  shalatDurationAshar: z.number().int().min(1).optional(),
+  shalatDurationMaghrib: z.number().int().min(1).optional(),
+  shalatDurationIsya: z.number().int().min(1).optional(),
   
   // Mode Toggles
   enablePreAdzan: z.boolean().optional(),

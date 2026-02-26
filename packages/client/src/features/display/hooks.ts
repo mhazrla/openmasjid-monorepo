@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { addMinutes, subMinutes, isWithinInterval, parse } from 'date-fns';
+import { getShalatDuration } from './utils/display-helpers';
 import type { DisplayMode, Hadith, PrayerState } from '../../features/display/types';
 import { api } from '../../lib/axios';
 import { useQuery } from '@tanstack/react-query';
@@ -52,7 +53,7 @@ export const usePrayerStateMachine = (
                 const preAdzanDur = Number(cfg.preAdzanDuration);
                 const adzanDur = Number(cfg.adzanDuration);
                 const iqomahDur = delays[p.name as keyof typeof delays] || 10;
-                const shalatDur = Number(cfg.shalatDuration || 10);
+                const shalatDur = getShalatDuration(p.name, cfg);
 
                 // Start times
                 const preAdzanStart = subMinutes(pTime, preAdzanDur);
