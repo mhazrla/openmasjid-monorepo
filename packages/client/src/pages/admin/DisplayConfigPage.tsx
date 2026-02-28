@@ -3,7 +3,7 @@ import { useDisplayConfig, useUpdateDisplayConfig } from '../../features/display
 import type { UpdateDisplayConfigDto } from '../../features/display-config/types';
 import { type City, CITIES } from '../../constants/prayer';
 import { useEffect, useState } from 'react';
-import { Loader2, Save, Settings, LocateFixed, Type, Volume2, Clock, BellRing } from 'lucide-react';
+import { Loader2, Save, Settings, LocateFixed, Type, Volume2, Clock, BellRing, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select } from '../../components/ui/Select';
 import { Input } from '../../components/ui/Input';
@@ -14,6 +14,12 @@ import { useBeep } from '../../hooks/use-beep';
 import { handleFormError } from '../../utils/form-error';
 
 const CITY_OPTIONS = CITIES.map(c => ({ value: c.id, label: c.name }));
+
+const FONT_OPTIONS = [
+    { value: 'sans', label: 'Inter (Modern Sans)' },
+    { value: 'serif', label: 'Playfair (Elegant Serif)' },
+    { value: 'mono', label: 'JetBrains (Monospace)' },
+];
 
 export const DisplayConfigPage = () => 
 {
@@ -65,6 +71,15 @@ export const DisplayConfigPage = () =>
                 adjMaghrib: config.adjMaghrib,
                 adjIsya: config.adjIsya,
                 hijriAdj: config.hijriAdj ?? 0,
+
+                // Theme
+                themeColor: config.themeColor || '#10b981',
+                accentColor: config.accentColor || '#fbbf24',
+                labelColor: config.labelColor || '#cbd5e1',
+                fontFamily: config.fontFamily || 'sans',
+                baseFontSize: config.baseFontSize ?? 100,
+                clockFontSize: config.clockFontSize ?? 100,
+                labelFontSize: config.labelFontSize ?? 100,
             });
         }
     }, [config, reset]);
@@ -79,14 +94,16 @@ export const DisplayConfigPage = () =>
         setIsLocating(true);
 
         navigator.geolocation.getCurrentPosition(
-            (position) => {
+            (position) => 
+            {
                 const userLat = position.coords.latitude;
                 const userLon = position.coords.longitude;
                 
                 let nearestCity: City | null = null;
                 let minDistance = Infinity;
 
-                CITIES.forEach(city => {
+                CITIES.forEach(city => 
+                {
                     const dist = calculateDistance(userLat, userLon, city.lat, city.lon);
                     if (dist < minDistance) {
                         minDistance = dist;
@@ -103,7 +120,8 @@ export const DisplayConfigPage = () =>
                 }
                 setIsLocating(false);
             },
-            (error) => {
+            (error) => 
+            {
                 console.error("Geolocation Error:", error);
                 setIsLocating(false);
                 toast.error("Failed to detect location. Please try again.");
@@ -149,6 +167,14 @@ export const DisplayConfigPage = () =>
                 
                 enableBeep: Boolean(data.enableBeep),
                 runningText: data.runningText,
+
+                themeColor: data.themeColor,
+                accentColor: data.accentColor,
+                labelColor: data.labelColor,
+                fontFamily: data.fontFamily,
+                baseFontSize: Number(data.baseFontSize),
+                clockFontSize: Number(data.clockFontSize),
+                labelFontSize: Number(data.labelFontSize),
             };
 
             await updateMutation.mutateAsync(payload);
@@ -169,6 +195,22 @@ export const DisplayConfigPage = () =>
             </div>
         );
     }
+
+    // Live preview values
+    const watchThemeColor = watch('themeColor', '#10b981');
+    const watchAccentColor = watch('accentColor', '#fbbf24');
+    const watchLabelColor = watch('labelColor', '#cbd5e1');
+    const watchFontFamily = watch('fontFamily', 'sans');
+    const watchBaseFontSize = watch('baseFontSize', 100);
+    const watchClockFontSize = watch('clockFontSize', 100);
+    const watchLabelFontSize = watch('labelFontSize', 100);
+
+    const getPreviewFontFamily = () => 
+    {
+        if (watchFontFamily === 'serif') return '"Playfair Display", Georgia, serif';
+        if (watchFontFamily === 'mono') return 'monospace';
+        return 'Inter, ui-sans-serif, system-ui, sans-serif';
+    };
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 pb-10">
@@ -477,6 +519,211 @@ export const DisplayConfigPage = () =>
                              <div className="w-1/2 sm:w-1/3 md:w-1/4 lg:w-40">
                                 <Input label="Offset" type="number" placeholder="0" {...register('hijriAdj')} />
                              </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* --- Section 5: Custom Theme --- */}
+                <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
+                        <Palette className="w-4 h-4 text-slate-500" />
+                        <h2 className="font-semibold text-slate-900">Custom Theme & Branding</h2>
+                    </div>
+                    
+                    <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Form Inputs */}
+                        <div className="space-y-6">
+                            <Controller
+                                control={control}
+                                name="fontFamily"
+                                render={({ field: { value, onChange } }) => (
+                                    <Select
+                                        label="Font Family"
+                                        options={FONT_OPTIONS}
+                                        value={value}
+                                        onChange={onChange}
+                                    />
+                                )}
+                            />
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-900">Primary Color (Containers, Borders)</label>
+                                <div className="flex items-center gap-3">
+                                    <Controller
+                                        control={control}
+                                        name="themeColor"
+                                        render={({ field: { value, onChange } }) => (
+                                            <>
+                                                <input 
+                                                    type="color" 
+                                                    value={value || '#10b981'}
+                                                    onChange={onChange}
+                                                    className="h-10 w-20 rounded cursor-pointer border-0 p-0"
+                                                />
+                                                <Input 
+                                                    type="text" 
+                                                    value={value || ''}
+                                                    onChange={onChange}
+                                                    className="h-10 flex-1 uppercase font-mono text-sm"
+                                                    placeholder="#10b981"
+                                                />
+                                            </>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-900">Accent Color (Highlight Texts)</label>
+                                <div className="flex items-center gap-3">
+                                    <Controller
+                                        control={control}
+                                        name="accentColor"
+                                        render={({ field: { value, onChange } }) => (
+                                            <>
+                                                <input 
+                                                    type="color" 
+                                                    value={value || '#fbbf24'}
+                                                    onChange={onChange}
+                                                    className="h-10 w-20 rounded cursor-pointer border-0 p-0"
+                                                />
+                                                <Input 
+                                                    type="text" 
+                                                    value={value || ''}
+                                                    onChange={onChange}
+                                                    className="h-10 flex-1 uppercase font-mono text-sm"
+                                                    placeholder="#fbbf24"
+                                                />
+                                            </>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-slate-900">Label Color (Small Texts & Meta)</label>
+                                <div className="flex items-center gap-3">
+                                    <Controller
+                                        control={control}
+                                        name="labelColor"
+                                        render={({ field: { value, onChange } }) => (
+                                            <>
+                                                <input 
+                                                    type="color" 
+                                                    value={value || '#cbd5e1'}
+                                                    onChange={onChange}
+                                                    className="h-10 w-20 rounded cursor-pointer border-0 p-0"
+                                                />
+                                                <Input 
+                                                    type="text" 
+                                                    value={value || ''}
+                                                    onChange={onChange}
+                                                    className="h-10 flex-1 uppercase font-mono text-sm"
+                                                    placeholder="#cbd5e1"
+                                                />
+                                            </>
+                                        )}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="flex justify-between text-sm font-medium text-slate-900">
+                                    <span>Global Font Size (Zoom)</span>
+                                    <span className="text-emerald-600 font-bold">{watchBaseFontSize}%</span>
+                                </label>
+                                <input 
+                                    type="range" min="50" max="150" step="5"
+                                    className="w-full accent-emerald-500"
+                                    {...register('baseFontSize', { valueAsNumber: true })}
+                                />
+                                <p className="text-xs text-slate-500">Controls the proportion of texts across all widgets.</p>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="flex justify-between text-sm font-medium text-slate-900">
+                                    <span>Meta & Small Text Size</span>
+                                    <span className="font-bold text-emerald-600">{watchLabelFontSize || 100}%</span>
+                                </label>
+                                <Controller
+                                    control={control}
+                                    name="labelFontSize"
+                                    render={({ field: { value, onChange } }) => (
+                                        <div className="flex flex-col gap-1">
+                                            <input 
+                                                type="range" 
+                                                min="50" max="200" step="5"
+                                                value={value || 100}
+                                                onChange={(e) => onChange({ target: { value: Number(e.target.value), valueAsNumber: true } })}
+                                                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                            />
+                                            <p className="text-xs text-slate-500">Controls the proportion of secondary text sizes.</p>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="flex justify-between text-sm font-medium text-slate-900">
+                                    <span>Main Clock Size</span>
+                                    <span className="text-emerald-600 font-bold">{watchClockFontSize}%</span>
+                                </label>
+                                <input 
+                                    type="range" min="50" max="200" step="5"
+                                    className="w-full accent-emerald-500"
+                                    {...register('clockFontSize', { valueAsNumber: true })}
+                                />
+                                <p className="text-xs text-slate-500">Controls the size of the large digital clock.</p>
+                            </div>
+                        </div>
+
+                         {/* Live Preview Box */}
+                         <div className="bg-slate-950 rounded-xl overflow-hidden border border-slate-200 relative flex flex-col shadow-inner min-h-[300px]">
+                            <div className="bg-slate-900 p-2 text-center border-b border-white/5 shrink-0">
+                                <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Live Preview</span>
+                            </div>
+                            
+                            <div 
+                                className="flex-1 p-8 flex flex-col items-center justify-center relative z-10 text-white"
+                                style={{
+                                    fontFamily: getPreviewFontFamily(),
+                                    fontSize: `${(watchBaseFontSize || 100)}%`,
+                                    '--theme-primary': watchThemeColor || '#10b981',
+                                    '--color-primary': 'var(--theme-primary)',
+                                    '--theme-accent': watchAccentColor || '#fbbf24',
+                                    '--color-accent': 'var(--theme-accent)',
+                                    '--theme-label': watchLabelColor || '#cbd5e1',
+                                    '--color-label': 'var(--theme-label)',
+                                    '--scale-label': (watchLabelFontSize || 100) / 100
+                                } as React.CSSProperties}
+                            >
+                                <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-950 to-black z-0" />
+                                
+                                <div className="relative z-10 w-full flex flex-col items-center gap-4 text-center">
+                                    {/* Clock Preview */}
+                                    <div 
+                                        className="font-clock font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none transition-colors"
+                                        style={{ fontSize: `calc(4rem * ${(watchClockFontSize || 100) / 100})` }}
+                                    >
+                                        12:34:56
+                                    </div>
+                                    
+                                    {/* Date Preview */}
+                                    <div className="flex items-center gap-3 text-label font-medium transition-all" style={{ fontSize: `calc(1.25em * ${(watchLabelFontSize || 100) / 100})` }}>
+                                        <span>Jumat, 27 Februari 2026</span>
+                                        <span className="w-[0.4em] h-[0.4em] rounded-full bg-primary transition-colors"></span>
+                                        <span>10 Ramadhan 1447 H</span>
+                                    </div>
+
+                                    {/* Sample Widget Box */}
+                                    <div className="mt-6 w-full max-w-sm bg-linear-to-br from-primary/60 to-slate-900 rounded-2xl border border-primary/50 p-5 shadow-[0_0_25px_-5px_var(--theme-primary)] transition-all">
+                                        <h3 className="text-[1.2em] font-bold text-accent mb-2 transition-colors uppercase tracking-widest drop-shadow-md">Contoh Widget</h3>
+                                        <p className="text-[0.9em] text-slate-100 leading-relaxed drop-shadow-sm">
+                                            Teks ini akan mengikuti perubahan Global Font Size dan mengganti font familinya.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

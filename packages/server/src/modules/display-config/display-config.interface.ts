@@ -44,6 +44,15 @@ export const updateDisplayConfigSchema = z.object({
 
   // Audio
   enableBeep: z.boolean().optional(),
+
+  // Theme Config
+  themeColor: z.string().optional(),
+  accentColor: z.string().optional(),
+  labelColor: z.string().optional(),
+  fontFamily: z.string().optional(),
+  baseFontSize: z.number().int().min(50).max(200).optional(),
+  clockFontSize: z.number().int().min(50).max(200).optional(),
+  labelFontSize: z.number().int().min(50).max(200).optional(),
 });
 
 export type UpdateDisplayConfigDto = z.infer<typeof updateDisplayConfigSchema>;

@@ -42,6 +42,15 @@ export const displayConfigSchema = z.object({
   // Cached data
   cachedHijriDate: z.string().optional(),
   cachedHijriDateAt: z.string().optional(), 
+
+  // Theme Config
+  themeColor: z.string().default('#10b981'),
+  accentColor: z.string().default('#fbbf24'),
+  labelColor: z.string().default('#cbd5e1'),
+  fontFamily: z.string().default('sans'),
+  baseFontSize: z.number().default(100),
+  clockFontSize: z.number().default(100),
+  labelFontSize: z.number().default(100),
 });
 
 export type DisplayConfig = z.infer<typeof displayConfigSchema>;

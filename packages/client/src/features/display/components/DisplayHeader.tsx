@@ -1,4 +1,3 @@
-import { MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { getImageUrl } from '../../../lib/utils';
@@ -47,22 +46,29 @@ export const DisplayHeader = ({ profile, currentTime, config, effectiveDate }: D
                     />
                 </div>
                 <div>
-                    <h1 className="text-xl lg:text-2xl font-bold tracking-tight text-white drop-shadow-lg leading-none">{profile?.name}</h1>
-                    <div className="flex items-center gap-1.5 text-slate-400 mt-0.5">
-                        <MapPin className="w-3 h-3" />
-                        <p className="text-xs font-medium">{profile?.address}</p>
+                    <h1 className="text-[1.5rem] lg:text-[1.8rem] font-black tracking-tight text-white drop-shadow-lg leading-none">{profile?.name}</h1>
+                    <div className="flex items-center gap-1.5 text-label opacity-80 mt-0.5 transition-opacity">
+                        <p className="font-extrabold" style={{ fontSize: `calc(0.75rem * var(--scale-label, 1))` }}>{profile?.address}</p>
                     </div>
                 </div>
             </div>
 
             <div className="text-right flex flex-col items-end">
-                <h2 className="text-4xl lg:text-5xl font-bold font-mono tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none">
+                <div 
+                    className="font-black font-mono tracking-tighter text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none flex items-baseline"
+                    style={{ fontSize: `calc(3rem * ${((config?.clockFontSize || 100) / 100)})` }}
+                >
                     {format(currentTime, 'HH:mm')}
-                    <span className="text-xl text-slate-500 ml-1.5 font-light">{format(currentTime, 'ss')}</span>
-                </h2>
+                    <span 
+                        className="text-label opacity-70 ml-1.5 font-bold"
+                        style={{ fontSize: '0.4em' }}
+                    >
+                        {format(currentTime, 'ss')}
+                    </span>
+                </div>
                 <div className="flex flex-col items-end mt-1">
-                    <p className="text-xs text-emerald-400 font-medium uppercase tracking-widest leading-tight">
-                        {format(currentTime, 'EEEE, dd MMMM yyyy', { locale: id })} {displayHijriDate && (<span className="text-[11px] text-slate-400 font-medium tracking-wide mt-0.5 animate-in fade-in duration-500">/ {displayHijriDate}</span>)}
+                    <p className="font-extrabold uppercase tracking-widest leading-tight text-accent" style={{ fontSize: `calc(0.75rem * var(--scale-label, 1))` }}>
+                        {format(currentTime, 'EEEE, dd MMMM yyyy', { locale: id })} {displayHijriDate && (<span className="text-label opacity-80 font-extrabold tracking-wide mt-0.5 animate-in fade-in duration-500" style={{ fontSize: '0.9em' }}>/ {displayHijriDate}</span>)}
                     </p>
                 </div>
             </div>

@@ -39,13 +39,13 @@ export const ClockWidget = memo(() =>
         <div className="bg-slate-900/40 backdrop-blur-md rounded-3xl p-10 border border-white/5 shadow-2xl text-center lg:text-left w-full relative overflow-hidden group">
             
             {/* Background Blur Decor */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-emerald-500/20 rounded-full blur-[100px] -z-10"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-[100px] -z-10"></div>
 
             <div className="text-center lg:text-left w-full pl-4">
                 {/* Time */}
-                <div className="text-[7rem] xl:text-[8.5rem] leading-none font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 drop-shadow-2xl font-mono">
+                <div className="text-[7rem] xl:text-[8.5rem] leading-none font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-300 drop-shadow-2xl font-mono">
                     {format(time, 'HH:mm')}
-                    <span className="text-4xl xl:text-5xl text-emerald-500/80 font-medium ml-2">{format(time, 'ss')}</span>
+                    <span className="text-4xl xl:text-5xl text-white/50 font-bold ml-2">{format(time, 'ss')}</span>
                 </div>
                 
                 {/* Date */}
@@ -54,7 +54,7 @@ export const ClockWidget = memo(() =>
                         {format(time, 'EEEE, d MMMM yyyy', { locale: id })}
                     </p>
                     <div className="flex items-center justify-center lg:justify-start gap-3">
-                        <span className="inline-block px-4 py-1.5 bg-emerald-900/50 border border-emerald-500/30 rounded-full text-emerald-300 text-lg xl:text-xl font-medium backdrop-blur-sm">
+                        <span className="inline-block px-4 py-1.5 bg-primary/50 border border-primary/30 rounded-full text-white text-lg xl:text-xl font-bold backdrop-blur-sm">
                             {formatHijri(time)}
                         </span>
                     </div>

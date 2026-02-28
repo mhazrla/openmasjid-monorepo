@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { SetupGuard } from './components/guards/SetupGuard';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoadingScreen } from './components/layout/LoadingScreen';
+import { DisplayWrapper } from './components/layout/DisplayWrapper';
 
 // Lazy load layout and pages
 const AdminLayout = lazy(() => import('./layouts/AdminLayout').then(m => ({ default: m.AdminLayout })));
@@ -34,7 +35,9 @@ function App()
             {/* 1. Root / Display Route (Guarded for Setup/Error) */}
             <Route path="/" element={
               <SetupGuard>
-                <StandbyView />
+                <DisplayWrapper>
+                  <StandbyView />
+                </DisplayWrapper>
               </SetupGuard>
             } />
             

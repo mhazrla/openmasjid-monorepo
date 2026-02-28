@@ -154,18 +154,28 @@ const SlideRenderer = memo(({ currentSlide, ramadanConfig, effectiveDate }: { cu
 });
 
 // --- Reusable Component: Time & Date Display ---
-const TimeAndDateDisplay = memo(({ now, hijriDate }: { now: Date, hijriDate?: string }) => (
-    <div className="absolute top-12 w-full flex flex-col items-center justify-center z-10 space-y-2">
-        <div className="text-8xl font-clock text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] tracking-wider">
-            {format(now, 'HH:mm:ss')}
+const TimeAndDateDisplay = memo(({ now, hijriDate, config }: { now: Date, hijriDate?: string, config: any }) => 
+{
+    const clockScale = (config.clockFontSize || 100) / 100;
+
+    return (
+        <div 
+            className="absolute top-12 w-full flex flex-col items-center justify-center z-10 space-y-2"
+        >
+            <div 
+                className="font-clock text-primary drop-shadow-[0_0_15px_var(--theme-primary)] tracking-wider leading-none"
+                style={{ fontSize: `calc(6rem * ${clockScale})` }}
+            >
+                {format(now, 'HH:mm:ss')}
+            </div>
+            <div className="flex items-center gap-6 text-[1.25rem] text-slate-200 font-medium tracking-wide">
+                <span>{format(now, 'EEEE, dd MMMM yyyy')}</span>
+                <span className="w-[0.4rem] h-[0.4rem] rounded-full bg-primary drop-shadow-sm"></span>
+                <span>{hijriDate || 'H'}</span>
+            </div>
         </div>
-        <div className="flex items-center gap-6 text-xl text-emerald-200/80 font-medium tracking-wide">
-            <span>{format(now, 'EEEE, dd MMMM yyyy')}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></span>
-            <span>{hijriDate || 'H'}</span>
-        </div>
-    </div>
-));
+    );
+});
 
 // --- MAIN PAGE ---
 export const StandbyView = () => 
@@ -179,11 +189,39 @@ export const StandbyView = () =>
     const [now, setNow] = useState(new Date());
     const [slideIndex, setSlideIndex] = useState(0);
 
+    // Debug Theme Injection
+    useEffect(() => 
+    {
+        if (config) {
+            console.log('StandbyView Loaded Config:', {
+                themeColor: config.themeColor,
+                fontFamily: config.fontFamily,
+                baseFontSize: config.baseFontSize,
+                clockFontSize: config.clockFontSize
+            });
+        }
+    }, [config]);
+
     useEffect(() => 
     {
         const timer = setInterval(() => setNow(new Date()), 1000);
         return () => clearInterval(timer);
     }, []);
+
+    // Global Font Scaling Layer
+    useEffect(() => 
+    {
+        if (config?.baseFontSize) {
+            document.documentElement.style.fontSize = `${config.baseFontSize}%`;
+        } else {
+            document.documentElement.style.fontSize = '100%';
+        }
+        
+        return () => 
+        {
+            document.documentElement.style.fontSize = '100%';
+        };
+    }, [config?.baseFontSize]);
 
     // 3. Derived Data
     const todayStr = useMemo(() => format(now, 'yyyy-MM-dd'), [now]);
@@ -217,13 +255,13 @@ export const StandbyView = () =>
             {
                 return (
                     <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 w-full h-full relative">
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900 via-slate-900 to-black opacity-90 z-0" />
+                        <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-950 to-black opacity-90 z-0" />
                         
-                        <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} />
+                        <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} config={config} />
 
                         <div className="relative z-10 text-center mt-16">
-                            <h1 className="text-6xl font-bold text-emerald-400 mb-4 drop-shadow-lg tracking-wider">ADZAN</h1>
-                            <p className="text-3xl text-white/80 font-light uppercase tracking-widest">{prayerState.prayerName} Berkumandang</p>
+                            <h1 className="text-[4rem] lg:text-[5rem] font-bold text-primary mb-4 drop-shadow-lg tracking-wider">ADZAN</h1>
+                            <p className="text-[1.5rem] lg:text-[2rem] text-white/80 font-light uppercase tracking-widest">{prayerState.prayerName} Berkumandang</p>
                         </div>
                     </div>
                 );
@@ -247,33 +285,33 @@ export const StandbyView = () =>
         if (prayerState.mode === 'shalat')
         {
              return (
-                <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 w-full h-full relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-slate-950 to-black z-0" />
-                    
-                    <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} />
-
-                    <div className="relative z-10 text-center space-y-8 px-4 mt-16">
+                    <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 w-full h-full relative">
+                        <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-950 to-black z-0" />
                         
-                        {/* Title */}
-                        <div className="space-y-2">
-                            <p className="text-3xl text-emerald-500 font-medium tracking-[0.2em] uppercase">SHALAT SEDANG BERLANGSUNG</p>
-                            <h1 className="text-8xl font-bold text-white drop-shadow-2xl tracking-tight">
-                                {prayerState.prayerName.toUpperCase()}
-                            </h1>
+                        <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} config={config} />
+
+                        <div className="relative z-10 text-center space-y-8 px-4 mt-16">
+                            
+                            {/* Title */}
+                            <div className="space-y-2">
+                                <p className="text-[1.5rem] lg:text-[2rem] text-primary font-medium tracking-[0.2em] uppercase drop-shadow-md">SHALAT SEDANG BERLANGSUNG</p>
+                                <h1 className="text-[6rem] font-bold text-white drop-shadow-2xl tracking-tight leading-none">
+                                    {prayerState.prayerName.toUpperCase()}
+                                </h1>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="w-32 h-1 bg-primary rounded-full mx-auto shadow-[0_0_10px_var(--theme-primary)]" />
+
+                            {/* Main Message */}
+                            <div className="space-y-6">
+                                <p className="text-[2rem] text-slate-300 font-light tracking-wide mx-auto px-8 leading-relaxed">
+                                    Mohon <span className="text-primary font-semibold">Nonaktifkan</span> Nada Dering Handphone
+                                </p>
+                            </div>
+
                         </div>
-
-                        {/* Divider */}
-                        <div className="w-32 h-1 bg-emerald-600 rounded-full mx-auto opacity-80" />
-
-                        {/* Main Message */}
-                        <div className="space-y-6">
-                            <p className="text-3xl text-slate-300 font-light tracking-wide mx-auto px-8 leading-relaxed">
-                                Mohon <span className="text-emerald-400 font-normal">Nonaktifkan</span> Nada Dering Handphone
-                            </p>
-                        </div>
-
                     </div>
-                </div>
             );
         }
 
@@ -281,22 +319,38 @@ export const StandbyView = () =>
         return <SlideRenderer currentSlide={slides[slideIndex] || null} ramadanConfig={ramadanConfig} effectiveDate={effectiveDate} />;
     };
 
+    // Get correct font family fallback
+    const getFontFamily = () => 
+    {
+        const type = config.fontFamily || 'sans';
+        if (type === 'serif') return '"Playfair Display", Georgia, serif';
+        if (type === 'mono') return 'monospace';
+        return 'Inter, ui-sans-serif, system-ui, sans-serif';
+    };
+
     return (
-        <div className="h-screen w-screen overflow-hidden bg-slate-950 text-white font-sans select-none relative flex flex-col cursor-none">
-            {/* Background */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black z-0 pointer-events-none" />
-            
+        <div 
+            className="w-full h-full overflow-hidden relative flex flex-col text-white select-none cursor-none bg-slate-950"
+            style={{
+                fontFamily: getFontFamily(),
+                '--theme-primary': config.themeColor || '#10b981',
+                '--color-primary': 'var(--theme-primary)',
+                '--theme-accent': config.accentColor || '#fbbf24',
+                '--color-accent': 'var(--theme-accent)',
+                '--theme-label': config.labelColor || '#cbd5e1',
+                '--color-label': 'var(--theme-label)',
+                '--scale-label': (config.labelFontSize || 100) / 100
+            } as React.CSSProperties}
+        >
             {/* Header */}
             {prayerState.mode === 'normal' && <DisplayHeader profile={profile} currentTime={now} config={config as any} effectiveDate={effectiveDate} />}
             
             {/* Main */}
             <main className={`relative z-10 flex-1 flex flex-col items-center justify-center w-full overflow-hidden transition-all duration-500 
-                ${prayerState.mode === 'normal' ? 'px-6 py-8 md:px-8 md:py-6' : 'p-0 w-screen h-screen'}`}
+                ${prayerState.mode === 'normal' ? 'p-12' : 'p-0 w-full h-full'}`}
             >
                 {renderContent()}
             </main>
-            
-            {/* Footer */}
             {prayerState.mode === 'normal' && <DisplayFooter runningText={config.runningText as string} prayerTimes={prayerTimes} nextPrayer={nextPrayer} />}
         </div>
     );

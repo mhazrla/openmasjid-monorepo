@@ -67,6 +67,15 @@ export const displayConfig = pgTable('display_config', {
   enableBeep: boolean('enable_beep').notNull().default(true), 
   beepReminderDuration: integer('beep_reminder_duration').notNull().default(30),
 
+  // Theme Config
+  themeColor: text('theme_color').notNull().default('#10b981'), // Default Emerald-500
+  accentColor: text('accent_color').notNull().default('#fbbf24'), // Default Amber-400
+  labelColor: text('label_color').notNull().default('#cbd5e1'), // Default Slate-300
+  fontFamily: text('font_family').notNull().default('sans'),
+  baseFontSize: integer('base_font_size').notNull().default(100), // Percentage (100 = 100%)
+  clockFontSize: integer('clock_font_size').notNull().default(100),
+  labelFontSize: integer('label_font_size').notNull().default(100), // Meta & Small texts scaling
+
   createdAt, updatedAt
 });
 

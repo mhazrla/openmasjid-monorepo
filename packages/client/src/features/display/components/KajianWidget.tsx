@@ -30,10 +30,10 @@ const KajianBadge = ({ type }: { type: string }) =>
   const isRutin = type === 'kajian_rutin';
   return (
     <span className={cn(
-      'px-4 py-1 rounded-full text-[10px] md:text-xs font-bold tracking-wider uppercase shadow-sm border backdrop-blur-sm',
+      'px-4 py-1 rounded-full text-[10px] md:text-xs font-extrabold tracking-wider uppercase shadow-sm border backdrop-blur-sm',
       isRutin
         ? 'bg-blue-900/40 border-blue-500/40 text-blue-200'
-        : 'bg-emerald-900/40 border-emerald-500/40 text-emerald-200'
+        : 'bg-white/10 border-white/20 text-white'
     )}>
       {type.replace(/_/g, ' ').toUpperCase()}
     </span>
@@ -46,8 +46,8 @@ const InfoItem = ({ icon: Icon, label, value, colorClass }: { icon: any, label: 
       <Icon className="w-5 h-5" />
     </div>
     <div className="overflow-hidden">
-      <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-0.5">{label}</p>
-      <p className="text-base lg:text-lg font-bold text-white tracking-tight truncate leading-tight">
+      <p className="text-[0.625rem] uppercase tracking-widest text-slate-400 font-semibold mb-0.5">{label}</p>
+      <p className="text-[1rem] lg:text-[1.125rem] font-extrabold text-white tracking-tight truncate leading-tight">
         {value}
       </p>
     </div>
@@ -58,27 +58,27 @@ const InfoItem = ({ icon: Icon, label, value, colorClass }: { icon: any, label: 
 
 const KajianNoPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, dateStr: string, timeStr: string }) => (
   <div className="w-full h-full flex items-center justify-center">
-    <div className="w-full max-w-4xl bg-gradient-to-b from-slate-900/95 to-black backdrop-blur-md border border-slate-700/50 rounded-3xl shadow-2xl p-8 md:p-10 flex flex-col items-center text-center gap-5 animate-fade-in zoom-in-95 duration-700 relative overflow-hidden">
+    <div className="w-full max-w-4xl bg-linear-to-b from-slate-900/95 to-black backdrop-blur-md border border-slate-700/50 rounded-3xl shadow-2xl p-8 md:p-10 flex flex-col items-center text-center gap-5 animate-fade-in zoom-in-95 duration-700 relative overflow-hidden">
       
       {/* Background Decor */}
-      <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-emerald-900/10 via-transparent to-transparent animate-spin-slow pointer-events-none" />
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
+      <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent animate-spin-slow pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-linear-to-r from-transparent via-white/20 to-transparent" />
 
       <div className="relative z-10">
         <KajianBadge type={data.type} />
       </div>
 
-      <h1 className="relative z-10 text-2xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight text-white drop-shadow-2xl max-w-[95%]">
+      <h1 className="relative z-10 text-[1.5rem] sm:text-[1.875rem] md:text-[2.25rem] font-black leading-tight tracking-tight text-white drop-shadow-2xl max-w-[95%]">
         {data.title || "Judul Kajian Belum Diisi"}
       </h1>
 
       {/* Narasumber Highlight */}
       <div className="relative z-10 flex flex-col items-center gap-1 bg-slate-800/60 px-8 py-4 rounded-2xl border border-slate-600/50 w-full max-w-xl shadow-lg">
         <div className="flex items-center gap-2 text-slate-400">
-          <User className="w-4 h-4 text-emerald-400" />
-          <span className="text-[10px] uppercase tracking-widest font-semibold">Narasumber</span>
+          <User className="w-[1rem] h-[1rem] text-accent" />
+          <span className="text-[0.625rem] uppercase tracking-widest font-semibold">Narasumber</span>
         </div>
-        <p className="text-lg md:text-2xl font-extrabold text-emerald-50 tracking-tight">
+        <p className="text-[1.125rem] md:text-[1.5rem] font-black text-accent tracking-tight">
           {data.speaker}
         </p>
       </div>
@@ -88,17 +88,17 @@ const KajianNoPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, dat
       <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 gap-8 w-full max-w-lg">
         <div className="flex flex-col items-center gap-1">
           <div className="flex items-center gap-2 text-blue-300/80">
-            <Calendar className="w-4 h-4" />
-            <span className="text-[10px] uppercase tracking-widest font-semibold">Tanggal</span>
+            <Calendar className="w-[1rem] h-[1rem]" />
+            <span className="text-[0.625rem] uppercase tracking-widest font-semibold">Tanggal</span>
           </div>
-          <p className="text-xl font-bold text-slate-100">{dateStr}</p>
+          <p className="text-[1.25rem] font-extrabold text-slate-100">{dateStr}</p>
         </div>
         <div className="flex flex-col items-center gap-1">
           <div className="flex items-center gap-2 text-orange-300/80">
-            <Clock className="w-4 h-4" />
-            <span className="text-[10px] uppercase tracking-widest font-semibold">Waktu</span>
+            <Clock className="w-[1rem] h-[1rem]" />
+            <span className="text-[0.625rem] uppercase tracking-widest font-semibold">Waktu</span>
           </div>
-          <p className="text-xl font-bold text-slate-100">{timeStr}</p>
+          <p className="text-[1.25rem] font-extrabold text-slate-100">{timeStr}</p>
         </div>
       </div>
 
@@ -125,25 +125,25 @@ const KajianWithPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, d
 
       {/* Right: Info */}
       <div className="w-full lg:w-[40%] flex flex-col justify-between p-6 bg-slate-900 relative">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-slate-800/50 via-slate-900 to-slate-900 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--tw-gradient-stops))] from-slate-800/50 via-slate-900 to-slate-900 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col gap-2">
           <div className="flex justify-start">
             <KajianBadge type={data.type} />
           </div>
-          <h1 className="text-xl md:text-2xl lg:text-3xl font-black leading-tight text-white drop-shadow-md line-clamp-2">
+          <h1 className="text-[1.25rem] md:text-[1.5rem] lg:text-[1.875rem] font-black leading-tight text-white drop-shadow-md line-clamp-2">
             {data.title || "Judul Kajian"}
           </h1>
         </div>
 
         <div className="relative z-10 flex flex-col gap-4 my-2">
           <div className="flex items-center gap-3 bg-slate-800/60 px-3 py-3 rounded-xl border border-slate-700/50 w-full shadow-inner">
-            <div className="p-2 bg-slate-950 rounded-lg border border-slate-700 text-emerald-400 shrink-0">
-              <User className="w-5 h-5" />
+            <div className="p-2 bg-slate-950 rounded-lg border border-slate-700 text-accent shrink-0">
+              <User className="w-[1.25rem] h-[1.25rem]" />
             </div>
             <div className="overflow-hidden">
-              <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-0.5">Narasumber</p>
-              <p className="text-base font-bold text-white tracking-tight truncate">
+              <p className="text-[0.625rem] uppercase tracking-widest text-slate-400 font-semibold mb-0.5">Narasumber</p>
+              <p className="text-[1rem] font-extrabold text-white tracking-tight truncate">
                 {data.speaker}
               </p>
             </div>
@@ -158,7 +158,7 @@ const KajianWithPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, d
         </div>
 
         <div className="relative z-10 pt-2">
-          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mb-1">Live Streaming On</p>
+          <p className="text-[0.625rem] uppercase tracking-widest text-slate-500 font-semibold mb-1">Live Streaming On</p>
           <SocialMediaBadges />
         </div>
       </div>

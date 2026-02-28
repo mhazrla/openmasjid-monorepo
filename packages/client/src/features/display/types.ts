@@ -147,6 +147,10 @@ export interface DisplayConfig
   cachedHijriDateAt?: string | null;
   enableBeep: boolean;
   beepReminderDuration: number;
+  themeColor?: string | null;
+  fontFamily?: string | null;
+  baseFontSize?: number;
+  clockFontSize?: number;
   createdAt: Date;
   updatedAt: Date;
 }
