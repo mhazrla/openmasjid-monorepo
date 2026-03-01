@@ -10,13 +10,13 @@ from PySide2.QtCore import (
 )
 from PySide2.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QStackedWidget, QGraphicsOpacityEffect, QSizePolicy, QFrame,
-    QGraphicsScene, QGraphicsView, QGraphicsProxyWidget
+    QLabel, QStackedWidget, QGraphicsOpacityEffect, QGraphicsDropShadowEffect,
+    QSizePolicy, QFrame, QGraphicsScene, QGraphicsView, QGraphicsProxyWidget
 )
 from PySide2.QtGui import QFont, QFontDatabase, QColor, QPalette, QTransform, QPainter
 
 # --- CONSTANTS ---
-API_BASE_URL = os.getenv('API_BASE_URL', 'http://localhost:3000/api')
+API_BASE_URL = os.getenv('API_BASE_URL', 'http://192.168.1.7:3000/api')
 REFRESH_INTERVAL_MS = 30000       # Poll API every 30s as requested
 SLIDE_DURATION_MS   = 15000       # Carousel rotation every 15s
 BASE_WIDTH  = 1920
@@ -70,14 +70,39 @@ class DataFetcherThread(QThread):
 # --- UTILITY COMPONENTS ---
 class GlowingCard(QFrame):
     """A card with RGBA background representing the CSS 'glass' cards."""
-    def __init__(self, bg_color="#0f172a", border_color="#1e293b", alpha=0.8):
+    def __init__(self, bg_color="#0f172a", border_color="#1e293b", alpha=0.8, glow_color="#000000"):
         super().__init__()
+        # Inner border effect via border-top
         self.setStyleSheet(f"""
             QFrame {{
                 background-color: {hex_to_rgba(bg_color, alpha)};
                 border: 1px solid {border_color};
+                border-top: 1px solid rgba(255,255,255,0.1);
                 border-radius: 24px;
             }}
+        """)
+        
+        # Drop shadow effect (glow)
+        self.shadow = QGraphicsDropShadowEffect(self)
+        self.shadow.setBlurRadius(40)
+        self.shadow.setXOffset(0)
+        self.shadow.setYOffset(10)
+        self.shadow.setColor(QColor(glow_color))
+        self.setGraphicsEffect(self.shadow)
+
+class GradientLine(QFrame):
+    """A vertical separator using QLinearGradient."""
+    def __init__(self):
+        super().__init__()
+        self.setFixedWidth(2)
+        self.setStyleSheet("""
+            QFrame {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                                            stop:0 rgba(255,255,255,0), 
+                                            stop:0.5 rgba(255,255,255,0.2), 
+                                            stop:1 rgba(255,255,255,0));
+                border: none;
+            }
         """)
 
 # --- MARQUEE (SMOOTH TICKER) ---
@@ -134,6 +159,8 @@ class PrayerCardsWidget(QFrame):
         self.setStyleSheet("background: transparent;")
         
         self.cards = {}
+        # We need a stretchable layout to mimic grid-cols-5. 
+        # Using QHBoxLayout with stretch factors works well.
         for pid, name in [('fajr','Subuh'), ('dhuhr','Dzuhur'), ('asr','Ashar'), ('maghrib','Maghrib'), ('isha','Isya')]:
             card = GlowingCard(bg_color="#000000", border_color="#334155", alpha=0.5)
             clayout = QVBoxLayout(card)
@@ -150,7 +177,8 @@ class PrayerCardsWidget(QFrame):
             clayout.addWidget(lbl_name)
             clayout.addWidget(lbl_time)
             
-            self.layout.addWidget(card)
+            # Equal stretch factor for grid-cols-5 mimicking
+            self.layout.addWidget(card, stretch=1)
             self.cards[pid] = {'widget': card, 'name': lbl_name, 'time': lbl_time}
 
     def update_data(self, prayer_data, active_id, theme_color):
@@ -174,20 +202,25 @@ class PrayerCardsWidget(QFrame):
                 if pid == active_id:
                     self.cards[pid]['widget'].setStyleSheet(f"""
                         QFrame {{
-                            background-color: {active_rgb};
-                            border: 2px solid {active_border};
+                            background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 {active_rgb}, stop:1 rgba(0,0,0,0));
+                            border: 1px solid {active_border};
                             border-radius: 24px;
                         }}
                     """)
+                    self.cards[pid]['widget'].shadow.setColor(QColor(theme_color))
+                    self.cards[pid]['widget'].shadow.setBlurRadius(60)
                     self.cards[pid]['name'].setStyleSheet("font-size: 24px; color: white; font-weight: bold; border: none; background: transparent;")
                 else:
                     self.cards[pid]['widget'].setStyleSheet(f"""
                         QFrame {{
                             background-color: rgba(0,0,0,0.5);
                             border: 1px solid #334155;
+                            border-top: 1px solid rgba(255,255,255,0.05);
                             border-radius: 24px;
                         }}
                     """)
+                    self.cards[pid]['widget'].shadow.setColor(QColor("#000000"))
+                    self.cards[pid]['widget'].shadow.setBlurRadius(40)
                     self.cards[pid]['name'].setStyleSheet("font-size: 24px; color: #94a3b8; border: none; background: transparent;")
 
 # --- SLIDE: DASHBOARD COUNTDOWN ---
@@ -369,7 +402,7 @@ class MasterUI(QWidget):
         self.lbl_mosque_name.setStyleSheet("font-size: 32px; font-weight: bold; color: white; border: none; background: transparent;")
         
         self.lbl_clock = QLabel("00:00:00")
-        self.lbl_clock.setStyleSheet("font-size: 48px; font-weight: 900; color: #fbbf24; border: none; background: transparent;")
+        self.lbl_clock.setStyleSheet("font-family: 'Inter'; font-size: 48px; font-weight: 900; color: #fbbf24; border: none; background: transparent;")
         self.lbl_clock.setAlignment(Qt.AlignCenter)
         
         self.lbl_date = QLabel("Senin, 1 Jan 2024")
@@ -377,7 +410,9 @@ class MasterUI(QWidget):
         self.lbl_date.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
         
         pill_layout.addWidget(self.lbl_mosque_name)
+        pill_layout.addWidget(GradientLine())
         pill_layout.addWidget(self.lbl_clock, 1)
+        pill_layout.addWidget(GradientLine())
         pill_layout.addWidget(self.lbl_date)
         
         top_layout.addWidget(pill)
@@ -408,7 +443,8 @@ class MasterUI(QWidget):
         self.opacity_effect = QGraphicsOpacityEffect(self.slider)
         self.slider.setGraphicsEffect(self.opacity_effect)
         self.fade_anim = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.fade_anim.setDuration(500) # 0.5s fade
+        self.fade_anim.setDuration(800) # 0.8s fade
+        self.fade_anim.setEasingCurve(QEasingCurve.InOutQuad)
         
         # 3. BOTTOM SECTION
         self.bottom_section = QWidget()
@@ -438,7 +474,7 @@ class MosqueDisplayApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Mosque Display - Native PySide2")
-        self.setStyleSheet("background-color: black;")
+        self.setStyleSheet("background-color: #030712;")
         
         # --- QGraphicsView Trick for Perfect Scaling ---
         # Instead of manually scaling fonts and boxes, we draw the 1920x1080 UI 
@@ -455,7 +491,8 @@ class MosqueDisplayApp(QMainWindow):
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setFrameShape(QFrame.NoFrame)
-        self.view.setStyleSheet("background: black;")
+        self.view.setContentsMargins(0, 0, 0, 0)
+        self.view.setStyleSheet("background: #030712; border: none;")
         self.view.setAlignment(Qt.AlignCenter)
         
         self.setCentralWidget(self.view)
@@ -488,6 +525,7 @@ class MosqueDisplayApp(QMainWindow):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         # Auto-scale the QGraphicsView to fit the window while maintaining 16:9
+        self.view.setGeometry(self.rect())
         self.view.fitInView(self.scene.sceneRect(), Qt.KeepAspectRatio)
 
     def tick_clock(self):
@@ -677,7 +715,6 @@ if __name__ == "__main__":
     QFontDatabase.addApplicationFont("assets/fonts/Amiri-Bold.ttf")
     
     window = MosqueDisplayApp()
-    window.resize(1280, 720) # Open in smaller window for desktop testing
-    window.show()
+    window.showFullScreen()
     
     sys.exit(app.exec_())
