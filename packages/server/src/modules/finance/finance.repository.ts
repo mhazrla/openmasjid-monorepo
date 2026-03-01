@@ -188,4 +188,42 @@ export class FinanceRepository
     
     return rows.map((r: { description: string }) => r.description);
   }
+
+  async getSummary() 
+  {
+    const totalAssetsResult = await db.select({ total: sql<number>`sum(balance)`.mapWith(Number) }).from(accounts);
+    const totalAssets = totalAssetsResult[0]?.total || 0;
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    const summaryRows = await db.select({
+      type: transactions.type,
+      total: sql<number>`sum(${transactions.amount})`.mapWith(Number)
+    })
+    .from(transactions)
+    .where(gte(transactions.date, startOfMonth))
+    .groupBy(transactions.type);
+
+    for (const row of summaryRows) 
+    {
+        if (row.type === 'debit') totalDebit = row.total;
+        if (row.type === 'credit') totalCredit = row.total;
+    }
+
+    const [latestTx] = await db.select({ date: transactions.date, updatedAt: transactions.updatedAt })
+      .from(transactions)
+      .orderBy(desc(transactions.date), desc(transactions.updatedAt))
+      .limit(1);
+
+    return {
+        totalAssets,
+        totalIncome: totalDebit,
+        totalExpense: totalCredit,
+        lastUpdated: latestTx ? (latestTx.updatedAt || latestTx.date) : null
+    };
+  }
 }

@@ -15,6 +15,8 @@ export interface KajianEvent
     status: boolean;
     dayOfWeek?: number | string; 
     time?: string;
+    timeMode?: 'manual' | 'bada_sholat';
+    badaSholat?: string | null;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -38,6 +40,8 @@ export interface KajianFormValues
     poster: FileList | null;
     dayOfWeek?: string;
     time?: string;
+    timeMode: 'manual' | 'bada_sholat';
+    badaSholat?: string;
     status: boolean;
 }
 

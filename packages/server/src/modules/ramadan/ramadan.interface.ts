@@ -30,30 +30,17 @@ export const updateRamadanScheduleSchema = z.object({
   // 1. Tarawih Prayer
   tarawihImamId: z.number().int().optional().nullable(),
 
-  // 2. Iftar Snack (Takjil)
-  iftarSnackSource: z.string().optional().nullable(),
-  iftarSnackQty: z.number().int().optional(),
-  iftarSnackStatus: z.enum(['open', 'close']).optional(),
-
-  // 3. Iftar Meal & Lecture (Makan Berat & Kajian)
+  // 2. Iftar Meal & Lecture (Makan Berat & Kajian)
   iftarSpeakerId: z.number().int().optional().nullable(),
   iftarKajianTitle: z.string().optional().nullable(),
-  iftarMealQty: z.number().int().optional(),
-  iftarMealStatus: z.enum(['open', 'close']).optional(),
 
-  // 4. Mineral Water
-  waterTarawihQty: z.number().int().optional(),
-  waterIftarQty: z.number().int().optional(),
-  waterItikafQty: z.number().int().optional(),
-  waterStatus: z.enum(['open', 'close']).optional(),
+  // 3. Iftar Target & Current
+  iftarTarget: z.number().int().nonnegative().optional(),
+  iftarCurrent: z.number().int().nonnegative().optional(),
 
-  // 5. Itikaf & Suhoor
-  itikafQty: z.number().int().optional(),
-  itikafStatus: z.enum(['open', 'close']).optional(),
-
-  // 6. Charity (Santunan)
-  charityQty: z.number().int().optional(),
-  charityStatus: z.enum(['open', 'close']).optional(),
+  // 4. Itikaf Target & Current
+  itikafTarget: z.number().int().nonnegative().optional(),
+  itikafCurrent: z.number().int().nonnegative().optional(),
 });
 
 // DTOs

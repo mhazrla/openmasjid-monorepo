@@ -44,4 +44,9 @@ export class FinanceService
   {
       return this.repository.getSuggestions(query);
   }
+
+  async getSummary() 
+  {
+      return this.repository.getSummary();
+  }
 }

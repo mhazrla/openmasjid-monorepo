@@ -1,6 +1,6 @@
 import Marquee from 'react-fast-marquee';
-import { cn } from '../../../lib/utils'; 
-import type { PrayerTime } from '../../prayer/types';
+import { cn } from '../../../../lib/utils'; 
+import type { PrayerTime } from '../../../prayer/types';
 
 interface DisplayFooterProps 
 {

@@ -34,6 +34,8 @@ const baseKajianSchema = z.object({
     z.number().min(0).max(6).optional().nullable()
   ),
   time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Invalid time format (HH:mm)").optional().nullable(),
+  timeMode: z.enum(['manual', 'bada_sholat']).default('manual'),
+  badaSholat: z.enum(['subuh', 'dzuhur', 'ashar', 'maghrib', 'isya']).optional().nullable(),
 });
 
 export const createKajianSchema = baseKajianSchema.superRefine((data, ctx) => 
@@ -48,14 +50,6 @@ export const createKajianSchema = baseKajianSchema.superRefine((data, ctx) =>
         message: "Day is required for recurring events",
       });
     }
-    if (!data.time) 
-    {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['time'],
-        message: "Time is required for recurring events",
-      });
-    }
   } 
   else 
   {
@@ -67,6 +61,27 @@ export const createKajianSchema = baseKajianSchema.superRefine((data, ctx) =>
         message: "Date is required for thematic events",
       });
     }
+  }
+
+  // Time mode validation
+  if (data.timeMode === 'bada_sholat') 
+  {
+    if (!data.badaSholat) 
+    {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['badaSholat'],
+        message: "Prayer selection is required for Ba'da Sholat mode",
+      });
+    }
+  } 
+  else if (data.type === 'kajian_rutin' && !data.time) 
+  {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['time'],
+      message: "Time is required for manual mode",
+    });
   }
 });
 

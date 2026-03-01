@@ -40,3 +40,17 @@
 .read-the-docs {
   color: #888;
 }
+
+@layer utilities {
+  .glass-pill {
+    @apply bg-white/5 backdrop-blur-3xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-inset ring-white/5;
+  }
+
+  .glass-card {
+    @apply bg-black/40 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)];
+  }
+  
+  .glass-inner {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-inner;
+  }
+}

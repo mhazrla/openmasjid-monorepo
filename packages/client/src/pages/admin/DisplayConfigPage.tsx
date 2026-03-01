@@ -677,54 +677,117 @@ export const DisplayConfigPage = () =>
                             </div>
                         </div>
 
-                         {/* Live Preview Box */}
-                         <div className="bg-slate-950 rounded-xl overflow-hidden border border-slate-200 relative flex flex-col shadow-inner min-h-[300px]">
-                            <div className="bg-slate-900 p-2 text-center border-b border-white/5 shrink-0">
-                                <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Live Preview</span>
-                            </div>
-                            
-                            <div 
-                                className="flex-1 p-8 flex flex-col items-center justify-center relative z-10 text-white"
-                                style={{
-                                    fontFamily: getPreviewFontFamily(),
-                                    fontSize: `${(watchBaseFontSize || 100)}%`,
-                                    '--theme-primary': watchThemeColor || '#10b981',
-                                    '--color-primary': 'var(--theme-primary)',
-                                    '--theme-accent': watchAccentColor || '#fbbf24',
-                                    '--color-accent': 'var(--theme-accent)',
-                                    '--theme-label': watchLabelColor || '#cbd5e1',
-                                    '--color-label': 'var(--theme-label)',
-                                    '--scale-label': (watchLabelFontSize || 100) / 100
-                                } as React.CSSProperties}
-                            >
-                                <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-950 to-black z-0" />
-                                
-                                <div className="relative z-10 w-full flex flex-col items-center gap-4 text-center">
-                                    {/* Clock Preview */}
-                                    <div 
-                                        className="font-clock font-black text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] leading-none transition-colors"
-                                        style={{ fontSize: `calc(4rem * ${(watchClockFontSize || 100) / 100})` }}
-                                    >
-                                        12:34:56
-                                    </div>
-                                    
-                                    {/* Date Preview */}
-                                    <div className="flex items-center gap-3 text-label font-medium transition-all" style={{ fontSize: `calc(1.25em * ${(watchLabelFontSize || 100) / 100})` }}>
-                                        <span>Jumat, 27 Februari 2026</span>
-                                        <span className="w-[0.4em] h-[0.4em] rounded-full bg-primary transition-colors"></span>
-                                        <span>10 Ramadhan 1447 H</span>
-                                    </div>
+                        {/* --- Live Preview Box (REVISED FOR TOTAL SCALING REACTIVITY) --- */}
+<div className="bg-slate-950 rounded-xl overflow-hidden border border-slate-200 relative flex flex-col shadow-inner min-h-[500px]">
+    <div className="bg-slate-900 p-2 text-center border-b border-white/5 shrink-0 z-20">
+        <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">Live Preview (Real-time Scaling)</span>
+    </div>
+    
+    <div className="flex-1 relative overflow-hidden bg-[#0a0f0b]">
+        {/* Background Gradients Glow - Reactive to Theme Color */}
+        <div 
+            className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 blur-[80px] rounded-full pointer-events-none opacity-20" 
+            style={{ backgroundColor: watchThemeColor }}
+        />
 
-                                    {/* Sample Widget Box */}
-                                    <div className="mt-6 w-full max-w-sm bg-linear-to-br from-primary/60 to-slate-900 rounded-2xl border border-primary/50 p-5 shadow-[0_0_25px_-5px_var(--theme-primary)] transition-all">
-                                        <h3 className="text-[1.2em] font-bold text-accent mb-2 transition-colors uppercase tracking-widest drop-shadow-md">Contoh Widget</h3>
-                                        <p className="text-[0.9em] text-slate-100 leading-relaxed drop-shadow-sm">
-                                            Teks ini akan mengikuti perubahan Global Font Size dan mengganti font familinya.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+        {/* CONTAINER UTAMA YANG DI-SCALE SECARA GLOBAL */}
+        <div 
+            className="absolute inset-0 flex flex-col items-center justify-start p-8 origin-top transition-transform duration-200"
+            style={{ 
+                fontFamily: getPreviewFontFamily(),
+                // Rumus: Mengubah persentase (50-150) menjadi skala decimal (0.5 - 1.5)
+                transform: `scale(${(watchBaseFontSize || 100) / 100})`
+            }}
+        >
+            {/* 1. Integrated Floating Pill Clock Preview */}
+            <div className="relative z-20 flex items-center justify-center gap-4 px-6 py-3 rounded-full bg-black/50 backdrop-blur-xl border border-white/10 shadow-2xl origin-center mb-8">
+                {/* Mosque Identity Part */}
+                <div className="flex items-center gap-3 pr-4 border-r border-white/20">
+                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center p-1 border border-white/10">
+                        <div className="w-full h-full rounded-lg flex items-center justify-center opacity-40" style={{ backgroundColor: watchThemeColor }}>
+                            <span className="font-bold text-[0.6rem]" style={{ color: watchThemeColor }}>LOGO</span>
                         </div>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-[0.8rem] font-black uppercase whitespace-nowrap leading-none text-white">NAMA MASJID ANDA</span>
+                        <span className="text-[0.4rem] font-bold uppercase tracking-widest opacity-80" style={{ color: watchThemeColor }}>Alamat Masjid...</span>
+                    </div>
+                </div>
+                
+                {/* Clock Part - Reactive to Main Clock Size Slider */}
+                <div 
+                    className="flex items-baseline font-black leading-none" 
+                    style={{ 
+                        fontSize: `calc(1.8rem * ${(watchClockFontSize || 100) / 100})`,
+                        color: watchThemeColor 
+                    }}
+                >
+                    12:34<span className="text-[0.6em] ml-1 opacity-80" style={{ color: watchThemeColor }}>:56</span>
+                </div>
+
+                {/* Hijri/Date Part */}
+                <div className="flex flex-col border-l border-white/20 pl-4 leading-tight">
+                    <span className="text-[0.6rem] font-bold text-slate-200 whitespace-nowrap">Jumat, 27 Feb 2026</span>
+                    <span className="text-[0.6rem] font-black uppercase" style={{ color: watchThemeColor }}>10 Ramadhan 1447 H</span>
+                </div>
+            </div>
+
+            {/* 2. Scaled Widget Preview (Simulating the Giant Ramadan Row) */}
+            <div 
+                className="w-full max-w-md bg-black/40 backdrop-blur-md rounded-[2rem] border border-white/5 p-6 shadow-2xl flex flex-col gap-4"
+                style={{ borderColor: `${watchThemeColor}20` }}
+            >
+                <div className="flex items-center gap-4 border-b border-white/10 pb-4">
+                    <div 
+                        className="w-12 h-12 rounded-2xl bg-[#0d160f] border-2 flex items-center justify-center"
+                        style={{ borderColor: watchThemeColor }}
+                    >
+                        <span className="font-mono font-black text-[1.8rem]" style={{ color: 'white' }}>1</span>
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-[0.5rem] font-black uppercase tracking-widest" style={{ color: watchLabelColor }}>Contoh Widget</span>
+                        <span className="text-[1.2rem] font-black text-white leading-none uppercase">Paket Buka Puasa</span>
+                    </div>
+                </div>
+
+                {/* Auction Badge Simulation - Meta Text Size Linked Here */}
+                <div 
+                    className="w-full py-4 px-4 bg-[#0d160f] border-2 rounded-[1.5rem] flex flex-col items-center"
+                    style={{ borderColor: `${watchThemeColor}30` }}
+                >
+                    <span 
+                        className="font-black tracking-[0.2em] mb-1" 
+                        style={{ 
+                            color: watchAccentColor,
+                            fontSize: `calc(0.6rem * ${(watchLabelFontSize || 100) / 100})` 
+                        }}
+                    >
+                        ❌ OPEN
+                    </span>
+                    <div className="font-mono text-[2.2rem] font-black leading-none mb-2 text-white">
+                        59 <span style={{ color: watchLabelColor, fontSize: '0.5em' }}>/ 100</span>
+                    </div>
+                    <div 
+                        className="bg-rose-600 text-white px-4 py-1.5 rounded-lg font-black uppercase tracking-tighter animate-pulse shadow-lg shadow-rose-900/40"
+                        style={{ fontSize: `calc(0.8rem * ${(watchLabelFontSize || 100) / 100})` }}
+                    >
+                        KURANG: 41
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {/* 3. Bottom Marquee Simulation (Tetap di bawah, tidak ikut scale zoom) */}
+        <div 
+            className="absolute bottom-0 left-0 w-full h-8 flex items-center overflow-hidden transition-colors z-20"
+            style={{ backgroundColor: watchThemeColor }}
+        >
+            <div className="text-black text-[0.6rem] font-black uppercase tracking-widest px-4 whitespace-nowrap opacity-80">
+                {watch('runningText') || "TEXT RUNNING AKAN MUNCUL DI SINI SECARA BERJALAN..."}
+            </div>
+        </div>
+    </div>
+</div>
                     </div>
                 </div>
 

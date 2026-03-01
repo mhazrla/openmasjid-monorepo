@@ -1,206 +1,26 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
-
-// --- Imports: Hooks ---
 import { useMosqueProfile } from '../../features/mosque/hooks';
 import { useDisplayConfig } from '../../features/display-config/hooks';
 import { usePrayerTime } from '../../features/prayer/hooks';
 import { useActiveRamadan } from '../../features/ramadan/hooks';
-import { useKajianEvents } from '../../features/kajian/hooks';
-import { usePrayerStateMachine, useHadithDisplay } from '../../features/display/hooks';
-import { useFinanceSummaryData } from '../../features/finance/hooks';
-
-// --- Imports: Components ---
-import { DisplayHeader } from '../../features/display/components/DisplayHeader';
-import { DisplayFooter } from '../../features/display/components/DisplayFooter';
-import { TarawihWidget, PosterWidget, HaditsWidget, RamadanTableWidget, BankInfoWidget, FinanceSummaryWidget } from '../../features/display/components/ContentWidgets';
-import PrayerCountdownWidget from '../../features/display/components/PrayerCountdownWidget';
-import { KajianWidget } from '../../features/display/components/KajianWidget';
-
-// --- Imports: Utils & Types ---
-import { DUMMY_HADITS, getNextPrayer, getEffectiveDate } from '../../features/display/utils/display-helpers';
-import { getImageUrl } from '../../lib/utils';
-import type { SlideContent, RamadanScheduleUI } from '../../features/display/types';
+import { usePrayerStateMachine } from '../../features/display/hooks';
+import { useSlideData } from '../../features/display/hooks/useSlideData';
+import { FloatingPillClock, BottomPrayerCards, DashboardCountdown, PrayerCountdownWidget } from '../../features/display/components/widgets';
+import { SlideRenderer } from '../../features/display/components/layouts/SlideRenderer';
+import { AlertScreenWrapper } from '../../features/display/components/layouts/AlertScreenWrapper';
+import { getEffectiveDate } from '../../features/display/utils/display-helpers';
 import { REFETCH_INTERVAL, SLIDE_DURATION } from '../../constants/duration';
 
-// --- Helper Hook: Slide Data ---
-const useSlideData = (ramadanConfig: any | undefined, effectiveDateStr: string, profile: any) => 
-{
-    const { data: kajianEvents }    = useKajianEvents({ upcoming: true, refetchInterval: REFETCH_INTERVAL });
-    const { data: hadith }          = useHadithDisplay();
-    const { data: financeSummary }  = useFinanceSummaryData({ refetchInterval: REFETCH_INTERVAL });
-
-    return useMemo(() => 
-    {
-        const items: SlideContent[] = [];
-
-        // 1. Ramadan Logic
-        const ramadanSchedules: RamadanScheduleUI[] = ramadanConfig?.schedules || [];
-        const todaysRamadanSchedule = ramadanConfig?.isActive 
-            ? ramadanSchedules.find(s => s.date.startsWith(effectiveDateStr))
-            : null;
-
-        if (ramadanConfig?.isActive && ramadanSchedules.length > 0) 
-        {
-            let startIndex = 0;
-            const todayIndex = ramadanSchedules.findIndex(s => s.date.startsWith(effectiveDateStr));
-            
-            if (todayIndex !== -1) 
-            {
-                // Today is during Ramadan, show today and the next two days (max 3)
-                startIndex = Math.min(todayIndex, Math.max(0, ramadanSchedules.length - 3));
-            } 
-            else if (effectiveDateStr > ramadanSchedules[ramadanSchedules.length - 1].date) 
-            {
-                // Past Ramadan, show the last 3 days
-                startIndex = Math.max(0, ramadanSchedules.length - 3);
-            } 
-            else 
-            {
-                // Before Ramadan, show the first 3 days
-                startIndex = 0;
-            }
-
-            items.push({ type: 'lelang_table', data: ramadanSchedules.slice(startIndex, startIndex + 3) });
-            if (todaysRamadanSchedule?.tarawihImam) items.push({ type: 'tarawih_today', data: todaysRamadanSchedule });
-            if (todaysRamadanSchedule?.iftarSpeaker) items.push({ type: 'kajian_today', data: todaysRamadanSchedule });
-        }
-
-        // 2. Kajian Events
-        if (kajianEvents && kajianEvents.length > 0) 
-        {
-            kajianEvents.forEach((ev: any) => 
-            {
-                items.push({ 
-                    type: 'kajian_event', 
-                    data: { 
-                        id: ev.id,
-                        title: ev.title,
-                        speaker: ev.speaker?.name || 'Ustadz',
-                        type: ev.type,
-                        dateRaw: ev.displayDate || ev.date,
-                        posterUrl: ev.posterUrl ? getImageUrl(ev.posterUrl) : undefined
-                    } 
-                });
-            });
-        }
-
-        // 3. Bank Info & QRIS (NEW)
-        if (profile && (profile.bankAccountNumber || profile.qrisUrl)) 
-        {
-             items.push({ 
-                type: 'bank_info', 
-                data: {
-                    mosqueName: profile.name,
-                    bankName: profile.bankName,
-                    bankAccountName: profile.bankAccountName,
-                    accountNumber: profile.bankAccountNumber,
-                    qrisUrl: profile.qrisUrl ? getImageUrl(profile.qrisUrl) : undefined
-                }
-            });
-        }
-
-        // 4. Hadith
-        if (hadith) 
-        {
-            items.push({ 
-                type: 'hadits', 
-                data: 
-                {
-                    id: hadith.id,
-                    text: hadith.teksIndo || '',
-                    source: `${hadith.takhrij || 'Hadits'} ${hadith.grade ? `(${hadith.grade})` : ''}`,
-                    arabic: hadith.teksArab || undefined
-                }
-            });
-        }
-        else if (DUMMY_HADITS.length > 0 && !hadith) 
-        {
-             items.push({ type: 'hadits', data: DUMMY_HADITS[0] });
-        }
-
-        // 5. Finance Summary
-        if (financeSummary) 
-        {
-             items.push({ type: 'finance_summary', data: financeSummary });
-        }
-        
-        return items;
-    }, [ramadanConfig, effectiveDateStr, kajianEvents, profile, hadith, financeSummary]);
-};
-
-// --- Component: Slide Renderer ---
-const SlideRenderer = memo(({ currentSlide, ramadanConfig, effectiveDate }: { currentSlide: SlideContent | null; ramadanConfig?: any; effectiveDate: Date; }) => 
-{
-    if (!currentSlide) return null;
-
-    const Wrapper = ({ children }: { children: React.ReactNode }) => (
-        <div className="w-full h-full flex items-center justify-center animate-in fade-in zoom-in duration-500">{children}</div>
-    );
-
-    switch (currentSlide.type) 
-    {
-        case 'lelang_table': return <Wrapper><RamadanTableWidget schedules={currentSlide.data} config={ramadanConfig} effectiveDate={effectiveDate} /></Wrapper>;
-        case 'tarawih_today': return <Wrapper><TarawihWidget data={{ ...currentSlide.data, description: ramadanConfig?.badalImamText || "Mari Luruskan & Rapatkan Shaf" }} hijriYear={ramadanConfig?.hijriYear} /></Wrapper>;
-        case 'kajian_today': return <Wrapper><TarawihWidget data={{ ramadanDay: currentSlide.data.ramadanDay, imam: currentSlide.data.iftarSpeaker, description: currentSlide.data.iftarKajianTitle || "Kajian Menjelang Berbuka Puasa" }} title="Kajian Ifthor" hijriYear={ramadanConfig?.hijriYear} /></Wrapper>;
-        case 'kajian_event': return <KajianWidget data={currentSlide.data} />;
-        case 'poster': return <Wrapper><PosterWidget data={currentSlide.data} /></Wrapper>;
-        case 'bank_info': return <Wrapper><BankInfoWidget data={currentSlide.data} /></Wrapper>;
-        case 'hadits': return <Wrapper><HaditsWidget data={currentSlide.data} /></Wrapper>;
-        case 'finance_summary': return <Wrapper><FinanceSummaryWidget data={currentSlide.data} /></Wrapper>;
-        default: return null;
-    }
-});
-
-// --- Reusable Component: Time & Date Display ---
-const TimeAndDateDisplay = memo(({ now, hijriDate, config }: { now: Date, hijriDate?: string, config: any }) => 
-{
-    const clockScale = (config.clockFontSize || 100) / 100;
-
-    return (
-        <div 
-            className="absolute top-12 w-full flex flex-col items-center justify-center z-10 space-y-2"
-        >
-            <div 
-                className="font-clock text-primary drop-shadow-[0_0_15px_var(--theme-primary)] tracking-wider leading-none"
-                style={{ fontSize: `calc(6rem * ${clockScale})` }}
-            >
-                {format(now, 'HH:mm:ss')}
-            </div>
-            <div className="flex items-center gap-6 text-[1.25rem] text-slate-200 font-medium tracking-wide">
-                <span>{format(now, 'EEEE, dd MMMM yyyy')}</span>
-                <span className="w-[0.4rem] h-[0.4rem] rounded-full bg-primary drop-shadow-sm"></span>
-                <span>{hijriDate || 'H'}</span>
-            </div>
-        </div>
-    );
-});
-
-// --- MAIN PAGE ---
 export const StandbyView = () => 
 {
-    // 1. Data Hooks
     const { data: profile } = useMosqueProfile({ refetchInterval: REFETCH_INTERVAL }); 
     const { data: config } = useDisplayConfig({ refetchInterval: REFETCH_INTERVAL });
     const { data: ramadanConfig } = useActiveRamadan({ refetchInterval: REFETCH_INTERVAL });
     
-    // 2. Local State & Clock
     const [now, setNow] = useState(new Date());
     const [slideIndex, setSlideIndex] = useState(0);
-
-    // Debug Theme Injection
-    useEffect(() => 
-    {
-        if (config) {
-            console.log('StandbyView Loaded Config:', {
-                themeColor: config.themeColor,
-                fontFamily: config.fontFamily,
-                baseFontSize: config.baseFontSize,
-                clockFontSize: config.clockFontSize
-            });
-        }
-    }, [config]);
 
     useEffect(() => 
     {
@@ -208,118 +28,44 @@ export const StandbyView = () =>
         return () => clearInterval(timer);
     }, []);
 
-    // Global Font Scaling Layer
-    useEffect(() => 
-    {
-        if (config?.baseFontSize) {
-            document.documentElement.style.fontSize = `${config.baseFontSize}%`;
-        } else {
-            document.documentElement.style.fontSize = '100%';
-        }
-        
-        return () => 
-        {
-            document.documentElement.style.fontSize = '100%';
-        };
-    }, [config?.baseFontSize]);
-
-    // 3. Derived Data
     const todayStr = useMemo(() => format(now, 'yyyy-MM-dd'), [now]);
+    const currentTimeStr = useMemo(() => format(now, 'HH:mm'), [now]);
     const { data: prayerTimes } = usePrayerTime(todayStr, { refetchInterval: REFETCH_INTERVAL });
-    const nextPrayer = useMemo(() => getNextPrayer(prayerTimes, now), [prayerTimes, now]);
     const effectiveDate = useMemo(() => getEffectiveDate(now, prayerTimes?.maghrib), [now, prayerTimes?.maghrib]);
     const effectiveDateStr = useMemo(() => format(effectiveDate, 'yyyy-MM-dd'), [effectiveDate]);
     
-    // 4. Custom Logic Hooks (Cleaned Up)
     const slides = useSlideData(ramadanConfig, effectiveDateStr, profile);
     const prayerState = usePrayerStateMachine(now, prayerTimes, config as any); 
 
-    // 5. Slide Rotation Effect
+    const isMenuVisible = useMemo(() => 
+    {
+        if (slides.length === 0) return true;
+        const currentType = slides[slideIndex % slides.length]?.type;
+        
+        const hiddenOn = ['lelang_table', 'bank_info', 'hadits', 'kajian_event'];
+        return !hiddenOn.includes(currentType);
+    }, [slides, slideIndex]);
+
+    useEffect(() => 
+    {
+        if (config?.baseFontSize) document.documentElement.style.fontSize = `${config.baseFontSize}%`;
+        else document.documentElement.style.fontSize = '100%';
+        return () => 
+        { document.documentElement.style.fontSize = '100%'; };
+    }, [config?.baseFontSize]);
+    
     useEffect(() => 
     {
         if (slides.length <= 1 || prayerState.mode !== 'normal') return;
-        const interval = setInterval(() => setSlideIndex((prev) => (prev + 1) % slides.length), SLIDE_DURATION);
+        const interval = setInterval(() => 
+        {
+            setSlideIndex((prev) => (prev + 1) % slides.length);
+        }, SLIDE_DURATION || 15000); 
         return () => clearInterval(interval);
     }, [slides.length, prayerState.mode]); 
 
-    // 6. Loading State
     if (!profile || !config) return <Loader2 className="animate-spin w-10 h-10 text-emerald-500 m-auto" />;
 
-    // 7. Render Content Switcher
-    const renderContent = () => 
-    {
-        // Mode: Alerts (Countdown / Adzan)
-        if (prayerState.mode !== 'normal') 
-        {
-            if (prayerState.mode === 'adzan') 
-            {
-                return (
-                    <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 w-full h-full relative">
-                        <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-950 to-black opacity-90 z-0" />
-                        
-                        <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} config={config} />
-
-                        <div className="relative z-10 text-center mt-16">
-                            <h1 className="text-[4rem] lg:text-[5rem] font-bold text-primary mb-4 drop-shadow-lg tracking-wider">ADZAN</h1>
-                            <p className="text-[1.5rem] lg:text-[2rem] text-white/80 font-light uppercase tracking-widest">{prayerState.prayerName} Berkumandang</p>
-                        </div>
-                    </div>
-                );
-            }
-            // Pre-Adzan & Iqomah share the same widget logic
-            if (prayerState.targetTime) 
-            {
-                return (
-                    <PrayerCountdownWidget 
-                        targetTime={prayerState.targetTime}
-                        prayerName={prayerState.prayerName} 
-                        mode={prayerState.mode as 'pre_adzan' | 'iqomah'}
-                        beepReminderDuration={config.beepReminderDuration}
-                        enableBeep={config.enableBeep}
-                    />
-                );
-            }
-        }
-        
-        // Mode: Shalat
-        if (prayerState.mode === 'shalat')
-        {
-             return (
-                    <div className="flex flex-col items-center justify-center animate-in fade-in zoom-in duration-700 w-full h-full relative">
-                        <div className="absolute inset-0 bg-linear-to-br from-slate-900 via-slate-950 to-black z-0" />
-                        
-                        <TimeAndDateDisplay now={now} hijriDate={config.cachedHijriDate as string | undefined} config={config} />
-
-                        <div className="relative z-10 text-center space-y-8 px-4 mt-16">
-                            
-                            {/* Title */}
-                            <div className="space-y-2">
-                                <p className="text-[1.5rem] lg:text-[2rem] text-primary font-medium tracking-[0.2em] uppercase drop-shadow-md">SHALAT SEDANG BERLANGSUNG</p>
-                                <h1 className="text-[6rem] font-bold text-white drop-shadow-2xl tracking-tight leading-none">
-                                    {prayerState.prayerName.toUpperCase()}
-                                </h1>
-                            </div>
-
-                            {/* Divider */}
-                            <div className="w-32 h-1 bg-primary rounded-full mx-auto shadow-[0_0_10px_var(--theme-primary)]" />
-
-                            {/* Main Message */}
-                            <div className="space-y-6">
-                                <p className="text-[2rem] text-slate-300 font-light tracking-wide mx-auto px-8 leading-relaxed">
-                                    Mohon <span className="text-primary font-semibold">Nonaktifkan</span> Nada Dering Handphone
-                                </p>
-                            </div>
-
-                        </div>
-                    </div>
-            );
-        }
-
-        // Mode: Normal Slides
-        return <SlideRenderer currentSlide={slides[slideIndex] || null} ramadanConfig={ramadanConfig} effectiveDate={effectiveDate} />;
-    };
-
-    // Get correct font family fallback
     const getFontFamily = () => 
     {
         const type = config.fontFamily || 'sans';
@@ -328,30 +74,103 @@ export const StandbyView = () =>
         return 'Inter, ui-sans-serif, system-ui, sans-serif';
     };
 
+    const safeSlideIndex = slides.length > 0 ? (slideIndex >= slides.length ? 0 : slideIndex) : 0;
+    const currentActiveSlide = slides.length > 0 ? slides[safeSlideIndex] : null;
+
     return (
         <div 
-            className="w-full h-full overflow-hidden relative flex flex-col text-white select-none cursor-none bg-slate-950"
+            className="w-[1920px] h-[1080px] overflow-hidden relative flex flex-col bg-[#0a0f0b] text-white select-none cursor-none"
             style={{
                 fontFamily: getFontFamily(),
+                transformOrigin: 'top left',
                 '--theme-primary': config.themeColor || '#10b981',
                 '--color-primary': 'var(--theme-primary)',
                 '--theme-accent': config.accentColor || '#fbbf24',
                 '--color-accent': 'var(--theme-accent)',
                 '--theme-label': config.labelColor || '#cbd5e1',
-                '--color-label': 'var(--theme-label)',
                 '--scale-label': (config.labelFontSize || 100) / 100
             } as React.CSSProperties}
         >
-            {/* Header */}
-            {prayerState.mode === 'normal' && <DisplayHeader profile={profile} currentTime={now} config={config as any} effectiveDate={effectiveDate} />}
+            <style>
+                {`
+                    @keyframes marquee {
+                        0% { transform: translateX(100%); }
+                        100% { transform: translateX(-100%); }
+                    }
+                    .animate-marquee {
+                        display: inline-block;
+                        white-space: nowrap;
+                        animation: marquee 25s linear infinite;
+                    }
+                `}
+            </style>
             
-            {/* Main */}
-            <main className={`relative z-10 flex-1 flex flex-col items-center justify-center w-full overflow-hidden transition-all duration-500 
-                ${prayerState.mode === 'normal' ? 'p-12' : 'p-0 w-full h-full'}`}
-            >
-                {renderContent()}
-            </main>
-            {prayerState.mode === 'normal' && <DisplayFooter runningText={config.runningText as string} prayerTimes={prayerTimes} nextPrayer={nextPrayer} />}
+            <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-primary/20 blur-[150px] rounded-full pointer-events-none z-0" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-emerald-900/20 blur-[150px] rounded-full pointer-events-none z-0" />
+            <div className={`absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-primary/20 to-transparent blur-[80px] pointer-events-none z-0 transition-opacity duration-1000 ${isMenuVisible ? 'opacity-100' : 'opacity-0'}`} />
+
+            {prayerState.mode === 'adzan' && (
+                <AlertScreenWrapper now={now} config={config} profile={profile} zIndex="z-50">
+                    <h1 className="text-[8rem] font-black text-primary mb-6 drop-shadow-[0_0_40px_rgba(16,185,129,0.5)] tracking-[0.2em] animate-pulse">ADZAN</h1>
+                    <p className="text-[3.5rem] text-slate-200 font-light uppercase tracking-[0.4em] drop-shadow-lg">
+                        <span className="font-bold text-white">{prayerState.prayerName}</span> BERKUMANDANG
+                    </p>
+                </AlertScreenWrapper>
+            )}
+
+            {prayerState.mode === 'shalat' && (
+                <AlertScreenWrapper now={now} config={config} profile={profile} zIndex="z-[100]">
+                    <p className="text-[2.5rem] text-primary font-medium tracking-[0.4em] uppercase mb-6 drop-shadow-md">SHALAT BERLANGSUNG</p>
+                    <h1 className="text-[9rem] font-black text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.2)] tracking-tighter mb-14 uppercase leading-none">
+                        {prayerState.prayerName || 'SHALAT'}
+                    </h1>
+                    <div className="w-64 h-2 bg-primary rounded-full shadow-[0_0_20px_var(--theme-primary)] mb-14" />
+                    <p className="text-[3rem] text-slate-300 font-light tracking-wide drop-shadow-md">Mohon Nonaktifkan Nada Dering Handphone</p>
+                </AlertScreenWrapper>
+            )}
+
+            {prayerState.mode !== 'normal' && prayerState.mode !== 'adzan' && prayerState.mode !== 'shalat' && prayerState.targetTime && (
+                <AlertScreenWrapper now={now} config={config} profile={profile} zIndex="z-50">
+                    <PrayerCountdownWidget targetTime={prayerState.targetTime} prayerName={prayerState.prayerName} mode={prayerState.mode as any} beepReminderDuration={config.beepReminderDuration} enableBeep={config.enableBeep} />
+                </AlertScreenWrapper>
+            )}
+
+            {prayerState.mode === 'normal' && (
+                <>
+                    <FloatingPillClock 
+                        now={now} 
+                        hijriDate={config.cachedHijriDate} 
+                        profile={profile} 
+                        isVisible={isMenuVisible} 
+                    />
+                    
+                    <main className={`flex-1 w-full flex items-center justify-center px-10 overflow-hidden z-10 relative transition-all duration-1000 ease-in-out ${
+                        isMenuVisible ? 'pt-10 pb-[180px]' : 'pt-10 pb-10'
+                    }`}>
+                        {slides.length > 0 ? (
+                            <SlideRenderer currentSlide={currentActiveSlide} slideIndex={safeSlideIndex} ramadanConfig={ramadanConfig} effectiveDate={effectiveDate} />
+                        ) : (
+                            <DashboardCountdown prayerState={prayerState} now={now} />
+                        )}
+                    </main>
+
+                    <div className={`absolute left-0 w-full flex flex-col z-20 transition-all duration-1000 ease-in-out ${
+                        isMenuVisible 
+                        ? 'bottom-0 translate-y-0 opacity-100' 
+                        : 'bottom-0 translate-y-full opacity-0 pointer-events-none'
+                    }`}>
+                        <BottomPrayerCards prayerTimes={prayerTimes} currentTimeStr={currentTimeStr} />
+                        
+                        <div className="h-[60px] flex items-center shadow-[0_-10px_30px_rgba(16,185,129,0.2)] overflow-hidden relative" style={{ backgroundColor: 'var(--theme-primary)' }}>
+                            <div className="text-[1.75rem] font-black uppercase tracking-widest animate-marquee w-full whitespace-nowrap" style={{ fontSize: 'calc(1.75rem * var(--scale-label, 1))', color: 'var(--theme-label)' }}>
+                                {config.runningText || "MARI RAPATKAN BARISAN, LURUSKAN SHAF, DAN KHUSYUK DALAM BERIBADAH."}
+                                <span className="mx-24" style={{ color: 'var(--theme-accent)' }}>•</span>
+                                {config.runningText || "MARI RAPATKAN BARISAN, LURUSKAN SHAF, DAN KHUSYUK DALAM BERIBADAH."}
+                            </div>
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };

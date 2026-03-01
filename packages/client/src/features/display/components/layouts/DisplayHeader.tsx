@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { getImageUrl } from '../../../lib/utils';
-import type { DisplayConfig } from '../types';
+import { getImageUrl } from '../../../../lib/utils';
+import type { DisplayConfig } from '../../types';
 
 interface DisplayHeaderProps 
 {

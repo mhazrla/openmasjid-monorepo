@@ -160,4 +160,17 @@ export class FinanceController
       return sendError(reply, 'Internal Server Error', 500);
     }
   }
+
+  async getSummary(request: FastifyRequest, reply: FastifyReply) 
+  {
+    try 
+    {
+      const summary = await this.service.getSummary();
+      return sendSuccess(reply, summary);
+    }
+    catch (error: any) 
+    {
+      return sendError(reply, 'Internal Server Error', 500);
+    }
+  }
 }

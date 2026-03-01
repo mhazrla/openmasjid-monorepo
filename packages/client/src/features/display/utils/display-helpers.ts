@@ -1,9 +1,5 @@
 import type { PrayerTime } from '../../prayer/types';
 
-export const DUMMY_HADITS = [
-    { id: 1, source: "HR. Muslim", arabic: "مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الْجَنَّةِ", text: "Barangsiapa menempuh jalan menuntut ilmu, Allah mudahkan jalan ke Surga." }
-];
-
 // --- LOGIC HELPERS ---
 const timeToMinutes = (time: string): number => 
 {

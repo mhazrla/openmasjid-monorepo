@@ -112,31 +112,35 @@ export class KajianController
              part.file.resume();
           }
         } 
-        else 
-        {
-          const { fieldname, value } = part;
-          
-          if (['speakerId', 'dayOfWeek'].includes(fieldname)) 
-          {
-             body[fieldname] = value ? parseInt(value as string) : null;
-          } 
-          else if (fieldname === 'status') 
-          {
-             body[fieldname] = value === 'true' || value === 'active';
-          } 
-          else if (fieldname === 'isActive') 
-          {
-             body['status'] = value === 'true';
-          } 
-          else if (fieldname === 'date' && !value) 
-          {
-             body[fieldname] = null;
-          } 
-          else 
-          {
-             body[fieldname] = value;
-          }
-        }
+         else 
+         {
+           const { fieldname, value } = part;
+           
+           // Snake_case to camelCase mapping
+           const fieldMap: Record<string, string> = { time_mode: 'timeMode', bada_sholat: 'badaSholat' };
+           const key = fieldMap[fieldname] || fieldname;
+
+           if (['speakerId', 'dayOfWeek'].includes(key)) 
+           {
+              body[key] = value ? parseInt(value as string) : null;
+           } 
+           else if (key === 'status') 
+           {
+              body[key] = value === 'true' || value === 'active';
+           } 
+           else if (fieldname === 'isActive') 
+           {
+              body['status'] = value === 'true';
+           } 
+           else if (key === 'date' && !value) 
+           {
+              body[key] = null;
+           } 
+           else 
+           {
+              body[key] = value;
+           }
+         }
       }
 
       const validation = createKajianSchema.safeParse(body);
@@ -193,7 +197,9 @@ export class KajianController
         } 
         else 
         {
-           body[part.fieldname] = part.value;
+           const fieldMap: Record<string, string> = { time_mode: 'timeMode', bada_sholat: 'badaSholat' };
+           const key = fieldMap[part.fieldname] || part.fieldname;
+           body[key] = part.value;
         }
       }
 

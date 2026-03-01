@@ -12,31 +12,18 @@ export interface RamadanSchedule
     tarawihImamId?: number | null;
     tarawihImam?: Person;
 
-    // 2. Iftar Snack
-    iftarSnackSource?: string | null;
-    iftarSnackQty: number;
-    iftarSnackStatus: 'open' | 'close';
+    // 2. Lelang Buka Puasa
+    iftarTarget?: number;
+    iftarCurrent?: number;
 
-    // 3. Iftar Meal & Lecture
+    // 3. Iftar Speaker & Kajian
     iftarSpeakerId?: number | null;
     iftarSpeaker?: Person;
     iftarKajianTitle?: string | null;
-    iftarMealQty: number;
-    iftarMealStatus: 'open' | 'close';
 
-    // 4. Water
-    waterTarawihQty: number;
-    waterIftarQty: number;
-    waterItikafQty: number;
-    waterStatus: 'open' | 'close';
-
-    // 5. Itikaf
-    itikafQty: number;
-    itikafStatus: 'open' | 'close';
-
-    // 6. Charity
-    charityQty: number;
-    charityStatus: 'open' | 'close';
+    // 4. Lelang Sahur I'tikaf
+    itikafTarget?: number;
+    itikafCurrent?: number;
 }
 
 export interface RamadanConfig 

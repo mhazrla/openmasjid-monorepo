@@ -193,33 +193,13 @@ export const ramadanSchedules = pgTable('ramadan_schedules', {
   date: timestamp('date').notNull(),
   ramadanDay: integer('ramadan_day').notNull(),
   description: text('description'), 
-
-  // 1. Tarawih
   tarawihImamId: integer('tarawih_imam_id').references(() => people.id),
-  // 2. Iftar Snack
-  iftarSnackSource: text('iftar_snack_source'), 
-  iftarSnackQty: integer('iftar_snack_qty').default(0),
-  iftarSnackStatus: text('iftar_snack_status').$type<'open' | 'close'>().default('open'),
-
-  // 3. Iftar Meal
   iftarSpeakerId: integer('iftar_speaker_id').references(() => people.id),
   iftarKajianTitle: text('iftar_kajian_title'),
-  iftarMealQty: integer('iftar_meal_qty').default(0),
-  iftarMealStatus: text('iftar_meal_status').$type<'open' | 'close'>().default('open'),
-
-  // 4. Mineral Water
-  waterTarawihQty: integer('water_tarawih_qty').default(0),
-  waterIftarQty: integer('water_iftar_qty').default(0),
-  waterItikafQty: integer('water_itikaf_qty').default(0),
-  waterStatus: text('water_status').$type<'open' | 'close'>().default('open'),
-
-  // 5. Itikaf & Sahur
-  itikafQty: integer('itikaf_qty').default(0),
-  itikafStatus: text('itikaf_status').$type<'open' | 'close'>().default('close'),
-
-  // 6. Charity (Santunan)
-  charityQty: integer('charity_qty').default(0),
-  charityStatus: text('charity_status').$type<'open' | 'close'>().default('close'),
+  iftarTarget: integer('iftar_target').default(0),    
+  iftarCurrent: integer('iftar_current').default(0),  
+  itikafTarget: integer('itikaf_target').default(0),   
+  itikafCurrent: integer('itikaf_current').default(0), 
 
   createdAt, updatedAt
 });
@@ -232,6 +212,8 @@ export const kajianEvents = pgTable('kajian_events', {
   date: timestamp('date'), 
   dayOfWeek: integer('day_of_week'),
   time: text('time'), 
+  timeMode: text('time_mode').$type<'manual' | 'bada_sholat'>().default('manual'),
+  badaSholat: text('bada_sholat').$type<'subuh' | 'dzuhur' | 'ashar' | 'maghrib' | 'isya'>(),
   posterUrl: text('poster_url'),
   type: text('type').$type<'kajian_rutin' | 'kajian_tematik' | 'tabligh_akbar'>().default('kajian_tematik'),
   status: boolean('status').default(true), 

@@ -82,6 +82,7 @@ export class KajianRepository
   async create(data: CreateKajianDto & { posterUrl?: string }) 
   {
     const isRutin = data.type === 'kajian_rutin';
+    const isBada = data.timeMode === 'bada_sholat';
 
     const [newItem] = await db.insert(kajianEvents)
       .values({
@@ -93,7 +94,9 @@ export class KajianRepository
         
         date: isRutin ? null : (data.date ? new Date(data.date) : null),
         dayOfWeek: isRutin ? Number(data.dayOfWeek) : null,
-        time: isRutin ? data.time : null,
+        time: isBada ? null : (data.time || null),
+        timeMode: data.timeMode || 'manual',
+        badaSholat: isBada ? (data.badaSholat || null) : null,
         
         createdAt: new Date(),
         updatedAt: new Date()
@@ -110,14 +113,24 @@ export class KajianRepository
     if (data.type === 'kajian_rutin') 
     {
         if (data.dayOfWeek) payload.dayOfWeek = Number(data.dayOfWeek);
-        if (data.time) payload.time = data.time;
         payload.date = null; 
     } 
     else if (data.type) 
     {
         if (data.date) payload.date = new Date(data.date);
         payload.dayOfWeek = null;
+    }
+
+    // Handle time mode switching
+    if (data.timeMode === 'bada_sholat') 
+    {
         payload.time = null;
+        if (data.badaSholat) payload.badaSholat = data.badaSholat;
+    } 
+    else if (data.timeMode === 'manual') 
+    {
+        payload.badaSholat = null;
+        if (data.time) payload.time = data.time;
     }
 
     if (data.posterUrl !== undefined) payload.posterUrl = data.posterUrl;

@@ -3,21 +3,15 @@ export interface RamadanScheduleUI
   id: number;
   ramadanDay: number;
   date: string;
-  iftarSnackStatus: 'open' | 'close';
-  iftarSnackQty: number;
-  iftarMealStatus: 'open' | 'close';
-  iftarMealQty: number;
-  itikafStatus: 'open' | 'close';
-  itikafQty: number;
-  charityStatus: 'open' | 'close';
-  charityQty: number;
-  waterTarawihQty: number;
-  waterIftarQty: number;
-  waterItikafQty: number;
+  iftarTarget?: number;
+  iftarCurrent?: number;
+  itikafTarget?: number;
+  itikafCurrent?: number;
   tarawihImam?: { name: string } | null;
   iftarSpeaker?: { name: string } | null;
   iftarKajianTitle?: string | null;
   description?: string | null;
+  badalImam?: string | null;
 }
 
 export interface PosterData 
@@ -53,13 +47,7 @@ export interface RamadanTableWidgetProps
 
 export interface TarawihWidgetProps 
 {
-  data: 
-  {
-    ramadanDay: number;
-    tarawihImam?: { name: string } | null;
-    imam?: { name: string } | null;
-    description?: string | null;
-  };
+  data: RamadanScheduleUI;
   hijriYear?: number;
   title?: string;
 }
@@ -102,6 +90,9 @@ export interface KajianSlideData
   type: string;
   dateRaw: string;
   posterUrl?: string;
+  timeMode?: 'manual' | 'bada_sholat';
+  badaSholat?: string;
+  time?: string;
 }
 
 export interface BankInfoData 
@@ -160,14 +151,7 @@ export interface FinanceSummaryData
     totalAssets: number;
     totalIncome: number;
     totalExpense: number;
-    recentTransactions: 
-    {
-        id: number;
-        date: string;
-        description: string;
-        amount: number;
-        type: 'debit' | 'credit';
-    }[];
+    lastUpdated: string | Date | null;
 }
 
 export interface FinanceSummaryWidgetProps

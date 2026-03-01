@@ -155,15 +155,23 @@ export const KajianManagerPage = () =>
 
                         <div className="flex items-center gap-1.5 text-emerald-600 font-medium mt-1 text-sm">
                             <CalIcon className="w-3.5 h-3.5 shrink-0" />
-                            {row.type === 'kajian_rutin'
-                                ? (row.dayOfWeek !== null && row.time // Check if dayOfWeek/time exist
-                                    ? ((row.displayDate // If displayDate exists (from backend calc)
-                                        ? format(new Date(row.displayDate), 'EEEE, HH:mm') 
-                                        : `Every ${['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][Number(row.dayOfWeek)] || ''}, ${row.time}`))
-                                    : 'Recurring')
-                                : row.date
-                                    ? format(new Date(row.date), 'dd MMM yyyy, HH:mm')
-                                    : '-'}
+                            {(() => {
+                                const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+                                const timeLabel = row.timeMode === 'bada_sholat' && row.badaSholat
+                                    ? `Ba'da ${capitalize(row.badaSholat)}`
+                                    : row.time || null;
+
+                                if (row.type === 'kajian_rutin') {
+                                    if (row.dayOfWeek !== null && timeLabel) {
+                                        const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][Number(row.dayOfWeek)] || '';
+                                        return `Every ${dayName}, ${timeLabel}`;
+                                    }
+                                    return 'Recurring';
+                                }
+                                
+                                const dateStr = row.date ? format(new Date(row.date), 'dd MMM yyyy') : '-';
+                                return timeLabel ? `${dateStr}, ${timeLabel}` : dateStr;
+                            })()}
                         </div>
                     </div>
                 );

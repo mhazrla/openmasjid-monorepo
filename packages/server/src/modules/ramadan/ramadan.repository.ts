@@ -72,11 +72,10 @@ export class RamadanRepository
           ramadanDay: day,
           date: currentDate,
           description: '',
-          iftarSnackStatus: 'open',
-          iftarMealStatus: 'open',
-          waterStatus: 'open',
-          itikafStatus: 'close', 
-          charityStatus: 'close',
+          iftarTarget: 0,
+          iftarCurrent: 0,
+          itikafTarget: 0,
+          itikafCurrent: 0,
           createdAt: new Date(),
           updatedAt: new Date()
         });

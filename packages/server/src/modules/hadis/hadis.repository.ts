@@ -7,7 +7,7 @@ export class HadisRepository
 {
     private safeFilter = and(
         gte(sql<number>`LENGTH(${hadisEnc.teksIndo})`, 50),
-        lte(sql<number>`LENGTH(${hadisEnc.teksIndo})`, 300)
+        lte(sql<number>`LENGTH(${hadisEnc.teksIndo})`, 200)
     );
 
     async countAll(): Promise<number> 

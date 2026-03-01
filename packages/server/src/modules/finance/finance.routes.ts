@@ -18,4 +18,5 @@ export async function financeRoutes(app: FastifyInstance)
   app.get('/accounts', controller.getAccounts.bind(controller));
   app.get('/categories', controller.getCategories.bind(controller));
   app.get('/suggestions', controller.getSuggestions.bind(controller));
+  app.get('/summary', controller.getSummary.bind(controller));
 }

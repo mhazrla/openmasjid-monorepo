@@ -1,0 +1,1813 @@
+/* ============================================
+   MASJID DISPLAY — Lightweight PHP Edition
+   Optimized for Chromium 65 / Raspberry Pi 3
+   ============================================ */
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 100%;
+}
+
+body {
+    background: #000;
+    color: #fff;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    overflow: hidden;
+    cursor: none;
+    -webkit-user-select: none;
+    user-select: none;
+    width: 100vw;
+    height: 100vh;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+/* ---------- Main Canvas Fixed 1920x1080 ---------- */
+.display-canvas {
+    width: 1920px;
+    height: 1080px;
+    min-width: 1920px;
+    min-height: 1080px;
+    max-width: 1920px;
+    max-height: 1080px;
+    position: relative;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    overflow: hidden;
+    background: #0a0f0b;
+    -webkit-transform-origin: center center;
+    transform-origin: center center;
+}
+
+/* ---------- Background Glows ---------- */
+.glow-top {
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    width: 1200px;
+    height: 800px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(150px);
+    -webkit-filter: blur(150px);
+}
+
+.glow-bottom-right {
+    position: absolute;
+    bottom: -10%;
+    right: -10%;
+    width: 800px;
+    height: 800px;
+    background: rgba(6, 78, 59, 0.2);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(150px);
+    -webkit-filter: blur(150px);
+}
+
+.glow-bottom-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(to top, rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2), transparent);
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(80px);
+    -webkit-filter: blur(80px);
+}
+
+/* ============================================
+   FLOATING PILL CLOCK
+   ============================================ */
+.floating-pill {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    z-index: 100;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    min-width: 1100px;
+    padding: 24px 48px;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+    -webkit-transition: opacity 0.8s ease, -webkit-transform 0.8s ease;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.floating-pill.pill-hidden {
+    opacity: 0;
+    -webkit-transform: translateX(-50%) translateY(-80px) scale(0.9);
+    transform: translateX(-50%) translateY(-80px) scale(0.9);
+    pointer-events: none;
+}
+
+.pill-shine {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+    pointer-events: none;
+}
+
+/* Logo + Mosque Name Section */
+.pill-identity {
+    position: relative;
+    z-index: 10;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-right: 48px;
+    padding-right: 48px;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 550px;
+}
+
+.pill-logo-box {
+    width: 96px;
+    height: 96px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    margin-right: 32px;
+}
+
+.pill-logo-box img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: contain;
+    object-fit: contain;
+    position: relative;
+    z-index: 10;
+}
+
+.pill-mosque-name {
+    font-size: 2.6rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Clock Section */
+.pill-clock {
+    position: relative;
+    z-index: 10;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: baseline;
+    align-items: baseline;
+    font-size: 5.5rem;
+    font-weight: 800;
+    color: var(--theme-primary, #10b981);
+    margin-right: 48px;
+    letter-spacing: 0.05em;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    line-height: 1;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.pill-clock-seconds {
+    font-size: 2.8rem;
+    margin-left: 8px;
+    opacity: 0.8;
+    color: var(--theme-primary, #10b981);
+}
+
+/* Pulse animation */
+@-webkit-keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+    -webkit-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Date Section */
+.pill-dates {
+    position: relative;
+    z-index: 10;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-justify-content: center;
+    justify-content: center;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 48px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.pill-date-gregorian {
+    color: var(--theme-label, #cbd5e1);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    line-height: 1;
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: calc(1.8rem * var(--scale-label, 1));
+    margin-bottom: 8px;
+}
+
+.pill-date-hijri {
+    font-weight: 900;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--theme-primary, #10b981);
+    font-size: calc(1.8rem * var(--scale-label, 1));
+}
+
+/* ============================================
+   MAIN CONTENT AREA
+   ============================================ */
+.main-content {
+    -webkit-flex: 1;
+    flex: 1;
+    width: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 40px 40px 180px 40px;
+    overflow: hidden;
+    z-index: 10;
+    position: relative;
+    -webkit-transition: padding 0.8s ease, opacity 0.5s ease-in-out;
+    transition: padding 0.8s ease, opacity 0.5s ease-in-out;
+    opacity: 1;
+}
+
+.htmx-swapping-target.htmx-swapping,
+.htmx-swapping-target.htmx-added {
+    opacity: 0;
+}
+
+.slides-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.widget-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transition: opacity 1s ease-in-out, visibility 1s;
+    transition: opacity 1s ease-in-out, visibility 1s;
+    z-index: 1;
+}
+
+.widget-slide.active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 10;
+}
+
+/* ============================================
+   WIDGET: Dashboard Countdown
+   ============================================ */
+.dashboard-countdown {
+    width: 100%;
+    height: 100%;
+    background: #121914;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    border-radius: 48px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-countdown .decor-circle {
+    position: absolute;
+    top: 50%;
+    left: 33%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 800px;
+    border-radius: 50%;
+    border: 1px solid rgba(var(--theme-primary-rgb, 16, 185, 129), 0.1);
+    pointer-events: none;
+}
+
+.dashboard-left {
+    -webkit-flex: 2;
+    flex: 2;
+    padding: 64px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-left .label-next {
+    font-size: calc(1.25rem * var(--scale-label, 1));
+    font-weight: 700;
+    letter-spacing: 0.4em;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    color: var(--theme-accent, #fbbf24);
+}
+
+.dashboard-left .prayer-name {
+    font-size: 9rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    margin-bottom: 24px;
+    color: #fff;
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.dashboard-left .begins-in {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    font-size: 1.5rem;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 16px 32px;
+    border-radius: 9999px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: var(--theme-label, #cbd5e1);
+}
+
+.begins-in svg {
+    color: var(--theme-primary, #10b981);
+    margin-right: 12px;
+}
+
+.dashboard-right {
+    -webkit-flex: 1;
+    flex: 1;
+    padding: 64px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-justify-content: center;
+    justify-content: center;
+    background: #0d120e;
+    position: relative;
+    z-index: 10;
+}
+
+.dashboard-right .cd-header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-justify-content: space-between;
+    justify-content: space-between;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-bottom: 48px;
+}
+
+.cd-label {
+    font-weight: 500;
+    font-size: 1.5rem;
+    color: var(--theme-label, #cbd5e1);
+}
+
+.cd-badge {
+    font-size: calc(1.125rem * var(--scale-label, 1));
+    padding: 8px 24px;
+    border-radius: 9999px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--theme-primary, #10b981);
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+    border: 1px solid rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+}
+
+.cd-digits {
+    display: -webkit-flex;
+    display: flex;
+    margin-bottom: 48px;
+}
+
+.cd-digit-box {
+    -webkit-flex: 1;
+    flex: 1;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-right: 24px;
+}
+
+.cd-digit-box:last-child {
+    margin-right: 0;
+}
+
+.cd-digit-box .digit {
+    background: #161f18;
+    border-radius: 24px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    font-size: 4rem;
+    font-weight: 900;
+    color: #fff;
+    font-family: monospace;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cd-digit-box.seconds .digit {
+    color: var(--theme-primary, #10b981);
+    border-color: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+    box-shadow: 0 0 15px rgba(var(--theme-primary-rgb, 16, 185, 129), 0.1);
+}
+
+/* ============================================
+   BOTTOM SECTION (Prayer Cards + Marquee)
+   ============================================ */
+.bottom-section {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    z-index: 20;
+    -webkit-transition: opacity 0.8s ease, -webkit-transform 0.8s ease;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.bottom-section.visible {
+    opacity: 1;
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+}
+
+.bottom-section.hidden {
+    opacity: 0;
+    -webkit-transform: translateY(100%);
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* Prayer Cards Grid */
+.prayer-cards {
+    display: -ms-grid;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 24px;
+    width: 100%;
+    padding: 0 40px 24px 40px;
+    position: relative;
+    z-index: 20;
+}
+
+.prayer-cards .glow-under {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    width: 80%;
+    height: 100px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+    pointer-events: none;
+    z-index: 0;
+    filter: blur(60px);
+    -webkit-filter: blur(60px);
+}
+
+.prayer-card {
+    position: relative;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 20px 16px;
+    border-radius: 40px;
+    overflow: hidden;
+    -webkit-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+    background: #121914;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 10;
+}
+
+.prayer-card.active {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 15px 40px rgba(var(--theme-primary-rgb, 16, 185, 129), 0.5);
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+    z-index: 30;
+}
+
+.prayer-card.active .card-gradient {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top right, rgba(255,255,255,0.2), transparent, transparent);
+    pointer-events: none;
+}
+
+.prayer-card.active .card-glow {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
+    width: 160px;
+    height: 160px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(50px);
+    -webkit-filter: blur(50px);
+}
+
+.prayer-card.active .card-dot {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    width: 12px;
+    height: 12px;
+    background: var(--theme-primary, #10b981);
+    border-radius: 50%;
+    box-shadow: 0 0 15px var(--theme-primary, #10b981);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    -webkit-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.prayer-card .prayer-label {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    position: relative;
+    z-index: 10;
+    color: var(--theme-label, #cbd5e1);
+}
+
+.prayer-card.active .prayer-label {
+    color: var(--theme-accent, #fbbf24);
+}
+
+.prayer-card .prayer-time {
+    font-size: 4rem;
+    font-family: monospace;
+    font-weight: 900;
+    line-height: 1;
+    position: relative;
+    z-index: 10;
+    color: #fff;
+}
+
+.prayer-card.active .prayer-time {
+    color: var(--theme-primary, #10b981);
+    text-shadow: 0 0 20px rgba(var(--theme-primary-rgb, 16, 185, 129), 0.5);
+}
+
+/* ============================================
+   RUNNING TEXT MARQUEE
+   ============================================ */
+.marquee-bar {
+    height: 60px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    background: var(--theme-primary, #10b981);
+    box-shadow: 0 -10px 30px rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+}
+
+.marquee-content {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: calc(1.75rem * var(--scale-label, 1));
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--theme-label, #cbd5e1);
+    -webkit-animation: marquee 30s linear infinite;
+    animation: marquee 30s linear infinite;
+}
+
+.marquee-dot {
+    display: inline-block;
+    margin: 0 96px;
+    color: var(--theme-accent, #fbbf24);
+}
+
+@-webkit-keyframes marquee {
+    0% { -webkit-transform: translateX(100%); transform: translateX(100%); }
+    100% { -webkit-transform: translateX(-100%); transform: translateX(-100%); }
+}
+@keyframes marquee {
+    0% { -webkit-transform: translateX(100%); transform: translateX(100%); }
+    100% { -webkit-transform: translateX(-100%); transform: translateX(-100%); }
+}
+
+/* ============================================
+   WIDGET: Kajian (No Poster)
+   ============================================ */
+.widget-kajian-noposter {
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 48px 80px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 48px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.kajian-glow-tr {
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 800px;
+    height: 800px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.1);
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(150px);
+    -webkit-filter: blur(150px);
+}
+
+.kajian-glow-bl {
+    position: absolute;
+    bottom: -20%;
+    left: -10%;
+    width: 800px;
+    height: 800px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.05);
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(150px);
+    -webkit-filter: blur(150px);
+}
+
+.kajian-inner {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 1400px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    text-align: center;
+}
+
+.kajian-badge {
+    display: inline-block;
+    padding: 16px 40px;
+    border-radius: 9999px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    border: 2px solid;
+    font-size: calc(2rem * var(--scale-label, 1));
+    margin-bottom: 24px;
+}
+
+.kajian-badge.badge-primary {
+    background: var(--theme-primary, #10b981);
+    border-color: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.5);
+    color: #000;
+}
+
+.kajian-badge.badge-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.kajian-title {
+    font-size: 7.5rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.05em;
+    color: #fff;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    max-width: 95%;
+    text-transform: uppercase;
+    padding: 16px 0;
+    margin-bottom: 24px;
+}
+
+.kajian-speaker-box {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 40px 96px;
+    border-radius: 64px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 1000px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.kajian-speaker-box-shine {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.05), transparent);
+    pointer-events: none;
+}
+
+.kajian-speaker-label-row {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    margin-bottom: 8px;
+}
+
+.kajian-speaker-label {
+    text-transform: uppercase;
+    letter-spacing: 0.5em;
+    font-weight: 700;
+    font-size: calc(2.5rem * var(--scale-label, 1));
+    color: var(--theme-accent, #fbbf24);
+    margin-left: 20px;
+}
+
+.kajian-speaker-name {
+    font-size: 6rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    position: relative;
+    z-index: 10;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.kajian-divider {
+    width: 320px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    margin: 8px 0 16px 0;
+}
+
+.kajian-info-grid {
+    display: -ms-grid;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.kajian-info-card {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 32px;
+    border-radius: 48px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.kajian-info-icon-row {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.kajian-info-label {
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-weight: 700;
+    font-size: calc(2rem * var(--scale-label, 1));
+    color: var(--theme-label, #cbd5e1);
+    margin-left: 16px;
+}
+
+.kajian-info-value {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #e2e8f0;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* ============================================
+   WIDGET: Poster
+   ============================================ */
+.widget-poster {
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    border-radius: 48px;
+    overflow: hidden;
+    background: #000;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.poster-img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: contain;
+    object-fit: contain;
+}
+
+/* ============================================
+   WIDGET: Hadits
+   ============================================ */
+.widget-hadits {
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+    background: #121914;
+    padding: 96px;
+    overflow: hidden;
+    border-radius: 48px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+}
+
+.hadits-quote-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%) scaleX(-1);
+    transform: translate(-50%, -50%) scaleX(-1);
+    color: rgba(255, 255, 255, 0.03);
+    pointer-events: none;
+}
+
+.hadits-quote-bg svg {
+    width: 700px;
+    height: 700px;
+}
+
+.hadits-content {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+}
+
+.hadits-arabic {
+    font-size: 5.5rem;
+    color: #fff;
+    font-family: 'Amiri', 'Traditional Arabic', serif;
+    line-height: 1.6;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.hadits-text-section {
+    text-align: center;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 40px;
+}
+
+.hadits-text {
+    font-weight: 700;
+    color: #e2e8f0;
+    line-height: 1.4;
+    font-style: italic;
+    margin-bottom: 48px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    font-size: calc(2.5rem * var(--scale-label, 1));
+}
+
+.hadits-source {
+    display: inline-block;
+    color: var(--theme-primary, #10b981);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    border: 2px solid rgba(var(--theme-primary-rgb, 16, 185, 129), 0.6);
+    padding: 24px 64px;
+    border-radius: 40px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    font-size: calc(2.2rem * var(--scale-label, 1));
+}
+
+/* ============================================
+   WIDGET: Finance Summary
+   ============================================ */
+.widget-finance {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    padding: 64px;
+    -webkit-justify-content: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    border-radius: 48px;
+    position: relative;
+    overflow: hidden;
+}
+
+.finance-glow {
+    position: absolute;
+    top: -20%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.1);
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(100px);
+    -webkit-filter: blur(100px);
+}
+
+.finance-header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-bottom: 64px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+
+.finance-icon-box {
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    margin-right: 24px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.finance-title {
+    font-size: 5rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.finance-updated {
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    font-size: calc(2rem * var(--scale-label, 1));
+    color: var(--theme-label, #cbd5e1);
+    margin-top: -12px;
+    margin-left: 0;
+}
+
+.finance-updated .text-white {
+    color: #fff;
+    margin-left: 12px;
+    font-weight: 700;
+}
+
+.finance-cards {
+    display: -ms-grid;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr 1fr;
+    gap: 40px;
+    width: 100%;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+
+.finance-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 48px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    border-radius: 32px;
+}
+
+.finance-card-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 24px;
+}
+
+.icon-income {
+    color: #34d399;
+}
+
+.icon-expense {
+    color: #fb7185;
+}
+
+.finance-card-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    font-size: calc(2.5rem * var(--scale-label, 1));
+    color: var(--theme-label, #cbd5e1);
+}
+
+.finance-card-amount {
+    font-family: monospace;
+    font-size: 5rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.025em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.finance-card-center {
+    padding: 56px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    border-radius: 40px;
+    border: 2px solid;
+    background: rgba(0, 0, 0, 0.5);
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+.finance-card-center.kas-positive {
+    border-color: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.6);
+    box-shadow: 0 0 40px rgba(var(--theme-primary-rgb, 16, 185, 129), 0.25);
+}
+
+.finance-card-center.kas-negative {
+    border-color: rgba(244, 63, 94, 0.5);
+    box-shadow: 0 0 30px rgba(244, 63, 94, 0.2);
+}
+
+.finance-card-icon-lg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 24px;
+}
+
+.finance-center-label {
+    font-weight: 700;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    font-size: calc(3rem * var(--scale-label, 1));
+}
+
+.finance-center-amount {
+    font-family: monospace;
+    font-size: 6rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.kas-positive .finance-center-amount {
+    color: var(--theme-primary, #10b981);
+}
+
+.kas-negative .finance-center-amount {
+    color: #fb7185;
+}
+
+/* ============================================
+   WIDGET: Tarawih
+   ============================================ */
+.widget-tarawih {
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    background: #121914;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tarawih-left {
+    width: 33.333%;
+    padding: 64px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    background: var(--theme-primary, #10b981);
+}
+
+.tarawih-pattern {
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.tarawih-moon-icon {
+    width: 128px;
+    height: 128px;
+    color: #000;
+    margin-bottom: 32px;
+}
+
+.tarawih-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #000;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+}
+
+.tarawih-year {
+    display: inline-block;
+    padding: 8px 24px;
+    background: rgba(0, 0, 0, 0.2);
+    color: #000;
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    margin-top: 16px;
+}
+
+.tarawih-right {
+    width: 66.667%;
+    padding: 96px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-justify-content: center;
+    justify-content: center;
+    -webkit-align-items: flex-start;
+    align-items: flex-start;
+    background: #0d120e;
+}
+
+.tarawih-meta {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.tarawih-tonight-badge {
+    display: inline-block;
+    padding: 8px 24px;
+    background: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+    color: var(--theme-primary, #10b981);
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(var(--theme-primary-rgb, 16, 185, 129), 0.3);
+    margin-right: 24px;
+}
+
+.tarawih-day-label {
+    color: #cbd5e1;
+    font-size: 1.875rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+}
+
+.tarawih-imam-name {
+    font-size: 5.5rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 64px;
+    font-family: 'Amiri', Georgia, serif;
+}
+
+.tarawih-badal-box {
+    background: #161f18;
+    padding: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    width: 100%;
+    border-radius: 16px;
+}
+
+.tarawih-badal-label {
+    font-weight: 700;
+    color: var(--theme-primary, #10b981);
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    margin-bottom: 16px;
+    display: block;
+    font-size: calc(2rem * var(--scale-label, 1));
+}
+
+.tarawih-badal-name {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+}
+
+/* ============================================
+   WIDGET: Ramadan Table
+   ============================================ */
+.widget-ramadan-table {
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    padding: 48px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 64px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.ramadan-header {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-align-items: center;
+    align-items: center;
+    margin-bottom: 32px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+}
+
+.ramadan-icon-box {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin-right: 40px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+}
+
+.ramadan-table-title {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+
+.ramadan-table-subtitle {
+    color: var(--theme-primary, #10b981);
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    font-size: calc(2rem * var(--scale-label, 1));
+}
+
+.ramadan-col-header {
+    display: -ms-grid;
+    display: grid;
+    grid-template-columns: 2fr 5fr 5fr;
+    gap: 32px;
+    padding: 0 48px;
+    -webkit-align-items: center;
+    align-items: center;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    margin-bottom: 24px;
+    -webkit-flex-shrink: 0;
+    flex-shrink: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 32px;
+    position: relative;
+    z-index: 10;
+    color: var(--theme-label, #cbd5e1);
+}
+
+.ramadan-col-day-h,
+.ramadan-col-badge-h {
+    text-align: center;
+    font-size: calc(2rem * var(--scale-label, 1));
+}
+
+.ramadan-rows {
+    -webkit-flex: 1;
+    flex: 1;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+.ramadan-row {
+    display: -ms-grid;
+    display: grid;
+    grid-template-columns: 2fr 5fr 5fr;
+    gap: 32px;
+    -webkit-flex: 1;
+    flex: 1;
+    -webkit-align-items: center;
+    align-items: center;
+    padding: 16px 40px;
+    border: 4px solid rgba(255, 255, 255, 0.05);
+    border-radius: 64px;
+    background: #0d120e;
+    -webkit-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+    margin-bottom: 32px;
+}
+
+.ramadan-row:last-child {
+    margin-bottom: 0;
+}
+
+.ramadan-row.today {
+    background: #0d160f;
+    border-color: var(--theme-primary, #10b981);
+    box-shadow: 0 0 30px rgba(var(--theme-primary-rgb, 16, 185, 129), 0.2);
+    z-index: 10;
+    -webkit-transform: scale(1.02);
+    transform: scale(1.02);
+}
+
+.ramadan-col-day {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    height: 100%;
+    border-right: 2px solid rgba(255, 255, 255, 0.1);
+    padding-right: 16px;
+}
+
+.day-today {
+    font-family: monospace;
+    font-weight: 900;
+    font-size: 8rem;
+    color: #fff;
+    line-height: 1;
+}
+
+.day-normal {
+    font-family: monospace;
+    font-weight: 900;
+    font-size: 7rem;
+    color: #64748b;
+    line-height: 1;
+}
+
+.date-today {
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    color: var(--theme-primary, #10b981);
+    margin-top: 8px;
+    font-size: calc(2.2rem * var(--scale-label, 1));
+}
+
+.date-normal {
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    color: #475569;
+    margin-top: 8px;
+    font-size: calc(2.2rem * var(--scale-label, 1));
+}
+
+.ramadan-col-badge {
+    height: 100%;
+    padding: 8px;
+}
+
+/* Auction Badge */
+.auction-badge {
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 16px;
+    border: 4px solid;
+    border-radius: 48px;
+    -webkit-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.auction-badge.open {
+    background: #0d160f;
+    border-color: rgba(var(--theme-primary-rgb, 16, 185, 129), 0.5);
+    color: #fff;
+}
+
+.auction-badge.fulfilled {
+    background: rgba(6, 78, 59, 0.2);
+    border-color: rgba(6, 78, 59, 0.4);
+    color: #059669;
+}
+
+.auction-badge.disabled {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 48px;
+}
+
+.auction-dash {
+    font-size: 6rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.auction-status {
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-size: calc(2.2rem * var(--scale-label, 1));
+}
+
+.auction-badge.open .auction-status {
+    color: var(--theme-accent, #fbbf24);
+}
+
+.auction-badge.fulfilled .auction-status {
+    color: var(--theme-primary, #10b981);
+}
+
+.auction-count {
+    font-family: monospace;
+    font-size: 5.5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.auction-total {
+    font-size: 2.8rem;
+    color: var(--theme-label, #cbd5e1);
+}
+
+.auction-shortage {
+    background: #dc2626;
+    border: 2px solid #f87171;
+    color: #fff;
+    padding: 16px 48px;
+    border-radius: 16px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    box-shadow: 0 4px 12px rgba(127, 29, 29, 0.5);
+    -webkit-animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    font-size: calc(2.8rem * var(--scale-label, 1));
+}
+
+/* ============================================
+   WIDGET: Bank Info
+   ============================================ */
+.widget-bank-info {
+    width: 100%;
+    height: 100%;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    background: #121914;
+    border-radius: 64px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+}
+
+.bank-qris {
+    width: 33.333%;
+    background: #fff;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-justify-content: center;
+    justify-content: center;
+    padding: 64px;
+    position: relative;
+}
+
+.bank-qris img {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: contain;
+    object-fit: contain;
+    -webkit-transform: scale(1.05);
+    transform: scale(1.05);
+}
+
+.bank-info-content {
+    padding: 80px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-justify-content: center;
+    justify-content: center;
+    background: #0d120e;
+    color: #fff;
+    position: relative;
+}
+
+.bank-info-content.has-qris {
+    width: 66.667%;
+}
+
+.bank-info-content.full-width {
+    width: 100%;
+}
+
+.bank-title {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.4em;
+    margin-bottom: 64px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    font-size: calc(3rem * var(--scale-label, 1));
+    color: var(--theme-primary, #10b981);
+}
+
+.bank-details {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+}
+
+.bank-row {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 48px;
+}
+
+.bank-row:last-child {
+    margin-bottom: 0;
+}
+
+.bank-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 16px;
+    font-size: calc(2rem * var(--scale-label, 1));
+    color: var(--theme-label, #cbd5e1);
+}
+
+.bank-account-number {
+    font-family: monospace;
+    font-size: 6.5rem;
+    font-weight: 900;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    text-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+.bank-separator {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    margin-bottom: 48px;
+}
+
+.bank-name {
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1;
+    margin-bottom: 12px;
+    font-size: calc(3.5rem * var(--scale-label, 1));
+}
+
+.bank-account-name {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    font-size: calc(2.5rem * var(--scale-label, 1));
+    color: var(--theme-accent, #fbbf24);
+}
+
+/* ============================================
+   ICON SIZING
+   ============================================ */
+.icon-sm {
+    width: 28px;
+    height: 28px;
+}
+
+.icon-md {
+    width: 40px;
+    height: 40px;
+}
+
+.icon-lg {
+    width: 64px;
+    height: 64px;
+}

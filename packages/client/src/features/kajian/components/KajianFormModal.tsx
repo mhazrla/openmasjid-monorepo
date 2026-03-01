@@ -23,6 +23,7 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
     const { register, handleSubmit, reset, control, setError, clearErrors, formState: { errors } } = useForm<KajianFormValues>();
 
     const selectedType = useWatch({ control, name: 'type' });
+    const selectedTimeMode = useWatch({ control, name: 'timeMode' });
 
     const handleReset = () => 
     {
@@ -52,6 +53,8 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                 date: formatDate(editingKajian.date),
                 dayOfWeek: String(editingKajian.dayOfWeek ?? '1'),
                 time: editingKajian.time ?? '20:00',
+                timeMode: editingKajian.timeMode || 'manual',
+                badaSholat: editingKajian.badaSholat || 'maghrib',
             });
             setPreviewUrl(editingKajian.posterUrl ? getImageUrl(editingKajian.posterUrl) : null);
         } 
@@ -64,6 +67,8 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                 type: 'kajian_tematik',
                 dayOfWeek: '1',
                 time: '20:00',
+                timeMode: 'manual',
+                badaSholat: 'maghrib',
                 status: 'true' as any
             });
             setPreviewUrl(null);
@@ -133,11 +138,21 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
         if (data.type === 'kajian_rutin') 
         {
             formData.append('dayOfWeek', data.dayOfWeek || '1');
-            formData.append('time', data.time || '00:00');
         } 
         else 
         {
             formData.append('date', new Date(data.date).toISOString());
+        }
+
+        // Time mode (snake_case for backend)
+        formData.append('time_mode', data.timeMode || 'manual');
+        if (data.timeMode === 'bada_sholat') 
+        {
+            formData.append('bada_sholat', data.badaSholat || 'maghrib');
+        } 
+        else 
+        {
+            formData.append('time', data.time || '00:00');
         }
 
         if (data.poster && data.poster.length > 0) 
@@ -259,12 +274,11 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                                         )}
                                     />
                                 </div>
-
                                 <Input 
-                                    label={<span>Time <span className="text-red-500">*</span></span>}
-                                    type="time" 
-                                    {...register('time', { required: 'Time is required' })} 
-                                    error={errors.time?.message}
+                                    label={<span>Date & Time (Optional)</span>}
+                                    type="datetime-local" 
+                                    {...register('date')} 
+                                    error={errors.date?.message}
                                 />
                             </div>
                         ) : (
@@ -273,6 +287,52 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                                 type="datetime-local" 
                                 {...register('date', { required: 'Date is required' })} 
                                 error={errors.date?.message}
+                            />
+                        )}
+                    </div>
+
+                    {/* Time Mode Section */}
+                    <div className="space-y-3 pt-2">
+                        <label className="text-sm font-medium text-slate-700 block">Waktu Kajian <span className="text-red-500">*</span></label>
+                        <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-2 cursor-pointer p-2 px-4 rounded-lg hover:bg-slate-50 border border-transparent has-[:checked]:border-emerald-200 has-[:checked]:bg-emerald-50 transition-colors">
+                                <input type="radio" value="manual" {...register('timeMode')} className="text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
+                                <span className="text-sm text-slate-700">Waktu Manual</span>
+                            </label>
+                            <label className="flex items-center gap-2 cursor-pointer p-2 px-4 rounded-lg hover:bg-slate-50 border border-transparent has-[:checked]:border-amber-200 has-[:checked]:bg-amber-50 transition-colors">
+                                <input type="radio" value="bada_sholat" {...register('timeMode')} className="text-amber-600 focus:ring-amber-500 cursor-pointer" />
+                                <span className="text-sm text-slate-700">Ba'da Sholat</span>
+                            </label>
+                        </div>
+                        {selectedTimeMode === 'bada_sholat' ? (
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-slate-700 block">Setelah Sholat</label>
+                                <Controller
+                                    control={control}
+                                    name="badaSholat"
+                                    rules={{ required: selectedTimeMode === 'bada_sholat' ? 'Pilih waktu sholat' : false }}
+                                    render={({ field: { value, onChange } }) => (
+                                        <Select
+                                            options={[
+                                                { value: 'subuh', label: 'Subuh' },
+                                                { value: 'dzuhur', label: 'Dzuhur' },
+                                                { value: 'ashar', label: 'Ashar' },
+                                                { value: 'maghrib', label: 'Maghrib' },
+                                                { value: 'isya', label: 'Isya' },
+                                            ]}
+                                            value={value}
+                                            onChange={onChange}
+                                            error={errors.badaSholat?.message}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        ) : (
+                            <Input 
+                                label={<span>Jam <span className="text-red-500">*</span></span>}
+                                type="time" 
+                                {...register('time')} 
+                                error={errors.time?.message}
                             />
                         )}
                     </div>

@@ -9,6 +9,7 @@ import type {
     Account, 
     CoaCategory 
 } from './types';
+import type { FinanceSummaryData } from '../display/types';
 
 export const useTransactions = (params?: GetTransactionsQuery) => 
 {
@@ -141,40 +142,19 @@ export const useDeleteTransaction = () =>
 
 export const useFinanceSummaryData = (options?: { refetchInterval?: number }) => 
 {
-    const now = new Date();
-    const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-
-    const { data: accounts, isLoading: accountsLoading } = useAccounts({ refetchInterval: options?.refetchInterval });
-    const { data: transactionsData, isLoading: txLoading } = useTransactions({ 
-        startDate, 
-        endDate, 
-        limit: 5,
-        refetchInterval: options?.refetchInterval 
+    const query = useQuery({
+        queryKey: ['finance_summary'],
+        queryFn: async () => 
+        {
+            const { data } = await api.get<{ data: FinanceSummaryData }>('/finance/summary');
+            return data.data || data;
+        },
+        refetchInterval: options?.refetchInterval,
+        staleTime: 1000 * 60 * 5,
     });
 
-    const isPending = accountsLoading || txLoading;
-
-    if (isPending || !accounts || !transactionsData) return { data: null, isPending };
-
-    const totalAssets = accounts.reduce((acc, account) => acc + account.balance, 0);
-    const totalIncome = transactionsData.summary?.totalDebit || 0;
-    const totalExpense = transactionsData.summary?.totalCredit || 0;
-
     return {
-        data: 
-        {
-            totalAssets,
-            totalIncome,
-            totalExpense,
-            recentTransactions: transactionsData.data.map(tx => ({
-                id: tx.id,
-                date: tx.date,
-                description: tx.description,
-                amount: tx.amount,
-                type: tx.type
-            }))
-        },
-        isPending: false
+        data: query.data || null,
+        isPending: query.isPending
     };
 };
