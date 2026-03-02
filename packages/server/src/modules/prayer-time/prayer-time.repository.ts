@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { dailyPrayerTimes } from '../../db/schema';
+import { dsPrayerTimes } from '../../db/schema';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
 import { InsertDailyPrayerTime } from './prayer-time.interface';
 
@@ -8,8 +8,8 @@ export class PrayerTimeRepository
   async getByDate(dateStr: string) 
   {
     const result = await db.select()
-      .from(dailyPrayerTimes)
-      .where(eq(dailyPrayerTimes.date, dateStr))
+      .from(dsPrayerTimes)
+      .where(eq(dsPrayerTimes.date, dateStr))
       .limit(1);
 
     return result[0] || null;
@@ -21,18 +21,18 @@ export class PrayerTimeRepository
     const end = `${yearMonth}-31`; 
 
     return db.select()
-      .from(dailyPrayerTimes)
-      .where(and(gte(dailyPrayerTimes.date, start), lte(dailyPrayerTimes.date, end)));
+      .from(dsPrayerTimes)
+      .where(and(gte(dsPrayerTimes.date, start), lte(dsPrayerTimes.date, end)));
   }
 
   async upsertMany(data: InsertDailyPrayerTime[]) 
   {
     if (data.length === 0) return [];
     
-    return db.insert(dailyPrayerTimes)
+    return db.insert(dsPrayerTimes)
       .values(data)
       .onConflictDoUpdate({
-        target: dailyPrayerTimes.date,
+        target: dsPrayerTimes.date,
         set: 
         {
           imsak: sql.raw('excluded.imsak'),

@@ -1,5 +1,5 @@
 import { db } from '../../db';
-import { displayConfig } from '../../db/schema';
+import { dsConfig } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import { UpdateDisplayConfigDto } from './display-config.interface';
 import { config } from '../../config';
@@ -8,7 +8,7 @@ export class DisplayConfigRepository
 {
   async getOrInit() 
   {
-    const result = await db.select().from(displayConfig).where(eq(displayConfig.id, 1)).limit(1);
+    const result = await db.select().from(dsConfig).where(eq(dsConfig.id, 1)).limit(1);
 
     if (result.length > 0) 
     {
@@ -17,7 +17,7 @@ export class DisplayConfigRepository
 
     const defaultCityId = config.DEFAULT_CITY_ID as string;
 
-    const defaults = await db.insert(displayConfig).values({
+    const defaults = await db.insert(dsConfig).values({
       id: 1,
       cityId: defaultCityId,
       runningText: 'Luruskan dan rapatkan shaf...',
@@ -38,9 +38,9 @@ export class DisplayConfigRepository
   {
     await this.getOrInit();
 
-    const result = await db.update(displayConfig)
+    const result = await db.update(dsConfig)
       .set({ ...data, updatedAt: new Date() })
-      .where(eq(displayConfig.id, 1))
+      .where(eq(dsConfig.id, 1))
       .returning();
       
     return result[0];

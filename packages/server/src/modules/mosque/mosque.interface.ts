@@ -1,10 +1,10 @@
 import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import { mosqueProfile } from '../../db/schema';
+import { dsMosqueProfile } from '../../db/schema';
 import { z } from 'zod';
 
 // Entity Types
-export type MosqueProfile = InferSelectModel<typeof mosqueProfile>;
-export type InsertMosqueProfile = InferInsertModel<typeof mosqueProfile>;
+export type MosqueProfile = InferSelectModel<typeof dsMosqueProfile>;
+export type InsertMosqueProfile = InferInsertModel<typeof dsMosqueProfile>;
 
 // Zod Schemas
 export const updateMosqueProfileSchema = z.object(

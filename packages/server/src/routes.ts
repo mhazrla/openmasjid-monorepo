@@ -10,6 +10,7 @@ import { peopleRoutes } from './modules/people/people.routes';
 import { kajianRoutes } from './modules/kajian/kajian.routes';
 import { hadisRoutes } from './modules/hadis/hadis.routes';
 import { financeRoutes } from './modules/finance/finance.routes';
+import { archiveRoutes } from './modules/archive/archive.routes';
 
 export async function appRoutes(app: FastifyInstance) 
 {
@@ -33,6 +34,12 @@ export async function appRoutes(app: FastifyInstance)
 
     // Auth Routes
     api.register(authRoutes, { prefix: '/auth' });
+    
+    // Archive Module (Feature Toggled)
+    if (process.env.ENABLE_ARCHIVE === 'true') 
+    {
+      api.register(archiveRoutes, { prefix: '/v1/archive' });
+    }
     
     // Upload Routes
     api.register(uploadRoutes);

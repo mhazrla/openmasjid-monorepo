@@ -6,8 +6,7 @@ const createdAt = timestamp('created_at').notNull().defaultNow();
 const updatedAt = timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date());
 
 // --- 1. Core & Config ---
-
-export const mosqueProfile = pgTable('mosque_profile', {
+export const dsMosqueProfile = pgTable('ds_mosque_profile', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
   address: text('address').notNull(),
@@ -24,7 +23,7 @@ export const mosqueProfile = pgTable('mosque_profile', {
   createdAt, updatedAt
 });
 
-export const displayConfig = pgTable('display_config', {
+export const dsConfig = pgTable('ds_config', {
   id: serial('id').primaryKey(), // Singleton ID 1
   cityId: text('city_id').notNull(),
   runningText: text('running_text').default('Please straighten and tighten the rows...'),
@@ -89,7 +88,6 @@ export const shortlinks = pgTable('shortlinks', {
 });
 
 // --- 2. People Management (SDM) ---
-
 export const people = pgTable('people', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
@@ -121,7 +119,7 @@ export const meetingMinutes = pgTable('meeting_minutes', {
 
 // --- 3. Worship & Schedules ---
 
-export const dailyPrayerTimes = pgTable('daily_prayer_times', {
+export const dsPrayerTimes = pgTable('ds_prayer_times', {
   date: text('date').primaryKey(), 
   imsak: text('imsak').notNull(),
   subuh: text('subuh').notNull(),
@@ -363,8 +361,8 @@ export const ramadanSchedulesRelations = relations(ramadanSchedules, ({ one }) =
 
 // --- Exports Types ---
 
-export type MosqueProfile = InferSelectModel<typeof mosqueProfile>;
-export type InsertMosqueProfile = InferInsertModel<typeof mosqueProfile>;
+export type MosqueProfile = InferSelectModel<typeof dsMosqueProfile>;
+export type InsertMosqueProfile = InferInsertModel<typeof dsMosqueProfile>;
 
 export type User = InferSelectModel<typeof users>;
 export type InsertUser = InferInsertModel<typeof users>;
@@ -386,3 +384,41 @@ export type InsertRamadanConfig = InferInsertModel<typeof ramadanConfigs>;
 
 export type RamadanSchedule = InferSelectModel<typeof ramadanSchedules>;
 export type InsertRamadanSchedule = InferInsertModel<typeof ramadanSchedules>;
+
+// --- 6. Archive ---
+
+export const arAlbums = pgTable('ar_albums', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  description: text('description'),
+  coverImageUrl: text('cover_image_url'),
+  isFeatured: boolean('is_featured').default(false),
+  eventDate: timestamp('event_date'),
+  createdAt, updatedAt
+});
+
+export const arMedia = pgTable('ar_media', {
+  id: serial('id').primaryKey(),
+  albumId: integer('album_id').references(() => arAlbums.id).notNull(),
+  type: text('type').$type<'image' | 'video'>().notNull(),
+  mediaUrl: text('media_url').notNull(),
+  title: text('title'),
+  createdAt, updatedAt
+});
+
+export const arAlbumsRelations = relations(arAlbums, ({ many }) => ({
+  media: many(arMedia)
+}));
+
+export const arMediaRelations = relations(arMedia, ({ one }) => ({
+  album: one(arAlbums, {
+    fields: [arMedia.albumId],
+    references: [arAlbums.id]
+  })
+}));
+
+export type ArAlbum = InferSelectModel<typeof arAlbums>;
+export type InsertArAlbum = InferInsertModel<typeof arAlbums>;
+
+export type ArMedia = InferSelectModel<typeof arMedia>;
+export type InsertArMedia = InferInsertModel<typeof arMedia>;

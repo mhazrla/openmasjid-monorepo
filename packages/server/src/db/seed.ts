@@ -3,7 +3,7 @@
   import bcrypt from 'bcryptjs';
   import { eq } from 'drizzle-orm';
   import { db } from './index'; 
-  import { users, people, mosqueProfile, displayConfig, accounts, coaCategories, hadisEnc } from './schema';
+  import { users, people, dsMosqueProfile, dsConfig, accounts, coaCategories, hadisEnc } from './schema';
   import { PrayerTimeService } from '../modules/prayer-time/prayer-time.service';
   import { PrayerTimeRepository } from '../modules/prayer-time/prayer-time.repository';
   import { DisplayConfigRepository } from '../modules/display-config/display-config.repository';
@@ -78,7 +78,7 @@
     // 2. Master Data (Idempotent)
     if (options.type === 'all' || options.type === 'master') 
     {
-        await db.insert(mosqueProfile).values({
+        await db.insert(dsMosqueProfile).values({
         id: 1,
         name: 'Masjid Jami At-Tadzkirah',
         address: 'Sindangmulya, Kec. Cibarusah, Kabupaten Bekasi, Jawa Barat 17340',
@@ -91,7 +91,7 @@
         }
         }).onConflictDoNothing();
 
-        await db.insert(displayConfig).values({
+        await db.insert(dsConfig).values({
         id: 1,
         cityId: process.env.DEFAULT_CITY_ID as string || '9766527f2b5d3e95d4a733fcfb77bd7e', // Default Bekasi
         runningText: 'Mohon lurus dan rapatkan shaf.',

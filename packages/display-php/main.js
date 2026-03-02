@@ -63,7 +63,10 @@
         var scaleX = window.innerWidth / 1920;
         var scaleY = window.innerHeight / 1080;
         var scale = Math.min(scaleX, scaleY);
+        canvas.style.webkitTransform = 'scale(' + scale + ')';
         canvas.style.transform = 'scale(' + scale + ')';
+        canvas.style.webkitTransformOrigin = 'center center';
+        canvas.style.transformOrigin = 'center center';
     }
     
     window.addEventListener('resize', scaleLayout);
@@ -82,5 +85,11 @@
             if (bottomSec) { bottomSec.classList.remove('hidden'); bottomSec.classList.add('visible'); }
             if (topPill) { topPill.classList.remove('pill-hidden'); }
         }
+    });
+
+    // --- 4. RE-RUN SCALE AFTER HTMX SWAP ---
+    // HTMX may change DOM layout, recalculate scale after each swap
+    document.body.addEventListener('htmx:afterSwap', function() {
+        scaleLayout();
     });
 })();

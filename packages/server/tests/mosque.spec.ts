@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app } from './setup';
 import { truncateAllTables, getAuthToken } from './helper';
 import { db } from '../src/db';
-import { mosqueProfile, users } from '../src/db/schema';
+import { dsMosqueProfile, users } from '../src/db/schema';
 import bcrypt from 'bcryptjs';
 
 describe('Mosque Module', () => {
@@ -20,7 +20,7 @@ describe('Mosque Module', () => {
     token = await getAuthToken(app);
 
     // Seed initial profile
-    await db.insert(mosqueProfile).values({
+    await db.insert(dsMosqueProfile).values({
       id: 1,
       name: 'Test Mosque',
       address: 'Test Address',

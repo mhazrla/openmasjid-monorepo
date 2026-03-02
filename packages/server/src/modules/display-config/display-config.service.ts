@@ -2,7 +2,7 @@ import { DisplayConfigRepository } from './display-config.repository';
 import { UpdateDisplayConfigDto } from './display-config.interface';
 import { PrayerTimeService } from '../prayer-time/prayer-time.service';
 import { db } from '../../db';
-import { dailyPrayerTimes, displayConfig } from '../../db/schema';
+import { dsPrayerTimes, dsConfig } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -29,9 +29,9 @@ export class DisplayConfigService
           const hijri = response.data.data.hijr;
           const cachedHijriDate = `${hijri.day} ${hijri.monthName} ${hijri.year} H`;
           
-          await db.update(displayConfig)
+          await db.update(dsConfig)
             .set({ cachedHijriDate, cachedHijriDateAt: todayStr })
-            .where(eq(displayConfig.id, 1));
+            .where(eq(dsConfig.id, 1));
             
           return { ...config, cachedHijriDate, cachedHijriDateAt: todayStr };
         }
@@ -63,10 +63,10 @@ export class DisplayConfigService
     {
       await db.transaction(async (tx: any) => 
       {
-        await tx.delete(dailyPrayerTimes);
-        await tx.update(displayConfig)
+        await tx.delete(dsPrayerTimes);
+        await tx.update(dsConfig)
           .set({ ...updatePayload, updatedAt: new Date() })
-          .where(eq(displayConfig.id, 1));
+          .where(eq(dsConfig.id, 1));
       });
 
       await this.triggerAutoSync(data.cityId!);

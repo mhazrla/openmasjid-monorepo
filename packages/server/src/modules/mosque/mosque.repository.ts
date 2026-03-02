@@ -1,12 +1,12 @@
 import { db } from '../../db';
-import { mosqueProfile } from '../../db/schema';
+import { dsMosqueProfile } from '../../db/schema';
 import { InsertMosqueProfile } from './mosque.interface';
 
 export class MosqueRepository 
 {
   async getProfile() 
   {
-    const result = await db.select().from(mosqueProfile).limit(1);
+    const result = await db.select().from(dsMosqueProfile).limit(1);
 
     return result[0] || null;
   }
@@ -20,10 +20,10 @@ export class MosqueRepository
       ...data
     } as InsertMosqueProfile;
 
-    const result = await db.insert(mosqueProfile)
+    const result = await db.insert(dsMosqueProfile)
       .values(insertValues)
       .onConflictDoUpdate({
-        target: mosqueProfile.id,
+        target: dsMosqueProfile.id,
         set: 
         { 
           ...data, 

@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app } from './setup';
 import { truncateAllTables, getAuthToken } from './helper';
 import { db } from '../src/db';
-import { displayConfig, users } from '../src/db/schema';
+import { dsConfig, users } from '../src/db/schema';
 import bcrypt from 'bcryptjs';
 
 describe('Display Config Module', () => {
@@ -19,7 +19,7 @@ describe('Display Config Module', () => {
 
     token = await getAuthToken(app);
 
-    await db.insert(displayConfig).values({
+    await db.insert(dsConfig).values({
       cityId: '9766527f2b5d3e95d4a733fcfb77bd7e',
       runningText: 'Luruskan dan rapatkan shaf...',
     });

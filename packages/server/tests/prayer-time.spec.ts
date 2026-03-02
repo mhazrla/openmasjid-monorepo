@@ -2,7 +2,7 @@ import request from 'supertest';
 import { app } from './setup';
 import { truncateAllTables } from './helper';
 import { db } from '../src/db';
-import { dailyPrayerTimes } from '../src/db/schema';
+import { dsPrayerTimes } from '../src/db/schema';
 
 describe('Prayer-Time Module', () => {
   beforeEach(async () => {
@@ -11,7 +11,7 @@ describe('Prayer-Time Module', () => {
 
   it('GET /api/prayer-times should return today schedule', async () => {
     const today = new Date().toISOString().split('T')[0];
-    await db.insert(dailyPrayerTimes).values({
+    await db.insert(dsPrayerTimes).values({
       date: today,
       imsak: '04:00',
       subuh: '04:10',

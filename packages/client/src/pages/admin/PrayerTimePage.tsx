@@ -31,7 +31,7 @@ export const PrayerTimePage = () =>
     const currentYear = new Date().getFullYear();
     const queryClient = useQueryClient();
     
-    const { data: displayConfig, isLoading: isConfigLoading } = useDisplayConfig();
+    const { data: dsConfig, isLoading: isConfigLoading } = useDisplayConfig();
 
     // --- State: Sync Form ---
     const { register, control, handleSubmit, setValue, setError, formState: { errors } } = useForm<SyncPrayerRequest>({
@@ -46,19 +46,19 @@ export const PrayerTimePage = () =>
     const [previewCityName, setPreviewCityName] = useState<string>('');
     useEffect(() => 
     {
-        if (displayConfig?.cityId) 
+        if (dsConfig?.cityId) 
         {
-            setPreviewCityName(getCityNameById(displayConfig.cityId));
-            setValue('cityId', displayConfig.cityId);
+            setPreviewCityName(getCityNameById(dsConfig.cityId));
+            setValue('cityId', dsConfig.cityId);
         }
-    }, [displayConfig, setValue]);
+    }, [dsConfig, setValue]);
 
     const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), DATE_FORMAT_API));
 
     const syncMutation = useSyncPrayerTimes();
     const onSyncSubmit = (data: SyncPrayerRequest) => 
     {
-        if (!displayConfig?.cityId) 
+        if (!dsConfig?.cityId) 
         {
              toast.error("Please set a city in Display Config first.");
              return;
@@ -67,7 +67,7 @@ export const PrayerTimePage = () =>
         const payload = 
         {
             ...data,
-            cityId: displayConfig.cityId,
+            cityId: dsConfig.cityId,
             month: Number(data.month),
             year: Number(data.year)
         };
@@ -110,7 +110,7 @@ export const PrayerTimePage = () =>
                          </div>
                          <div>
                             <p className="text-sm text-sky-800 font-medium">
-                                Showing prayer times for: <span className="font-bold text-sky-900">{getCityNameById(displayConfig?.cityId || DEFAULT_CITY_ID)}</span>
+                                Showing prayer times for: <span className="font-bold text-sky-900">{getCityNameById(dsConfig?.cityId || DEFAULT_CITY_ID)}</span>
                             </p>
                             <p className="text-xs text-sky-600">Location is managed in Display Config.</p>
                          </div>
@@ -170,14 +170,14 @@ export const PrayerTimePage = () =>
                         <div className="pt-2">
                              {/* Hint about location */}
                              <p className="text-xs text-slate-500 mb-2 text-center">
-                                Syncing data for <span className="font-semibold">{getCityNameById(displayConfig?.cityId || DEFAULT_CITY_ID)}</span>
+                                Syncing data for <span className="font-semibold">{getCityNameById(dsConfig?.cityId || DEFAULT_CITY_ID)}</span>
                             </p>
 
                             <ActionButton 
                                 type="submit" 
                                 variant="primary"
                                 isLoading={syncMutation.isPending}
-                                disabled={!displayConfig?.cityId}
+                                disabled={!dsConfig?.cityId}
                                 className="w-full"
                                 icon={<CloudDownload className="w-4 h-4" />}
                             >

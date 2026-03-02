@@ -1,9 +1,9 @@
 import { InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import { dailyPrayerTimes } from '../../db/schema';
+import { dsPrayerTimes } from '../../db/schema';
 
 // Entity Types
-export type DailyPrayerTime = InferSelectModel<typeof dailyPrayerTimes>;
-export type InsertDailyPrayerTime = InferInsertModel<typeof dailyPrayerTimes>;
+export type DailyPrayerTime = InferSelectModel<typeof dsPrayerTimes>;
+export type InsertDailyPrayerTime = InferInsertModel<typeof dsPrayerTimes>;
 
 // Type for External API Response (MyQuran)
 export interface MyQuranResponse 
