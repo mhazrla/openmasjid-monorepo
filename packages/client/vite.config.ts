@@ -1,30 +1,34 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    host: '0.0.0.0',
-    port: 5173,
-    strictPort: true, // Paksa harus di port 5173
-    watch: {
-      usePolling: true,
-    },
-    hmr: {
-      // Hilangkan 'host: localhost'
-      protocol: 'ws',
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  const backendUrl = env.VITE_API_URL as string;
+
+  return {
+    base: '/display/',
+    plugins: [react()],
+    server: {
+      host: '0.0.0.0',
       port: 5173,
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-        secure: false,
+      strictPort: true, 
+      watch: {
+        usePolling: true,
+      },
+      hmr: {
+        protocol: 'ws',
+        port: 5173,
+      },
+      proxy: {
+        '/api': {
+          target: backendUrl,
+          changeOrigin: true,
+          secure: false,
+        }
       }
-    }
-  },
-  build: {
+    },
+    build: {
     rollupOptions: 
     {
       output: 
@@ -61,4 +65,5 @@ export default defineConfig({
       },
     },
   },
-})
+  };
+});

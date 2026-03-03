@@ -1,6 +1,7 @@
 import { api } from '../../lib/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { RamadanConfig, CreateRamadanConfigRequest, UpdateRamadanScheduleRequest, UpdateRamadanConfigRequest } from './types';
+import { useLoadingStore } from '../../store/useLoadingStore';
 
 export const useActiveRamadan = (options?: { refetchInterval?: number }) => 
 {
@@ -25,6 +26,8 @@ export const useInitRamadan = () =>
             const { data } = await api.post<{ data: RamadanConfig }>('/ramadan/init', payload);
             return data.data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Initializing Ramadan config...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['ramadan', 'active'] });
@@ -42,6 +45,8 @@ export const useUpdateRamadanConfig = () =>
             const { data } = await api.patch<{ data: RamadanConfig }>(`/ramadan/config/${id}`, payload);
             return data.data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Updating config...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['ramadan', 'active'] });
@@ -59,6 +64,8 @@ export const useUpdateRamadanSchedule = () =>
             const { data } = await api.patch<{ data: any }>(`/ramadan/schedule/${id}`, payload);
             return data.data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Updating schedule...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['ramadan', 'active'] });

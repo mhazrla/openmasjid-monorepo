@@ -23,11 +23,26 @@ export const BottomPrayerCards = memo(({ prayerTimes, currentTimeStr }: { prayer
     const activeId = getNextPrayerId();
 
     const prayers = [
-        { name: 'Shubuh', time: prayerTimes.fajr || prayerTimes.subuh || prayerTimes.shubuh, id: 'fajr' },
-        { name: 'Dzuhur', time: prayerTimes.dhuhr || prayerTimes.dzuhur, id: 'dhuhr' },
-        { name: 'Ashar', time: prayerTimes.asr || prayerTimes.ashar, id: 'asr' },
-        { name: 'Maghrib', time: prayerTimes.maghrib, id: 'maghrib' },
-        { name: 'Isya', time: prayerTimes.isha || prayerTimes.isya, id: 'isha' },
+        { 
+            name: 'Shubuh', time: prayerTimes.fajr || prayerTimes.subuh || prayerTimes.shubuh, id: 'fajr',
+            colorTheme: { bg: 'from-indigo-950/80 to-slate-900/80', border: 'border-indigo-900/50', text: 'text-indigo-300', label: 'text-indigo-400' }
+        },
+        { 
+            name: 'Dzuhur', time: prayerTimes.dhuhr || prayerTimes.dzuhur, id: 'dhuhr',
+            colorTheme: { bg: 'from-sky-950/80 to-slate-900/80', border: 'border-sky-900/50', text: 'text-sky-300', label: 'text-sky-400' }
+        },
+        { 
+            name: 'Ashar', time: prayerTimes.asr || prayerTimes.ashar, id: 'asr',
+            colorTheme: { bg: 'from-orange-950/80 to-slate-900/80', border: 'border-orange-900/50', text: 'text-orange-300', label: 'text-orange-400' }
+        },
+        { 
+            name: 'Maghrib', time: prayerTimes.maghrib, id: 'maghrib',
+            colorTheme: { bg: 'from-rose-950/80 to-slate-900/80', border: 'border-rose-900/50', text: 'text-rose-300', label: 'text-rose-400' }
+        },
+        { 
+            name: 'Isya', time: prayerTimes.isha || prayerTimes.isya, id: 'isha',
+            colorTheme: { bg: 'from-violet-950/80 to-slate-900/80', border: 'border-violet-900/50', text: 'text-violet-300', label: 'text-violet-400' }
+        },
     ];
 
     return (
@@ -36,23 +51,22 @@ export const BottomPrayerCards = memo(({ prayerTimes, currentTimeStr }: { prayer
             {prayers.map((prayer, index) => 
         {
                 const isActive = activeId === prayer.id;
+
                 return (
                     <div key={index} className={`relative flex flex-col items-center justify-center py-5 px-4 rounded-[2.5rem] transition-all duration-500 overflow-hidden ${
                         isActive 
-                        ? 'bg-white/10 backdrop-blur-3xl border-t border-l border-white/40 border-b border-r border-white/10 shadow-[0_15px_40px_rgba(16,185,129,0.5)] scale-[1.05] z-30' 
-                        : 'bg-[#121914] border border-white/5 z-10'
+                        ? 'bg-amber-500 scale-[1.05] z-30 shadow-lg' 
+                        : `bg-gradient-to-b ${prayer.colorTheme.bg} border ${prayer.colorTheme.border} z-10`
                     }`}>
                         {isActive && (
                             <>
                                 <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent pointer-events-none" />
-                                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-40 h-40 bg-primary/50 blur-[50px] rounded-full pointer-events-none" />
-                                <div className="absolute top-4 right-5 w-3 h-3 bg-primary rounded-full shadow-[0_0_15px_var(--theme-primary)] animate-pulse border border-white/50"></div>
                             </>
                         )}
-                        <h3 className="text-[2rem] font-black mb-2 uppercase tracking-widest relative z-10" style={{ color: isActive ? 'var(--theme-accent)' : 'var(--theme-label)' }}>
+                        <h3 className={`text-[2rem] font-black mb-2 uppercase tracking-widest relative z-10 ${isActive ? 'text-slate-900' : prayer.colorTheme.label}`}>
                             {prayer.name}
                         </h3>
-                        <p className={`text-[4rem] font-mono font-black leading-none ...`}>
+                        <p className={`text-[4rem] font-mono font-black leading-none ${isActive ? 'text-slate-900' : prayer.colorTheme.text}`}>
                             {prayer.time}
                         </p>
                     </div>

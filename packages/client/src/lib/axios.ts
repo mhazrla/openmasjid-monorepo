@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const baseURL = '/api';
+let baseURL = '/api';
+if (import.meta.env.PROD && import.meta.env.VITE_API_URL) 
+{
+  const apiUrl = import.meta.env.VITE_API_URL as string;
+  baseURL = apiUrl.endsWith('/api') ? apiUrl : apiUrl.replace(/\/$/, '') + '/api';
+}
 
 export const api = axios.create({
   baseURL,
@@ -18,9 +23,9 @@ api.interceptors.response.use(
         localStorage.removeItem('masjid_display_auth_token');
         localStorage.removeItem('user_info');
         
-        if (window.location.pathname !== '/login') 
+        if (window.location.pathname !== '/display/login') 
         {
-             window.location.href = '/login';
+             window.location.href = '/display/login';
         }
     }
 
@@ -33,7 +38,7 @@ api.interceptors.request.use(
   {
     const token = localStorage.getItem('masjid_display_auth_token');
 
-    if (token) 
+    if (token && token !== 'undefined' && token !== 'null') 
     {
       config.headers.Authorization = `Bearer ${token}`;
     }

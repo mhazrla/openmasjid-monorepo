@@ -1,7 +1,6 @@
-import path from 'path';
-import fs from 'fs';
 import { MosqueRepository } from './mosque.repository';
 import { UpdateMosqueProfileDto, InsertMosqueProfile } from './mosque.interface';
+import { cloudinaryService } from '../upload/cloudinary.service';
 
 export class MosqueService 
 {
@@ -52,33 +51,22 @@ export class MosqueService
   {
     if (!oldProfile) return;
 
-    if (oldProfile.logoUrl && oldProfile.logoUrl !== newData.logoUrl) 
+    if (newData.logoUrl !== undefined && oldProfile.logoUrl && oldProfile.logoUrl !== newData.logoUrl) 
     {
-        await this.deleteFileFromDisk(oldProfile.logoUrl);
+        await this.deleteImageFromCloudinary(oldProfile.logoUrl);
     }
 
-    if (oldProfile.qrisUrl && oldProfile.qrisUrl !== newData.qrisUrl) 
+    if (newData.qrisUrl !== undefined && oldProfile.qrisUrl && oldProfile.qrisUrl !== newData.qrisUrl) 
     {
-        await this.deleteFileFromDisk(oldProfile.qrisUrl);
+        await this.deleteImageFromCloudinary(oldProfile.qrisUrl);
     }
   }
 
-  private async deleteFileFromDisk(fileUrl: string) 
+  private async deleteImageFromCloudinary(fileUrl: string) 
   {
-    try 
+    if (fileUrl.startsWith('http')) 
     {
-        const cleanUrl = fileUrl.startsWith('/') ? fileUrl.slice(1) : fileUrl;
-        
-        const fullPath = path.join(process.cwd(), cleanUrl);
-
-        if (fs.existsSync(fullPath)) 
-        {
-            await fs.promises.unlink(fullPath);
-        }
-    } 
-    catch (error) 
-    {
-        console.error(`[File Cleanup Error] Failed to delete ${fileUrl}:`, error);
+        await cloudinaryService.deleteImage(fileUrl);
     }
   }
 }

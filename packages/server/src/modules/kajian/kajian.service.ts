@@ -1,11 +1,9 @@
 import { KajianRepository } from './kajian.repository';
 import { CreateKajianDto, KajianFilter, UpdateKajianDto } from './kajian.interface';
 import { calculateNextOccurrence } from '../../plugins/date';
-import path from 'path';
-import fs from 'fs/promises';
 import { InferSelectModel } from 'drizzle-orm';
 import { kajianEvents, people } from '../../db/schema';
-import { fileExists } from '../../plugins/fileChecker';
+import { cloudinaryService } from '../upload/cloudinary.service';
 
 type KajianEvent = InferSelectModel<typeof kajianEvents>;
 type Speaker = InferSelectModel<typeof people>;
@@ -77,49 +75,16 @@ export class KajianService
         updatePayload.posterUrl = finalPosterUrl;
     }
 
-    const result = await this.repository.update(id, updatePayload);
-
-    if (result && existing.posterUrl) 
+    if (finalPosterUrl !== undefined && existing.posterUrl && finalPosterUrl !== existing.posterUrl) 
     {
-        const hasChanged = finalPosterUrl !== undefined && finalPosterUrl !== existing.posterUrl;
-        
-        if (hasChanged) 
+        if (existing.posterUrl.startsWith('http')) 
         {
-            try 
-            {
-                const filePath = path.join(process.cwd(), existing.posterUrl);
-                if (await fileExists(filePath)) await fs.unlink(filePath);
-            } 
-            catch (e) 
-            {
-                console.warn(`Failed to delete old poster file: ${existing.posterUrl}`, e);
-            }
+            await cloudinaryService.deleteImage(existing.posterUrl);
         }
     }
+
+    const result = await this.repository.update(id, updatePayload);
     
-    return result;
-  }
-
-  async delete(id: number) 
-  {
-    const existing = await this.repository.findById(id);
-    if (!existing) return null;
-
-    const result = await this.repository.delete(id);
-
-    if (existing.posterUrl) 
-    {
-      try 
-      {
-        const filePath = path.join(process.cwd(), existing.posterUrl);
-        if (await fileExists(filePath)) await fs.unlink(filePath);
-      } 
-      catch (e) 
-      {
-        console.warn(`Failed to delete poster file for id ${id}`);
-      }
-    }
-
     return result;
   }
 }

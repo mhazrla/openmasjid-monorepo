@@ -10,7 +10,12 @@ const controller = new RamadanController(service);
 export async function ramadanRoutes(app: FastifyInstance) 
 {
   app.get('/', controller.getActive.bind(controller));
-  app.post('/init', controller.init.bind(controller));
-  app.patch('/config/:id', controller.updateConfig.bind(controller));
-  app.patch('/schedule/:id', controller.updateSchedule.bind(controller));
+
+  app.register(async (protectedApp) => 
+  {
+    protectedApp.addHook('onRequest', app.authenticate);
+    protectedApp.post('/init', controller.init.bind(controller));
+    protectedApp.patch('/config/:id', controller.updateConfig.bind(controller));
+    protectedApp.patch('/schedule/:id', controller.updateSchedule.bind(controller));
+  });
 }

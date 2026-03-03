@@ -67,7 +67,7 @@ const UserSelect = memo(({ value, onChange, placeholder = "Select..." }: Omit<Us
 
 const InitRamadanForm = () => 
 {
-    const { mutate: initRamadan, isPending } = useInitRamadan();
+    const { mutate: initRamadan } = useInitRamadan();
 
     const { register, handleSubmit, setError } = useForm<InitFormData>({
         defaultValues: 
@@ -116,7 +116,7 @@ const InitRamadanForm = () =>
                     <Input label="Footer Note" {...register('footerNote')} placeholder="Running text footer..." />
                     <Input label="Badal Text" {...register('badalImamText')} placeholder="Default badal name..." />
                     
-                    <ActionButton type="submit" isLoading={isPending} className="w-full justify-center mt-4 h-11 cursor-pointer" variant="primary">
+                    <ActionButton type="submit" className="w-full justify-center mt-4 h-11 cursor-pointer" variant="primary">
                         Start Ramadan Period
                     </ActionButton>
                 </form>

@@ -11,7 +11,8 @@ import {
     User,
     PanelLeftClose,
     X,
-    Wallet
+    Wallet,
+    Images
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../features/auth/hooks';
@@ -25,6 +26,7 @@ const MENU_ITEMS = [
     { label: 'Shortlinks', path: '/admin/shortlinks', icon: LinkIcon },
     { label: 'Ramadan', path: '/admin/ramadan', icon: Moon },
     { label: 'Kajian', path: '/admin/kajian', icon: BookOpen },
+    { label: 'Gallery', path: '/admin/archive', icon: Images },
     { label: 'People', path: '/admin/people', icon: User },
     { label: 'Financial Report', path: '/admin/finance', icon: Wallet }
 ];
@@ -125,7 +127,7 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
                 <ActionButton
                     variant="ghost"
                     onClick={logout}
-                    isLoading={isLoading}
+                    disabled={isLoading}
                     icon={<LogOut className="w-5 h-5 shrink-0" />}
                     className={cn(
                         "w-full text-red-600 hover:bg-red-50 hover:text-red-700 transition-all",

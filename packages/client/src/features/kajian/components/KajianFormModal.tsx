@@ -15,8 +15,8 @@ import { handleFormError } from '../../../utils/form-error';
 export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormModalProps) => 
 {
     const { data: people = [] } = usePeople({ limit: 0 });
-    const { mutate: createKajian, isPending: isCreating } = useCreateKajian();
-    const { mutate: updateKajian, isPending: isUpdating } = useUpdateKajian(); 
+    const { mutate: createKajian } = useCreateKajian();
+    const { mutate: updateKajian } = useUpdateKajian(); 
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPosterRemoved, setIsPosterRemoved] = useState(false); // New State
 
@@ -190,8 +190,6 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
             .filter((p: any) => p.type === 'ustadz' || p.type === 'pengurus' || p.type === 'jamaah')
             .map((p: any) => ({ value: String(p.id), label: p.name }));
     }, [people]);
-
-    const isPending = isCreating || isUpdating;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={editingKajian ? "Edit Event" : "Add New Event"} className="max-w-5xl">
@@ -396,8 +394,8 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                     <ActionButton variant="secondary" onClick={handleReset} type="button" className="cursor-pointer">
                         Reset
                     </ActionButton>
-                    <ActionButton variant="primary" type="submit" isLoading={isPending} icon={null} className="cursor-pointer">
-                        Submit
+                    <ActionButton variant="primary" type="submit" icon={null} className="cursor-pointer">
+                        {editingKajian ? 'Save Changes' : 'Create Event'}
                     </ActionButton>
                 </div>
             </form>

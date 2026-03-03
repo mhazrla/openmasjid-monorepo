@@ -49,11 +49,11 @@ export const PeopleManagerPage = () =>
     const [editingPerson, setEditingPerson] = useState<Person | null>(null);
 
     // --- Hooks ---
-    // Fetch ALL people for client-side filtering
     const { data: people = [], isLoading } = usePeople({ 
         status: 'all',
         limit: 0
     });
+
 
     // --- Client-Side Filtering ---
     const filteredData = useMemo(() => 
@@ -152,18 +152,22 @@ export const PeopleManagerPage = () =>
         columnHelper.display({
             id: 'actions',
             header: () => <div className="text-right px-4">Actions</div>,
-            cell: ({ row }) => (
-                <div className="flex items-center justify-end px-4">
-                    <ActionButton 
-                        variant="secondary" 
-                        size="sm" 
-                        onClick={() => handleOpenEdit(row.original)}
-                        icon={<Edit className="w-3.5 h-3.5" />}
-                        title="Edit Data"
-                        className="cursor-pointer hover:border-emerald-500 hover:text-emerald-600 transition-colors"
-                    />
-                </div>
-            ),
+            cell: ({ row }) => {
+
+                return (
+                    <div className="flex items-center justify-end px-4 gap-2">
+                        <ActionButton 
+                            variant="secondary" 
+                            size="sm" 
+                            onClick={() => handleOpenEdit(row.original)}
+                            icon={<Edit className="w-3.5 h-3.5" />}
+                            title="Edit Data"
+                            className="cursor-pointer hover:border-emerald-500 hover:text-emerald-600 transition-colors"
+                        />
+
+                    </div>
+                );
+            },
         }),
     ], []);
 

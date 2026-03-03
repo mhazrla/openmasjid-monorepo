@@ -79,7 +79,7 @@ export const StandbyView = () =>
 
     return (
         <div 
-            className="w-[1920px] h-[1080px] overflow-hidden relative flex flex-col bg-[#0a0f0b] text-white select-none cursor-none"
+            className="w-[1920px] h-[1080px] overflow-hidden relative flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white select-none cursor-none"
             style={{
                 fontFamily: getFontFamily(),
                 transformOrigin: 'top left',
@@ -162,7 +162,7 @@ export const StandbyView = () =>
                         <BottomPrayerCards prayerTimes={prayerTimes} currentTimeStr={currentTimeStr} />
                         
                         <div className="h-[60px] flex items-center shadow-[0_-10px_30px_rgba(16,185,129,0.2)] overflow-hidden relative" style={{ backgroundColor: 'var(--theme-primary)' }}>
-                            <div className="text-[1.75rem] font-black uppercase tracking-widest animate-marquee w-full whitespace-nowrap" style={{ fontSize: 'calc(1.75rem * var(--scale-label, 1))', color: 'var(--theme-label)' }}>
+                            <div className="font-black uppercase tracking-widest animate-marquee w-full whitespace-nowrap" style={{ fontSize: 'calc(2.5rem * var(--scale-label, 1))', color: 'var(--theme-label)' }}>
                                 {config.runningText || "MARI RAPATKAN BARISAN, LURUSKAN SHAF, DAN KHUSYUK DALAM BERIBADAH."}
                                 <span className="mx-24" style={{ color: 'var(--theme-accent)' }}>•</span>
                                 {config.runningText || "MARI RAPATKAN BARISAN, LURUSKAN SHAF, DAN KHUSYUK DALAM BERIBADAH."}

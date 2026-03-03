@@ -233,7 +233,7 @@ if (!empty($ramadan['schedules']) && is_array($ramadan['schedules'])) {
 }
 
 // 3. Finance summary
-if (!empty($finance) && isset($finance['totalAssets'])) {
+if (!empty($finance) && isset($finance['totalBalance'])) {
     $slides[] = ['type' => 'finance_summary', 'data' => $finance];
 }
 
@@ -429,10 +429,10 @@ HTML;
 
 function render_finance(array $data): string
 {
-    $totalAssets  = (int)($data['totalAssets']  ?? 0);
-    $totalIncome  = (int)($data['totalIncome']  ?? 0);
-    $totalExpense = (int)($data['totalExpense'] ?? 0);
-    $isNegative   = $totalAssets < 0;
+    $totalBalance  = (int)($data['totalBalance']  ?? 0);
+    $monthlyIncome  = (int)($data['monthlyIncome']  ?? 0);
+    $monthlyExpense = (int)($data['monthlyExpense'] ?? 0);
+    $isNegative   = $totalBalance < 0;
     $lastUpdated  = $data['lastUpdated'] ?? null;
     $fmtDate = '-';
     if ($lastUpdated) {
@@ -443,9 +443,9 @@ function render_finance(array $data): string
         } catch (Exception $e) { /* skip */ }
     }
     $kasClass  = $isNegative ? 'kas-negative' : 'kas-positive';
-    $kasAmount = formatCurrency($totalAssets);
-    $incAmount = formatCurrency($totalIncome);
-    $expAmount = formatCurrency($totalExpense);
+    $kasAmount = formatCurrency($totalBalance);
+    $incAmount = formatCurrency($monthlyIncome);
+    $expAmount = formatCurrency($monthlyExpense);
     return <<<HTML
     <div class="widget-finance">
         <div class="finance-glow"></div>

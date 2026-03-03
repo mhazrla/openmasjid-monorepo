@@ -391,6 +391,7 @@ export const arAlbums = pgTable('ar_albums', {
   id: serial('id').primaryKey(),
   title: text('title').notNull(),
   description: text('description'),
+  category: text('category').default('Lainnya'),
   coverImageUrl: text('cover_image_url'),
   isFeatured: boolean('is_featured').default(false),
   eventDate: timestamp('event_date'),

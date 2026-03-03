@@ -1,5 +1,4 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { Loader2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
@@ -7,7 +6,6 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 interface ActionButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> 
 {
-    isLoading?: boolean;
     icon?: ReactNode;
     variant?: ButtonVariant;
     size?: ButtonSize;
@@ -34,7 +32,6 @@ const SIZE_STYLES: Record<ButtonSize, string> =
 const BASE_STYLES = "inline-flex items-center justify-center gap-2 font-medium rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200";
 
 export const ActionButton = ({
-    isLoading = false,
     icon,
     variant = 'primary',
     size = 'md',
@@ -46,7 +43,7 @@ export const ActionButton = ({
 {
     return (
         <button
-            disabled={isLoading || disabled}
+            disabled={disabled}
             className={cn(
                 BASE_STYLES, 
                 VARIANT_STYLES[variant], 
@@ -56,9 +53,7 @@ export const ActionButton = ({
             {...props}
         >
             {/* Wrapper Icon */}
-            {isLoading ? (
-                <Loader2 className={cn("animate-spin shrink-0", size === 'sm' ? "w-3.5 h-3.5" : "w-4 h-4")} />
-            ) : icon ? (
+            {icon ? (
                 <span className={cn("flex items-center justify-center shrink-0", size === 'sm' ? "w-3.5 h-3.5" : "w-4 h-4")}>
                     {icon}
                 </span>

@@ -25,8 +25,8 @@ export interface UpdateMosqueProfileDto
     bankName?: string;
     bankAccountName?: string;
     bankAccountNumber?: string;
-    logoUrl?: string;
-    qrisUrl?: string;
+    logoUrl?: string | null;
+    qrisUrl?: string | null;
     letterheadConfig?: 
     {
         headerText: string;

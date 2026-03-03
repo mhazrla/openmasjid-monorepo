@@ -80,17 +80,4 @@ export class PeopleRepository
     
     return updatedPerson || null;
   }
-
-  async delete(id: number) 
-  {
-    const [softDeleted] = await db.update(people)
-      .set({ 
-        status: false,
-        updatedAt: new Date()
-      })
-      .where(eq(people.id, id))
-      .returning();
-    
-    return softDeleted || null;
-  }
 }

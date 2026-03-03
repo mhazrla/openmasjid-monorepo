@@ -10,5 +10,10 @@ const controller  = new MosqueController(service);
 export async function mosqueRoutes(app: FastifyInstance) 
 {
   app.get('/', controller.get.bind(controller));
-  app.patch('/', controller.update.bind(controller)); 
+  
+  app.register(async (protectedApp) => 
+  {
+    protectedApp.addHook('onRequest', app.authenticate);
+    protectedApp.patch('/', controller.update.bind(controller)); 
+  });
 }

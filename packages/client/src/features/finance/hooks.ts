@@ -10,6 +10,7 @@ import type {
     CoaCategory 
 } from './types';
 import type { FinanceSummaryData } from '../display/types';
+import { useLoadingStore } from '../../store/useLoadingStore';
 
 export const useTransactions = (params?: GetTransactionsQuery) => 
 {
@@ -84,6 +85,8 @@ export const useCreateTransaction = () =>
             const { data } = await api.post('/finance/transactions', newData);
             return data.data || data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Adding transaction...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
@@ -106,6 +109,8 @@ export const useUpdateTransaction = () =>
             const { data: response } = await api.put(`/finance/transactions/${id}`, data);
             return response.data || response;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Updating transaction...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
@@ -127,6 +132,8 @@ export const useDeleteTransaction = () =>
         {
             await api.delete(`/finance/transactions/${id}`);
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Deleting transaction...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });

@@ -220,9 +220,9 @@ export class FinanceRepository
       .limit(1);
 
     return {
-        totalAssets,
-        totalIncome: totalDebit,
-        totalExpense: totalCredit,
+        totalBalance: totalAssets,
+        monthlyIncome: totalDebit,
+        monthlyExpense: totalCredit,
         lastUpdated: latestTx ? (latestTx.updatedAt || latestTx.date) : null
     };
   }

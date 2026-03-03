@@ -30,14 +30,21 @@ export const useAuth = () =>
         setIsLoading(true);
         try 
         {
-            const { data } = await api.post<LoginResponse>('/auth/login', 
+            const { data: response } = await api.post<{ data: LoginResponse }>('/auth/login', 
             {
                 username,
                 password: pass
             });
 
-            localStorage.setItem(AUTH_KEY, data.token);
-            localStorage.setItem('user_info', JSON.stringify(data.user));
+            const token = response.data?.token;
+
+            if (!token || String(token) === 'undefined' || String(token) === 'null') 
+            {
+                throw new Error("Invalid Auth Token: The server returned an invalid or missing token.");
+            }
+
+            localStorage.setItem(AUTH_KEY, token);
+            localStorage.setItem('user_info', JSON.stringify(response.data.user));
             
             setIsAuthenticated(true);
             toast.success('Login Successful');

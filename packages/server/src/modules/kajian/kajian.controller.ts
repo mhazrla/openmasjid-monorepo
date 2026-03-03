@@ -1,26 +1,17 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { KajianService } from './kajian.service';
 import { createKajianSchema, updateKajianSchema, getKajianQuerySchema, fileValidationSchema, KajianFilter } from './kajian.interface';
-import util from 'util';
-import { pipeline } from 'stream';
-import fs from 'fs/promises';
-import { createWriteStream } from 'fs';
-import path from 'path';
 import { randomUUID } from 'crypto';
-import { fileExists } from '../../plugins/fileChecker';
+import { cloudinaryService } from '../upload/cloudinary.service';
 import { sendError, sendSuccess } from '../../common/utils/response.formatter';
-
-const pump = util.promisify(pipeline);
 
 export class KajianController 
 {
   constructor(private service: KajianService) {}
 
-  private async handleFileUpload(part: any): Promise<string> 
+  private async handleFileUpload(fileStream: NodeJS.ReadableStream, mimetype: string): Promise<string> 
   {
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'posters');
-    
-    const fileCheck = fileValidationSchema.safeParse({ mimetype: part.mimetype });
+    const fileCheck = fileValidationSchema.safeParse({ mimetype });
     
     const mimeToExt: Record<string, string> = 
     {
@@ -30,24 +21,12 @@ export class KajianController
         'image/webp': '.webp'
     };
 
-    if (!fileCheck.success || !mimeToExt[part.mimetype]) 
+    if (!fileCheck.success || !mimeToExt[mimetype]) 
     {
-        part.file.resume();
         throw new Error('Invalid file type. Only JPG, PNG, WEBP allowed.');
     }
 
-    if (!(await fileExists(uploadDir))) 
-    {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
-
-    const ext = mimeToExt[part.mimetype];
-    const filename = `${Date.now()}-${randomUUID()}${ext}`;
-    const filepath = path.join(uploadDir, filename);
-
-    await pump(part.file, createWriteStream(filepath));
-
-    return `/public/uploads/posters/${filename}`;
+    return await cloudinaryService.uploadFromStream(fileStream, 'posters');
   }
 
   async getAll(req: FastifyRequest, reply: FastifyReply) 
@@ -92,11 +71,10 @@ export class KajianController
 
   async create(req: FastifyRequest, reply: FastifyReply) 
   {
-    let uploadedPath: string | undefined; 
-
     try 
     {
       const parts = req.parts();
+      let uploadedPath: string | undefined;
       const body: Record<string, any> = {};
 
       for await (const part of parts) 
@@ -105,7 +83,8 @@ export class KajianController
         {
           if (part.fieldname === 'file' || part.fieldname === 'poster') 
           {
-             uploadedPath = await this.handleFileUpload(part);
+             // Instead of using toBuffer, we pipe directly to Cloudinary
+             uploadedPath = await this.handleFileUpload(part.file, part.mimetype);
           } 
           else 
           {
@@ -147,11 +126,6 @@ export class KajianController
 
       if (!validation.success) 
       {
-        if (uploadedPath && await fileExists(path.join(process.cwd(), uploadedPath))) 
-        {
-          await fs.unlink(path.join(process.cwd(), uploadedPath));
-        }
-
         return sendError(reply, 'Validation Error', 400, validation.error.format());
       }
 
@@ -162,15 +136,6 @@ export class KajianController
     catch (error: any) 
     {
       req.log.error(error);
-      if (uploadedPath) 
-      { 
-        try 
-        { 
-          const fullPath = path.join(process.cwd(), uploadedPath);
-          if (await fileExists(fullPath)) await fs.unlink(fullPath); 
-        } 
-        catch {}
-      }
       
       const status = error.message.includes('Invalid file') ? 400 : 500;
       return sendError(reply, error.message || 'Internal Error', status);
@@ -182,18 +147,24 @@ export class KajianController
     const id = parseInt(req.params.id);
     if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
 
-    let uploadedPath: string | undefined;
-
     try 
     {
       const parts = req.parts();
+      let uploadedPath: string | undefined;
       const body: Record<string, any> = {};
 
       for await (const part of parts) 
       {
         if (part.type === 'file') 
         {
-           uploadedPath = await this.handleFileUpload(part);
+           if (part.fieldname === 'file' || part.fieldname === 'poster') 
+           {
+              uploadedPath = await this.handleFileUpload(part.file, part.mimetype);
+           } 
+           else 
+           {
+              part.file.resume();
+           }
         } 
         else 
         {
@@ -207,12 +178,6 @@ export class KajianController
 
       if (!validation.success) 
       {
-        if (uploadedPath) 
-        {
-           const fullPath = path.join(process.cwd(), uploadedPath);
-           if (await fileExists(fullPath)) await fs.unlink(fullPath);
-        }
-
         return sendError(reply, 'Validation Error', 400, validation.error.format());
       }
 
@@ -224,30 +189,8 @@ export class KajianController
     } 
     catch (error: any) 
     {
-      if (uploadedPath) 
-      {
-         try 
-         {
-            const fullPath = path.join(process.cwd(), uploadedPath);
-            if (await fileExists(fullPath)) await fs.unlink(fullPath);
-         }
-        catch {}
-      }
-
       req.log.error(error);
       return sendError(reply, 'Internal Server Error');
     }
-  }
-
-  async delete(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) 
-  {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
-
-    const result = await this.service.delete(id);
-
-    if (!result) return sendError(reply, 'Event not found', 404);
-
-    return sendSuccess(reply, result, 'Event deleted successfully');
   }
 }

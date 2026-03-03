@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../../features/auth/hooks';
 import { ActionButton } from '../../components/ui/ActionButton';
 import { Input } from '../../components/ui/Input';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, LogIn } from 'lucide-react';
 import { handleFormError } from '../../utils/form-error';
@@ -18,7 +18,6 @@ export const LoginPage = () =>
             password: ''
         }
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => 
     {
@@ -30,7 +29,6 @@ export const LoginPage = () =>
 
     const onSubmit = async (data: any) =>
     {
-        setIsSubmitting(true);
         try 
         {
             await login(data.username, data.password);
@@ -39,10 +37,6 @@ export const LoginPage = () =>
         {
              handleFormError(error, setError);
         } 
-        finally 
-        {
-            setIsSubmitting(false);
-        }
     };
 
     return (
@@ -87,7 +81,6 @@ export const LoginPage = () =>
                     <ActionButton 
                         variant="primary" 
                         className="w-full justify-center py-3 text-base"
-                        isLoading={isSubmitting}
                         type="submit"
                         icon={<LogIn className="w-5 h-5" />}
                     >

@@ -20,13 +20,15 @@ const RamadanPage = lazy(() => import('./pages/admin/RamadanPage').then(m => ({ 
 const KajianManagerPage = lazy(() => import('./pages/admin/KajianManagerPage').then(m => ({ default: m.KajianManagerPage })));
 const PeopleManagerPage = lazy(() => import('./pages/admin/PeopleManagerPage').then(m => ({ default: m.PeopleManagerPage })));
 const FinanceManagerPage = lazy(() => import('./pages/admin/FinanceManagerPage').then(m => ({ default: m.FinanceManagerPage })));
+const ArchiveList = lazy(() => import('./pages/admin/archive/ArchiveList').then(m => ({ default: m.ArchiveList })));
+const ArchiveEditor = lazy(() => import('./pages/admin/archive/ArchiveEditor').then(m => ({ default: m.ArchiveEditor })));
 
 function App() 
 {
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster position="top-right" />
-      <BrowserRouter>
+      <BrowserRouter basename="/display">
         <Suspense fallback={<LoadingScreen />}>
           <Routes>
             {/* Public Routes */}
@@ -41,9 +43,6 @@ function App()
               </SetupGuard>
             } />
             
-            {/* Redirect legacy path */}
-            <Route path="/display" element={<Navigate to="/" replace />} />
-            
             {/* 2. Secure Admin Routes */}
             <Route element={<ProtectedRoute />}>
                 <Route path="/admin" element={<AdminLayout />}>
@@ -53,6 +52,8 @@ function App()
                    <Route path="display" element={<DisplayConfigPage />} />
                    <Route path="shortlinks" element={<ShortlinkPage />} />
                    <Route path="kajian" element={<KajianManagerPage />} />
+                   <Route path="archive" element={<ArchiveList />} />
+                   <Route path="archive/:id" element={<ArchiveEditor />} />
                    <Route path="ramadan" element={<RamadanPage />} />
                    <Route path="people" element={<PeopleManagerPage />} />
                    <Route path="finance" element={<FinanceManagerPage />} />

@@ -41,7 +41,7 @@ export const FloatingPillClock = memo(({ now, hijriDate, profile, isVisible = tr
                 <span className="drop-shadow-md leading-none whitespace-nowrap font-bold" style={{ fontSize: 'calc(1.8rem * var(--scale-label, 1))' }}>
                     {format(now, 'EEEE, dd MMM yyyy', { locale: id })}
                 </span>
-                <span className="font-black drop-shadow-md leading-none uppercase tracking-widest" style={{ fontSize: 'calc(1.8rem * var(--scale-label, 1))', color: 'var(--theme-primary)' }}>
+                <span className="font-black drop-shadow-md leading-none uppercase tracking-widest text-amber-400" style={{ fontSize: 'calc(1.8rem * var(--scale-label, 1))' }}>
                     {hijriDate || 'H'}
                 </span>
             </div>

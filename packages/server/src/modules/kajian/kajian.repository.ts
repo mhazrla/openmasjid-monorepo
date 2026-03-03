@@ -142,12 +142,4 @@ export class KajianRepository
     
     return updated || null;
   }
-
-  async delete(id: number) 
-  {
-    const [deleted] = await db.delete(kajianEvents)
-      .where(eq(kajianEvents.id, id))
-      .returning();
-    return deleted || null;
-  }
 }

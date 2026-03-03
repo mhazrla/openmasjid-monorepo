@@ -1,0 +1,120 @@
+└── (empty root node)
+    ├── / (HEAD, GET)
+    │   ├── s/
+    │   │   └── :slug (GET, HEAD)
+    │   ├── a
+    │   │   ├── pi (GET, HEAD)
+    │   │   │   └── / (GET, HEAD)
+    │   │   │       ├── mosque-profile (GET, HEAD, PATCH)
+    │   │   │       │   └── / (GET, HEAD, PATCH)
+    │   │   │       ├── p
+    │   │   │       │   ├── rayer-times (GET, HEAD)
+    │   │   │       │   │   └── / (GET, HEAD)
+    │   │   │       │   │       └── sync (POST)
+    │   │   │       │   └── eople (GET, HEAD, POST)
+    │   │   │       │       └── / (GET, HEAD, POST)
+    │   │   │       │           └── :id (GET, HEAD, PATCH, DELETE)
+    │   │   │       ├── display-config (GET, HEAD, PATCH)
+    │   │   │       │   └── / (GET, HEAD, PATCH)
+    │   │   │       ├── shortlinks (GET, HEAD, POST)
+    │   │   │       │   └── / (GET, HEAD, POST)
+    │   │   │       │       └── :id (PUT, DELETE)
+    │   │   │       ├── ramadan (GET, HEAD)
+    │   │   │       │   └── / (GET, HEAD)
+    │   │   │       │       ├── init (POST)
+    │   │   │       │       ├── config/
+    │   │   │       │       │   └── :id (PATCH)
+    │   │   │       │       └── schedule/
+    │   │   │       │           └── :id (PATCH)
+    │   │   │       ├── kajian (GET, HEAD, POST)
+    │   │   │       │   └── / (GET, HEAD, POST)
+    │   │   │       │       └── :id (GET, HEAD, PATCH, DELETE)
+    │   │   │       ├── hadis/display (GET, HEAD)
+    │   │   │       ├── finance/
+    │   │   │       │   ├── transactions (GET, HEAD, POST)
+    │   │   │       │   │   └── /
+    │   │   │       │   │       └── :id (GET, HEAD, PUT, DELETE)
+    │   │   │       │   ├── accounts (GET, HEAD)
+    │   │   │       │   ├── categories (GET, HEAD)
+    │   │   │       │   └── su
+    │   │   │       │       ├── ggestions (GET, HEAD)
+    │   │   │       │       └── mmary (GET, HEAD)
+    │   │   │       ├── auth/log
+    │   │   │       │   ├── in (POST)
+    │   │   │       │   └── out (POST)
+    │   │   │       ├── v1/archive (GET, HEAD)
+    │   │   │       │   └── / (GET, HEAD)
+    │   │   │       │       ├── albums (GET, HEAD, POST)
+    │   │   │       │       │   └── /
+    │   │   │       │       │       └── :id (DELETE)
+    │   │   │       │       │           └── /media (GET, HEAD, POST)
+    │   │   │       │       └── media/
+    │   │   │       │           └── :id (DELETE)
+    │   │   │       └── upload (POST)
+    │   │   ├── dmin/ (HEAD, GET)
+    │   │   │   ├── vite.svg (HEAD, GET)
+    │   │   │   ├── i
+    │   │   │   │   ├── ndex.html (HEAD, GET)
+    │   │   │   │   └── mages/
+    │   │   │   │       ├── tes.jpeg (HEAD, GET)
+    │   │   │   │       ├── qr
+    │   │   │   │       │   ├── is-icon.webp (HEAD, GET)
+    │   │   │   │       │   └── -code.webp (HEAD, GET)
+    │   │   │   │       └── logo1.webp (HEAD, GET)
+    │   │   │   ├── sounds/beep.mp3 (HEAD, GET)
+    │   │   │   └── assets/
+    │   │   │       ├── u
+    │   │   │       │   ├── tils-vendor-BKHAH2lW.js (HEAD, GET)
+    │   │   │       │   └── i-vendor-DMPP0KsT.js (HEAD, GET)
+    │   │   │       ├── S
+    │   │   │       │   ├── tandbyView-DanuOpTK.js (HEAD, GET)
+    │   │   │       │   ├── hortlinkPage-CMso_Cgn.js (HEAD, GET)
+    │   │   │       │   └── elect-B1FVQCuf.js (HEAD, GET)
+    │   │   │       ├── react-vendor-wRuGYhgh.js (HEAD, GET)
+    │   │   │       ├── RamadanPage-D_0nlw5V.js (HEAD, GET)
+    │   │   │       ├── P
+    │   │   │       │   ├── rayerTimePage-e6HRpuSY.js (HEAD, GET)
+    │   │   │       │   └── eopleManagerPage-B4GyzM39.js (HEAD, GET)
+    │   │   │       ├── prayer-CpFGRE_k.js (HEAD, GET)
+    │   │   │       ├── Mo
+    │   │   │       │   ├── squeProfilePage-FG_TRmE1.js (HEAD, GET)
+    │   │   │       │   └── dal-B9qLtCQY.js (HEAD, GET)
+    │   │   │       ├── LoginPage-kaoF9c_Q.js (HEAD, GET)
+    │   │   │       ├── KajianManagerPage-DeNL24d2.js (HEAD, GET)
+    │   │   │       ├── Input-Dx1-Yq50.js (HEAD, GET)
+    │   │   │       ├── index-
+    │   │   │       │   ├── DsC1wlqE.css (HEAD, GET)
+    │   │   │       │   └── B1I9aB_A.js (HEAD, GET)
+    │   │   │       ├── hooks-
+    │   │   │       │   ├── D
+    │   │   │       │   │   ├── j5SDgNA.js (HEAD, GET)
+    │   │   │       │   │   └── BP_36l2.js (HEAD, GET)
+    │   │   │       │   ├── C
+    │   │   │       │   │   ├── qv2PgXC.js (HEAD, GET)
+    │   │   │       │   │   ├── na59gTS.js (HEAD, GET)
+    │   │   │       │   │   └── dPlgNwW.js (HEAD, GET)
+    │   │   │       │   └── B
+    │   │   │       │       ├── 9PgpwXx.js (HEAD, GET)
+    │   │   │       │       └── PgkYwrq.js (HEAD, GET)
+    │   │   │       ├── F
+    │   │   │       │   ├── ormLayout-lpEAghph.js (HEAD, GET)
+    │   │   │       │   └── inanceManagerPage-B2neV-EZ.js (HEAD, GET)
+    │   │   │       ├── form-error-D1Nj59QI.js (HEAD, GET)
+    │   │   │       ├── D
+    │   │   │       │   ├── isplayConfigPage-D99jOakB.js (HEAD, GET)
+    │   │   │       │   └── ataTable-Bo6D02bA.js (HEAD, GET)
+    │   │   │       └── A
+    │   │   │           ├── rchive
+    │   │   │           │   ├── List-C02-BTMV.js (HEAD, GET)
+    │   │   │           │   └── Editor-s9NGwuT-.js (HEAD, GET)
+    │   │   │           └── dminLayout-BCJ6soob.js (HEAD, GET)
+    │   │   └── ssets/index-
+    │   │       ├── CXS9jhdG.js (HEAD, GET)
+    │   │       └── B7xQyfW8.css (HEAD, GET)
+    │   ├── public/
+    │   │   └── * (HEAD, GET)
+    │   ├── tv/ (HEAD, GET)
+    │   │   └── index.html (HEAD, GET)
+    │   ├── vite.svg (HEAD, GET)
+    │   └── index.html (HEAD, GET)
+    └── * (OPTIONS)

@@ -9,13 +9,13 @@ export const HaditsWidget = memo(({ data }: HaditsWidgetProps) => {
             
             <div className="z-10 w-full max-w-full flex flex-col items-center justify-center space-y-12">
                 {data.arabic && (
-                    <h1 className="text-[5.5rem] text-white font-serif leading-[1.6] drop-shadow-2xl text-center mb-6" dir="rtl">
+                    <h1 className="text-[5.7rem] text-white font-serif leading-[1.6] drop-shadow-2xl text-center mb-6" dir="rtl">
                         {data.arabic}
                     </h1>
                 )}
                 
                 <div className="text-center flex flex-col items-center w-full px-10">
-                    <p className="font-bold text-slate-200 leading-tight italic mb-12 drop-shadow-md" style={{ fontSize: `calc(2.5rem * var(--scale-label, 1))` }}>
+                    <p className="font-bold text-slate-200 leading-tight italic mb-12 drop-shadow-md" style={{ fontSize: `calc(2.9rem * var(--scale-label, 1))` }}>
                         "{data.text}"
                     </p>
                     

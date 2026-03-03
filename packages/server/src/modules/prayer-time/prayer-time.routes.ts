@@ -12,5 +12,10 @@ const controller  = new PrayerTimeController(service);
 export async function prayerTimeRoutes(app: FastifyInstance) 
 {
   app.get('/', controller.getTimes.bind(controller));
-  app.post('/sync', controller.syncTimes.bind(controller));
+
+  app.register(async (protectedApp) => 
+  {
+    protectedApp.addHook('onRequest', app.authenticate);
+    protectedApp.post('/sync', controller.syncTimes.bind(controller));
+  });
 }

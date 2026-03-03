@@ -2,6 +2,7 @@ import { api } from '../../lib/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { Person, CreatePersonDTO, UpdatePersonDTO, UsePeopleParams } from './types';
+import { useLoadingStore } from '../../store/useLoadingStore';
 
 export const usePeople = (params?: UsePeopleParams) => 
 {
@@ -35,6 +36,8 @@ export const useCreatePerson = () =>
             const { data } = await api.post<{ data: Person }>('/people', newPerson);
             return data.data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Creating person...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['people'] });
@@ -56,6 +59,8 @@ export const useUpdatePerson = () =>
             const { data: response } = await api.patch<{ data: Person }>(`/people/${id}`, data);
             return response.data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Updating person...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['people'] });
@@ -64,30 +69,6 @@ export const useUpdatePerson = () =>
         onError: (error: any) => 
         {
             toast.error(error?.response?.data?.message || 'Failed to update person');
-        }
-    });
-};
-
-export const useDeletePerson = () => 
-{
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: async (id: number) => 
-        {
-            await api.delete(`/people/${id}`);
-        },
-        onSuccess: () => 
-        {
-            queryClient.invalidateQueries({ queryKey: ['people'] });
-            toast.success('Person archived successfully');
-        },
-        onError: (error: any) => 
-        {
-            if (error?.response?.status === 409) {
-                toast.error('Cannot delete: This data is currently used in schedules or events');
-            } else {
-                toast.error(error?.response?.data?.message || 'Failed to archive person');
-            }
         }
     });
 };

@@ -2,6 +2,7 @@ import { api } from '../../lib/axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { KajianEvent, UseKajianParams } from './types';
+import { useLoadingStore } from '../../store/useLoadingStore';
 
 export const useKajianEvents = (params?: UseKajianParams) => 
 {
@@ -34,6 +35,8 @@ export const useCreateKajian = () =>
             const { data } = await api.post<{ data: KajianEvent }>('/kajian', formData);
             return data.data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Creating event...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['kajian'] });
@@ -55,6 +58,8 @@ export const useUpdateKajian = () =>
             const { data: response } = await api.patch<{ data: KajianEvent }>(`/kajian/${id}`, data);
             return response.data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Updating event...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['kajian'] });
@@ -63,33 +68,6 @@ export const useUpdateKajian = () =>
         onError: (error: any) => 
         {
             toast.error(error?.response?.data?.message || 'Failed to update event');
-        }
-    });
-};
-
-export const useDeleteKajian = () => 
-{
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: async (id: number) => 
-        {
-            await api.delete(`/kajian/${id}`);
-        },
-        onSuccess: () => 
-        {
-            queryClient.invalidateQueries({ queryKey: ['kajian'] });
-            toast.success('Event deleted successfully');
-        },
-        onError: (error: any) => 
-        {
-            if (error?.response?.status === 409) 
-            {
-                toast.error('Cannot delete: This event is already linked to other modules');
-            } 
-            else 
-            {
-                toast.error(error?.response?.data?.message || 'Failed to delete event');
-            }
         }
     });
 };

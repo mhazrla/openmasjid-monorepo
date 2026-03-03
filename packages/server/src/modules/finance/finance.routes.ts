@@ -11,9 +11,14 @@ export async function financeRoutes(app: FastifyInstance)
 {
   app.get('/transactions', controller.getAllTransactions.bind(controller));
   app.get('/transactions/:id', controller.getTransactionById.bind(controller));
-  app.post('/transactions', controller.createTransaction.bind(controller));
-  app.put('/transactions/:id', controller.updateTransaction.bind(controller));
-  app.delete('/transactions/:id', controller.deleteTransaction.bind(controller));
+  
+  app.register(async (protectedApp) => 
+  {
+    protectedApp.addHook('onRequest', app.authenticate);
+    protectedApp.post('/transactions', controller.createTransaction.bind(controller));
+    protectedApp.put('/transactions/:id', controller.updateTransaction.bind(controller));
+    protectedApp.delete('/transactions/:id', controller.deleteTransaction.bind(controller));
+  });
   
   app.get('/accounts', controller.getAccounts.bind(controller));
   app.get('/categories', controller.getCategories.bind(controller));

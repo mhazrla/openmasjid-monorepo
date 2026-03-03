@@ -92,7 +92,7 @@ export const getImageUrl = (path: string | undefined | null) =>
     if (!path) return '';
     if (path.startsWith('http')) return path;
 
-    const apiConfigUrl = import.meta.env.VITE_BASE_URL || '';
+    const apiConfigUrl = import.meta.env.VITE_APIURL || '';
     const cleanBaseUrl = apiConfigUrl.replace(/\/$/, '');
     const cleanPath = path.startsWith('/') ? path : `/${path}`;
 

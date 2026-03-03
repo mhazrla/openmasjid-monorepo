@@ -18,7 +18,6 @@ export const ShortlinkFormModal = ({ isOpen, onClose, editingShortlink }: Shortl
     const { register, handleSubmit, reset, setError, setValue, clearErrors, formState: { errors } } = useForm<CreateShortlinkRequests>();
 
     const isEditing = !!editingShortlink;
-    const isLoading = createMutation.isPending || updateMutation.isPending;
 
     const handleReset = () => 
     {
@@ -134,10 +133,10 @@ export const ShortlinkFormModal = ({ isOpen, onClose, editingShortlink }: Shortl
                 </FormItem>
 
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
-                    <ActionButton variant="secondary" onClick={handleReset} type="button" disabled={isLoading} className="cursor-pointer">
+                    <ActionButton variant="secondary" onClick={handleReset} type="button" className="cursor-pointer">
                         Reset
                     </ActionButton>
-                    <ActionButton variant="primary" type="submit" isLoading={isLoading} 
+                    <ActionButton variant="primary" type="submit"  
                         icon={isEditing ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                         className="cursor-pointer"
                     >

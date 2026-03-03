@@ -11,6 +11,7 @@ import { calculateDistance } from '../../lib/geo';
 import { ActionButton } from '../../components/ui/ActionButton';
 import { cn } from '../../lib/utils';
 import { useBeep } from '../../hooks/use-beep';
+import { useLoadingStore } from '../../store/useLoadingStore';
 import { handleFormError } from '../../utils/form-error';
 
 const CITY_OPTIONS = CITIES.map(c => ({ value: c.id, label: c.name }));
@@ -23,8 +24,17 @@ const FONT_OPTIONS = [
 
 export const DisplayConfigPage = () => 
 {
-    const { data: config, isLoading }   = useDisplayConfig();
-    const updateMutation                = useUpdateDisplayConfig();
+    const { data: config, isPending: isConfigLoading } = useDisplayConfig();
+    const updateMutation = useUpdateDisplayConfig();
+    
+    useEffect(() => 
+    {
+        if (isConfigLoading) {
+            useLoadingStore.getState().showLoading('Loading display configuration...');
+        } else {
+            useLoadingStore.getState().hideLoading();
+        }
+    }, [isConfigLoading]);
     const [isLocating, setIsLocating]   = useState(false);
     const { register, control, handleSubmit, reset, setValue, watch, formState: { errors, isDirty }, setError } = useForm<UpdateDisplayConfigDto>();
     const enableBeepWatch               = watch('enableBeep');
@@ -188,7 +198,8 @@ export const DisplayConfigPage = () =>
         }
     };
 
-    if (isLoading) {
+    if (isConfigLoading) 
+    {
         return (
             <div className="flex justify-center p-12">
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
@@ -238,7 +249,6 @@ export const DisplayConfigPage = () =>
                                     variant="outline"
                                     onClick={onAutoDetect}
                                     disabled={isLocating}
-                                    isLoading={isLocating}
                                     icon={<LocateFixed className="w-3 h-3"/>}
                                     className="px-3 py-1 text-xs h-auto"
                                 >
@@ -795,7 +805,6 @@ export const DisplayConfigPage = () =>
                     <ActionButton 
                         type="submit" 
                         variant="primary"
-                        isLoading={updateMutation.isPending}
                         disabled={!isDirty}
                         icon={<Save className="w-4 h-4" />}
                     >

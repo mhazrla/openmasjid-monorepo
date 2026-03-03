@@ -100,24 +100,4 @@ export class PeopleController
       return sendError(reply, 'Failed to update person');
     }
   }
-
-  async delete(req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) 
-  {
-    try 
-    {
-      const id = parseInt(req.params.id);
-      if (isNaN(id)) return sendError(reply, 'Invalid ID', 400);
-
-      const result = await this.service.deletePerson(id);
-      
-      if (!result) return sendError(reply, 'Person not found', 404);
-
-      return sendSuccess(reply, result, 'Person deactivated successfully');
-    } 
-    catch (error) 
-    {
-      req.log.error(error);
-      return sendError(reply, 'Failed to deactivate person');
-    }
-  }
 }

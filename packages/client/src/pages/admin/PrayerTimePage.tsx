@@ -176,7 +176,6 @@ export const PrayerTimePage = () =>
                             <ActionButton 
                                 type="submit" 
                                 variant="primary"
-                                isLoading={syncMutation.isPending}
                                 disabled={!dsConfig?.cityId}
                                 className="w-full"
                                 icon={<CloudDownload className="w-4 h-4" />}

@@ -11,7 +11,12 @@ export async function kajianRoutes(app: FastifyInstance)
 {
   app.get('/', controller.getAll.bind(controller));
   app.get('/:id', controller.getById.bind(controller));
-  app.post('/', controller.create.bind(controller));
-  app.patch('/:id', controller.update.bind(controller));
-  app.delete('/:id', controller.delete.bind(controller));
+
+  app.register(async (protectedApp) => 
+  {
+    protectedApp.addHook('onRequest', app.authenticate);
+    
+    protectedApp.post('/', controller.create.bind(controller));
+    protectedApp.patch('/:id', controller.update.bind(controller));
+  });
 }

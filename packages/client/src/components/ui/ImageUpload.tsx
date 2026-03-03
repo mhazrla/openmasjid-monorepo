@@ -34,7 +34,7 @@ export const ImageUpload = ({ value, onChange, label, className }: ImageUploadPr
                 return;
             }
 
-            const baseUrl = import.meta.env.VITE_BASE_URL || ''; 
+            const baseUrl = import.meta.env.VITE_API_URL || ''; 
             setPreviewUrl(`${baseUrl}${value}`);
 
             return;

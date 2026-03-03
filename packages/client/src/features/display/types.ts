@@ -148,9 +148,9 @@ export interface DisplayConfig
 
 export interface FinanceSummaryData 
 {
-    totalAssets: number;
-    totalIncome: number;
-    totalExpense: number;
+    totalBalance: number;
+    monthlyIncome: number;
+    monthlyExpense: number;
     lastUpdated: string | Date | null;
 }
 

@@ -10,9 +10,14 @@ const controller    = new ShortlinkController(service);
 export async function shortlinkApiRoutes(app: FastifyInstance) 
 {
     app.get('/', controller.getAll.bind(controller));
-    app.post('/', controller.create.bind(controller));
-    app.put('/:id', controller.update.bind(controller));
-    app.delete('/:id', controller.delete.bind(controller));
+
+    app.register(async (protectedApp) => 
+    {
+        protectedApp.addHook('onRequest', app.authenticate);
+        protectedApp.post('/', controller.create.bind(controller));
+        protectedApp.put('/:id', controller.update.bind(controller));
+        protectedApp.delete('/:id', controller.delete.bind(controller));
+    });
 }
 
 export async function shortlinkRedirectRoutes(app: FastifyInstance) 

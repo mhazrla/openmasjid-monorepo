@@ -36,9 +36,9 @@ export async function appRoutes(app: FastifyInstance)
     api.register(authRoutes, { prefix: '/auth' });
     
     // Archive Module (Feature Toggled)
-    if (process.env.ENABLE_ARCHIVE === 'true') 
+    if (process.env.ENABLE_ARCHIVE?.trim() === 'true') 
     {
-      api.register(archiveRoutes, { prefix: '/v1/archive' });
+      api.register(archiveRoutes, { prefix: '/archive' });
     }
     
     // Upload Routes

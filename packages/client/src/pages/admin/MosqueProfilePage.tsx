@@ -2,7 +2,8 @@ import { useForm, Controller } from 'react-hook-form';
 import { useMosqueProfile, useUpdateMosqueProfile } from '../../features/mosque/hooks';
 import type { UpdateMosqueProfileDto } from '../../features/mosque/types';
 import { useEffect, useState } from 'react';
-import { Loader2, Save } from 'lucide-react';
+import { useLoadingStore } from '../../store/useLoadingStore';
+import { Save } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { ActionButton } from '../../components/ui/ActionButton';
@@ -17,10 +18,7 @@ const uploadFile = async (file: File): Promise<string> =>
     const formData = new FormData();
     formData.append('file', file);
 
-    const { data } = await api.post<{ data: { url: string } }>('/upload', formData, 
-    {
-        headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const { data } = await api.post<{ data: { url: string } }>('/upload', formData);
 
     return data.data.url;
 };
@@ -32,12 +30,17 @@ export const MosqueProfilePage = () =>
     
     const [logoFile, setLogoFile]       = useState<File | null>(null);
     const [qrisFile, setQrisFile]       = useState<File | null>(null);
-    const [isUploading, setIsUploading] = useState(false);
 
     const { register, control, handleSubmit, reset, setError, formState: { errors, isDirty } } = useForm<UpdateMosqueProfileDto>();
 
     useEffect(() => 
     {
+        if (isLoading) {
+            useLoadingStore.getState().showLoading('Loading profile...');
+        } else {
+            useLoadingStore.getState().hideLoading();
+        }
+
         if (profile) 
         {
             reset({
@@ -50,14 +53,14 @@ export const MosqueProfilePage = () =>
                 qrisUrl: profile.qrisUrl || '',
             });
         }
-    }, [profile, reset]);
+    }, [profile, reset, isLoading]);
 
     const onSubmit = async (data: UpdateMosqueProfileDto) => 
     {
-        setIsUploading(true);
+        useLoadingStore.getState().showLoading('Saving profile...');
         try {
-            let finalLogoUrl = data.logoUrl;
-            let finalQrisUrl = data.qrisUrl;
+            let finalLogoUrl: string | null | undefined = data.logoUrl;
+            let finalQrisUrl: string | null | undefined = data.qrisUrl;
 
             if (logoFile) 
             {
@@ -65,7 +68,7 @@ export const MosqueProfilePage = () =>
             }
             else if (logoFile === null && data.logoUrl === '') 
             {
-               finalLogoUrl = '';
+               finalLogoUrl = null;
             }
 
             if (qrisFile) 
@@ -74,7 +77,7 @@ export const MosqueProfilePage = () =>
             }
             else if (qrisFile === null && data.qrisUrl === '') 
             {
-               finalQrisUrl = '';
+               finalQrisUrl = null;
             }
 
             const payload = 
@@ -101,17 +104,13 @@ export const MosqueProfilePage = () =>
         } 
         finally 
         {
-            setIsUploading(false);
+            useLoadingStore.getState().hideLoading();
         }
     };
 
     if (isLoading) 
     {
-        return (
-            <div className="flex items-center justify-center p-12">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-            </div>
-        );
+        return null; // hide behind overlay
     }
 
     return (
@@ -253,19 +252,18 @@ export const MosqueProfilePage = () =>
                             setQrisFile(null);
                         }} 
                         type="button"
-                        disabled={(!isDirty && !logoFile && !qrisFile) || isUploading}
+                        disabled={(!isDirty && !logoFile && !qrisFile)}
                     >
-                        Cancel
+                        Reset
                     </ActionButton>
                     
                     <ActionButton 
                         variant="primary" 
                         icon={<Save className="w-4 h-4" />} 
-                        isLoading={isUploading || updateMutation.isPending} 
                         type="submit"
                         disabled={!isDirty && !logoFile && !qrisFile}
                     >
-                        {isUploading ? 'Uploading...' : 'Save Changes'}
+                        Save Changes
                     </ActionButton>
                 </div>
             </form>

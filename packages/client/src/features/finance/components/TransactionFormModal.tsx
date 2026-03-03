@@ -301,7 +301,7 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
                     <ActionButton variant="secondary" onClick={handleReset} type="button" className="cursor-pointer">
                         Reset
                     </ActionButton>
-                    <ActionButton variant="primary" type="submit" isLoading={isSubmitting} className="cursor-pointer">
+                    <ActionButton variant="primary" type="submit" disabled={isSubmitting} className="cursor-pointer">
                         Submit
                     </ActionButton>
                 </div>

@@ -1,9 +1,6 @@
 import { useState, useMemo } from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { 
-    Plus, Calendar as CalIcon, ImageIcon, User, 
-    Edit, Search 
-} from 'lucide-react';
+import { Search, Plus, Calendar as CalIcon, User, ImageIcon, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { useKajianEvents } from '../../features/kajian/hooks';
 import { ActionButton } from '../../components/ui/ActionButton';
@@ -58,11 +55,11 @@ export const KajianManagerPage = () =>
     const [editingKajian, setEditingKajian] = useState<KajianEvent | null>(null);
 
     // --- Hooks ---
-    // Fetch ALL data for client-side filtering
     const { data: events = [], isLoading } = useKajianEvents({
         status: 'all', 
         upcoming: undefined 
     });
+
     
     // --- Client-Side Filtering ---
     const filteredData = useMemo(() => 
@@ -193,18 +190,22 @@ export const KajianManagerPage = () =>
         columnHelper.display({
             id: 'actions',
             header: () => <div className="text-right px-4">Actions</div>,
-            cell: ({ row }) => (
-                <div className="flex items-center justify-end px-4">
-                    <ActionButton
-                        variant="secondary"
-                        size="sm"
-                        icon={<Edit className="w-3.5 h-3.5" />}
-                        onClick={() => handleOpenEdit(row.original)}
-                        className="cursor-pointer hover:border-emerald-500 hover:text-emerald-600 transition-colors"
-                        title="Edit Event"
-                    />
-                </div>
-            )
+            cell: ({ row }) => {
+
+                return (
+                    <div className="flex items-center justify-end px-4 gap-2">
+                        <ActionButton
+                            variant="secondary"
+                            size="sm"
+                            icon={<Edit className="w-3.5 h-3.5" />}
+                            onClick={() => handleOpenEdit(row.original)}
+                            className="cursor-pointer hover:border-emerald-500 hover:text-emerald-600 transition-colors"
+                            title="Edit Event"
+                        />
+
+                    </div>
+                );
+            }
         })
     ], []);
 

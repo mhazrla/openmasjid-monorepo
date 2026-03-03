@@ -24,9 +24,4 @@ export class PeopleService
   {
     return await this.repository.update(id, data);
   }
-
-  async deletePerson(id: number) 
-  {
-    return await this.repository.delete(id);
-  }
 }

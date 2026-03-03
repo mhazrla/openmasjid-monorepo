@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/axios';
 import type { Shortlink, CreateShortlinkRequests, UpdateShortlinkRequests } from './types';
+import { useLoadingStore } from '../../store/useLoadingStore';
 
 export const useShortlinks = () => 
 {
@@ -24,6 +25,8 @@ export const useCreateShortlink = () =>
             const { data } = await api.post('/shortlinks', payload);
             return data;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Creating shortlink...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['shortlinks'] });
@@ -39,6 +42,8 @@ export const useDeleteShortlink = () =>
         {
             await api.delete(`/shortlinks/${id}`);
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Deleting shortlink...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['shortlinks'] });
@@ -56,6 +61,8 @@ export const useUpdateShortlink = () =>
             const { data: response } = await api.put(`/shortlinks/${id}`, data);
             return response;
         },
+        onMutate: () => useLoadingStore.getState().showLoading('Updating shortlink...'),
+        onSettled: () => useLoadingStore.getState().hideLoading(),
         onSuccess: () => 
         {
             queryClient.invalidateQueries({ queryKey: ['shortlinks'] });

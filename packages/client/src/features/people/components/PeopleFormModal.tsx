@@ -87,7 +87,7 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
         }
     };
 
-    const isSubmitting = createMutation.isPending || updateMutation.isPending;
+
 
     return (
         <Modal 
@@ -149,11 +149,11 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
                     <div className="mt-2">
                         <label className="text-sm font-medium text-slate-700 block mb-2">Status</label>
                         <div className="flex items-center gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-[:checked]:border-emerald-200 has-[:checked]:bg-emerald-50 transition-colors">
+                            <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-checked:border-emerald-200 has-checked:bg-emerald-50 transition-colors">
                                 <input type="radio" value="true" {...register('status')} className="text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
                                 <span className="text-sm text-slate-700">Active</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-[:checked]:border-slate-300 has-[:checked]:bg-slate-100 transition-colors">
+                            <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-checked:border-slate-300 has-checked:bg-slate-100 transition-colors">
                                 <input type="radio" value="false" {...register('status')} className="text-slate-600 focus:ring-slate-500 cursor-pointer" />
                                 <span className="text-sm text-slate-700">Archived (Inactive)</span>
                             </label>
@@ -165,7 +165,7 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
                     <ActionButton variant="secondary" onClick={handleReset} type="button" className="cursor-pointer">
                         Reset
                     </ActionButton>
-                    <ActionButton variant="primary" type="submit" isLoading={isSubmitting} className="cursor-pointer" icon={null}>
+                    <ActionButton variant="primary" type="submit" className="cursor-pointer" icon={null}>
                         Submit
                     </ActionButton>
                 </div>

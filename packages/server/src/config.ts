@@ -14,6 +14,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   DATABASE_URL: z.string().optional(),
   JWT_SECRET: z.string().default('dummy_secret_for_dev_only'),
+  CLOUDINARY_URL: z.string().optional(),
 }).refine((data) => 
 {
   if (data.NODE_ENV === 'production' && !data.DATABASE_URL) 
