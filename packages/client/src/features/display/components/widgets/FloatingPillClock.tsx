@@ -21,7 +21,7 @@ export const FloatingPillClock = memo(({ now, hijriDate, profile, isVisible = tr
                     {profile?.logoUrl ? (
                         <img src={getImageUrl(profile.logoUrl)} alt="Logo" className="w-full h-full object-contain relative z-10" />
                     ) : (
-                        <img src="/images/logo1.webp" alt="Logo" className="w-full h-full object-contain relative z-10" />
+                        <img src="images/logo1.webp" alt="Logo" className="w-full h-full object-contain relative z-10" />
                     )}
                 </div>
                 
