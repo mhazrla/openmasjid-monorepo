@@ -74,7 +74,7 @@ export const LandingPage = () =>
             <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Transparansi Keuangan</h2>
             <p className="text-slate-500 mt-2 font-medium">Ringkasan kas masjid untuk bulan ini.</p>
           </div>
-          <Link to="/finance" className="inline-flex items-center gap-2 group text-emerald-600 hover:text-emerald-700 font-bold transition-colors">
+          <Link to="#" className="inline-flex items-center gap-2 group text-emerald-600 hover:text-emerald-700 font-bold transition-colors">
             Lihat Laporan Lengkap
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>

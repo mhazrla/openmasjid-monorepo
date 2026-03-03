@@ -43,13 +43,16 @@ function App()
               </SetupGuard>
             } />
             
+            {/* Redirect legacy path */}
+            <Route path="/display" element={<Navigate to="/" replace />} />
+            
             {/* 2. Secure Admin Routes */}
             <Route element={<ProtectedRoute />}>
                 <Route path="/admin" element={<AdminLayout />}>
                    <Route index element={<Navigate to="/admin/mosque" replace />} />
                    <Route path="mosque" element={<MosqueProfilePage />} />
                    <Route path="prayer" element={<PrayerTimePage />} />
-                   <Route path="display" element={<DisplayConfigPage />} />
+                   <Route path="display-config" element={<DisplayConfigPage />} />
                    <Route path="shortlinks" element={<ShortlinkPage />} />
                    <Route path="kajian" element={<KajianManagerPage />} />
                    <Route path="archive" element={<ArchiveList />} />

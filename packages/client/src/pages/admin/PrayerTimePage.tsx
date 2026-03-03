@@ -116,7 +116,7 @@ export const PrayerTimePage = () =>
                          </div>
                     </div>
                     
-                    <Link to="/admin/display" className="flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-white border border-sky-200 px-3 py-1.5 rounded-md hover:bg-sky-100 transition-colors">
+                    <Link to="/admin/display-config" className="flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-white border border-sky-200 px-3 py-1.5 rounded-md hover:bg-sky-100 transition-colors">
                         <SettingsIcon className="w-3 h-3" />
                         Change Location
                     </Link>

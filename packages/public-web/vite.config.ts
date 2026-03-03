@@ -7,7 +7,6 @@ export default defineConfig(({ mode }) => {
   const backendUrl = env.VITE_API_URL as string;
 
   return {
-    base: '/',
     plugins: [react()],
     server: {
       host: '0.0.0.0',

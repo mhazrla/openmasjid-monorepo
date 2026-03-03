@@ -22,7 +22,7 @@ const MENU_ITEMS = [
     { label: 'Dashboard', path: '/admin', icon: LayoutDashboard },
     { label: 'Mosque Profile', path: '/admin/mosque', icon: Building2 },
     { label: 'Prayer Times', path: '/admin/prayer', icon: CalendarClock },
-    { label: 'Display Config', path: '/admin/display', icon: Settings },
+    { label: 'Display Config', path: '/admin/display-config', icon: Settings },
     { label: 'Shortlinks', path: '/admin/shortlinks', icon: LinkIcon },
     { label: 'Ramadan', path: '/admin/ramadan', icon: Moon },
     { label: 'Kajian', path: '/admin/kajian', icon: BookOpen },

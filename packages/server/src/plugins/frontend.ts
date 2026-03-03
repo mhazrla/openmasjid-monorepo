@@ -24,7 +24,7 @@ export default fp(async (app) =>
       await app.register(import('@fastify/static'), 
       {
         root: adminDistPath,
-        prefix: '/admin/',
+        prefix: '/display/',
         wildcard: false,
         decorateReply: true 
       });
@@ -65,7 +65,7 @@ export default fp(async (app) =>
       {
         reply.status(404).send({ error: 'API Endpoint not found', url: req.raw.url });
       } 
-      else if (req.raw.url && req.raw.url.startsWith('/admin') && fs.existsSync(adminDistPath)) 
+      else if (req.raw.url && req.raw.url.startsWith('/display') && fs.existsSync(adminDistPath)) 
       {
         reply.sendFile('index.html', adminDistPath);
       }

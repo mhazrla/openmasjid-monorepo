@@ -48,7 +48,7 @@ export const SetupGuard = ({ children }: SetupGuardProps) =>
 
     if (!config || !config.cityId) 
     {
-        return <Navigate to="/admin/display" replace />;
+        return <Navigate to="/admin/display-config" replace />;
     }
 
     return children ? <>{children}</> : <Outlet />;
