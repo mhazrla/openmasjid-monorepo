@@ -51,7 +51,8 @@ export const ArchiveEditor = () =>
         const total = files.length;
         let successCount = 0;
         try {
-            for (let i = 0; i < total; i++) {
+            for (let i = 0; i < total; i++) 
+            {
                 useLoadingStore.getState().showLoading(`Uploading image ${i + 1} of ${total}...`);
                 
                 const formData = new FormData();
@@ -161,7 +162,8 @@ export const ArchiveEditor = () =>
                             {/* Universal Image Renderer (Same for Photo and Video) */}
                             <img 
                                 src={medium.type === 'image' ? getImageUrl(medium.mediaUrl) : `https://img.youtube.com/vi/${extractYouTubeId(medium.mediaUrl)}/maxresdefault.jpg`}
-                                onError={(e) => { 
+                                onError={(e) => 
+                                { 
                                     if (medium.type === 'video') e.currentTarget.src = `https://img.youtube.com/vi/${extractYouTubeId(medium.mediaUrl)}/hqdefault.jpg`; 
                                 }}
                                 alt={medium.title || 'Media'} 

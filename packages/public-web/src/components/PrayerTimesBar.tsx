@@ -8,22 +8,18 @@ if (import.meta.env.PROD && import.meta.env.VITE_API_URL)
     baseURL = apiUrl.endsWith('/api/') ? apiUrl : apiUrl.replace(/\/$/, '') + '/api/';
 }
 
-const formatHijri = (date: Date) => 
-{
-    try 
-    {
-        return new Intl.DateTimeFormat('id-ID-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-    } 
-    catch (e) 
-    {
-        return new Intl.DateTimeFormat('id-ID-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-    }
-};
-
 const fetchPrayerTimes = async () => 
 {
     const response = await fetch(`${baseURL}prayer-times`);
     if (!response.ok) throw new Error('Gagal mengambil data jadwal shalat dari server');
+    const { data } = await response.json();
+    return data;
+};
+
+const fetchDisplayConfig = async () => 
+{
+    const response = await fetch(`${baseURL}display-config`);
+    if (!response.ok) throw new Error('Gagal mengambil data konfigurasi dari server');
     const { data } = await response.json();
     return data;
 };
@@ -36,7 +32,14 @@ export const PrayerTimesBar = () =>
         staleTime: 1000 * 60 * 60 * 6,
     });
 
-    // Sesuaikan key (subuh, dzuhur, dll) dengan response dari backend OpenMasjid Anda
+    const { data: config } = useQuery({
+        queryKey: ['displayConfig', 'internal'],
+        queryFn: fetchDisplayConfig,
+        staleTime: 1000 * 60 * 60 * 6,
+    });
+
+    console.log(timings)
+
     const times = [
         { name: 'Subuh', time: timings?.subuh || '--:--' },
         { name: 'Dzuhur', time: timings?.dzuhur || '--:--' },
@@ -54,7 +57,7 @@ export const PrayerTimesBar = () =>
                 <div>
                     <h3 className="font-bold leading-none">Jadwal Shalat</h3>
                     <p className="text-sm text-slate-500 mt-1">{new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                    <p className="text-xs text-emerald-600 font-medium mt-0.5">{formatHijri(new Date())}</p>
+                    <p className="text-xs text-emerald-600 font-medium mt-0.5">{config?.cachedHijriDate || 'Memuat tanggal...'}</p>
                 </div>
             </div>
             

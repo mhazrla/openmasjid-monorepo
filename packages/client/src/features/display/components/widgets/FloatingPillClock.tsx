@@ -21,7 +21,7 @@ export const FloatingPillClock = memo(({ now, hijriDate, profile, isVisible = tr
                     {profile?.logoUrl ? (
                         <img src={getImageUrl(profile.logoUrl)} alt="Logo" className="w-full h-full object-contain relative z-10" />
                     ) : (
-                        <img src="images/logo1.webp" alt="Logo" className="w-full h-full object-contain relative z-10" />
+                        <img src="/images/logo1.webp" alt="Logo" className="w-full h-full object-contain relative z-10" />
                     )}
                 </div>
                 
@@ -32,16 +32,16 @@ export const FloatingPillClock = memo(({ now, hijriDate, profile, isVisible = tr
                 </div>
             </div>
 
-            <div className="relative z-10 flex items-baseline text-[5.5rem] font-extrabold text-primary mr-12 tracking-wide drop-shadow-lg leading-none shrink-0">
+            <div className="relative z-10 flex items-baseline font-extrabold text-primary mr-12 tracking-wide drop-shadow-lg leading-none shrink-0" style={{ fontSize: 'calc(6rem * var(--scale-clock, 1))' }}>
                 {format(now, 'HH:mm')}
-                <span className="text-[2.8rem] ml-2 text-primary/80 animate-pulse">:{format(now, 'ss')}</span>
+                <span className="ml-2 text-primary/80 animate-pulse" style={{ fontSize: 'calc(3.5rem * var(--scale-clock, 1))' }}>:{format(now, 'ss')}</span>
             </div>
             
             <div className="relative z-10 flex flex-col justify-center font-medium tracking-wide gap-2 border-l border-white/20 pl-12 shrink-0" style={{ color: 'var(--theme-label)' }}>
-                <span className="drop-shadow-md leading-none whitespace-nowrap font-bold" style={{ fontSize: 'calc(1.8rem * var(--scale-label, 1))' }}>
+                <span className="drop-shadow-md leading-none whitespace-nowrap font-bold" style={{ fontSize: 'calc(2rem * var(--scale-label, 1))' }}>
                     {format(now, 'EEEE, dd MMM yyyy', { locale: id })}
                 </span>
-                <span className="font-black drop-shadow-md leading-none uppercase tracking-widest text-amber-400" style={{ fontSize: 'calc(1.8rem * var(--scale-label, 1))' }}>
+                <span className="font-black drop-shadow-md leading-none uppercase tracking-widest text-amber-400" style={{ fontSize: 'calc(2rem * var(--scale-label, 1))' }}>
                     {hijriDate || 'H'}
                 </span>
             </div>

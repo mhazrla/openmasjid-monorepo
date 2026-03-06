@@ -3,7 +3,7 @@ import { useDisplayConfig, useUpdateDisplayConfig } from '../../features/display
 import type { UpdateDisplayConfigDto } from '../../features/display-config/types';
 import { type City, CITIES } from '../../constants/prayer';
 import { useEffect, useState } from 'react';
-import { Loader2, Save, Settings, LocateFixed, Type, Volume2, Clock, BellRing, Palette } from 'lucide-react';
+import { Loader2, Save, Settings, LocateFixed, Type, Volume2, Clock, BellRing, Palette, Youtube } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select } from '../../components/ui/Select';
 import { Input } from '../../components/ui/Input';
@@ -29,9 +29,12 @@ export const DisplayConfigPage = () =>
     
     useEffect(() => 
     {
-        if (isConfigLoading) {
+        if (isConfigLoading) 
+        {
             useLoadingStore.getState().showLoading('Loading display configuration...');
-        } else {
+        } 
+        else 
+        {
             useLoadingStore.getState().hideLoading();
         }
     }, [isConfigLoading]);
@@ -47,6 +50,7 @@ export const DisplayConfigPage = () =>
             reset({
                 cityId: config.cityId,
                 runningText: config.runningText || '',
+                isYoutubeLiveActive: config.isYoutubeLiveActive ?? false,
                 enableBeep: config.enableBeep,
                 beepReminderDuration: config.beepReminderDuration || 30,
                 
@@ -96,7 +100,8 @@ export const DisplayConfigPage = () =>
 
     const onAutoDetect = () => 
     {
-        if (!navigator.geolocation) {
+        if (!navigator.geolocation) 
+        {
             toast.error("Browser does not support Geolocation.");
             return;
         }
@@ -115,17 +120,21 @@ export const DisplayConfigPage = () =>
                 CITIES.forEach(city => 
                 {
                     const dist = calculateDistance(userLat, userLon, city.lat, city.lon);
-                    if (dist < minDistance) {
+                    if (dist < minDistance) 
+                    {
                         minDistance = dist;
                         nearestCity = city;
                     }
                 });
 
-                if (nearestCity) {
+                if (nearestCity) 
+                {
                     const city = nearestCity as City; 
                     setValue('cityId', city.id, { shouldDirty: true });
                     toast.success(`Location detected: ${city.name} (${minDistance.toFixed(1)} km)`);
-                } else {
+                } 
+                else 
+                {
                     toast.error("Could not find nearest city.");
                 }
                 setIsLocating(false);
@@ -143,7 +152,8 @@ export const DisplayConfigPage = () =>
     {
         try 
         {
-            const payload: UpdateDisplayConfigDto = {
+            const payload: UpdateDisplayConfigDto = 
+            {
                 ...data,
                 // Number casting safety
                 preAdzanDuration: Number(data.preAdzanDuration),
@@ -177,6 +187,7 @@ export const DisplayConfigPage = () =>
                 
                 enableBeep: Boolean(data.enableBeep),
                 runningText: data.runningText,
+                isYoutubeLiveActive: Boolean(data.isYoutubeLiveActive),
 
                 themeColor: data.themeColor,
                 accentColor: data.accentColor,
@@ -287,6 +298,35 @@ export const DisplayConfigPage = () =>
                                 {...register('runningText')}
                             />
                             <p className="text-xs text-slate-500">Text displayed at the bottom of the screen.</p>
+                        </div>
+
+                        {/* YouTube Live Toggle */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-100">
+                                <div className="space-y-0.5">
+                                    <label className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                                        <Youtube className="w-4 h-4 text-red-500" /> Enable YouTube Live Banner
+                                    </label>
+                                    <p className="text-xs text-slate-500">Show the Live Stream player on the Public Web landing page.</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <Controller
+                                        control={control}
+                                        name="isYoutubeLiveActive"
+                                        render={({ field: { value, onChange } }) => (
+                                            <label className="relative inline-flex items-center cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="sr-only peer"
+                                                    checked={!!value}
+                                                    onChange={(e) => onChange(e.target.checked)}
+                                                />
+                                                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                                            </label>
+                                        )}
+                                    />
+                                </div>
+                            </div>
                         </div>
 
                         {/* Beep Settings Group */}

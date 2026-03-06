@@ -2,13 +2,14 @@ import { useForm } from 'react-hook-form';
 import { useAuth } from '../../features/auth/hooks';
 import { ActionButton } from '../../components/ui/ActionButton';
 import { Input } from '../../components/ui/Input';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Lock, LogIn } from 'lucide-react';
 import { handleFormError } from '../../utils/form-error';
 
 export const LoginPage = () => 
 {
+    const [showPassword, setShowPassword] = useState(false);
     const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
     const { register, handleSubmit, setError, formState: { errors } } = useForm({
@@ -66,12 +67,27 @@ export const LoginPage = () =>
 
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-slate-700">Password</label>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="Enter password"
-                                {...register('password', { required: 'Password is required' })}
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Enter password"
+                                    className="pr-12"
+                                    {...register('password', { required: 'Password is required' })}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword(!showPassword)}
+                                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors cursor-pointer  "
+                                  aria-label={showPassword ? "Hide password" : "Show password"}
+                                >
+                                  {showPassword ? (
+                                    <EyeOff className="w-5 h-5" />
+                                  ) : (
+                                    <Eye className="w-5 h-5" />
+                                  )}
+                                </button>
+                            </div>
                             {errors.password && (
                                 <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>
                             )}

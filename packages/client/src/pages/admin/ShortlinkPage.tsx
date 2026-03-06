@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { ActionButton } from '../../components/ui/ActionButton'; 
 import { DataTable } from '../../components/ui/DataTable';
 import { ShortlinkFormModal } from '../../features/shortlink/components/ShortlinkFormModal';
+import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
 import type { Shortlink } from '../../features/shortlink/types';
 
 export const ShortlinkPage = () => 
@@ -15,6 +16,8 @@ export const ShortlinkPage = () =>
     const deleteMutation = useDeleteShortlink();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingShortlink, setEditingShortlink] = useState<Shortlink | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [shortlinkToDelete, setShortlinkToDelete] = useState<number | null>(null);
 
     const filteredData = useMemo(() => 
     {
@@ -47,14 +50,8 @@ export const ShortlinkPage = () =>
 
     const onDelete = (id: number) => 
     {
-        if (confirm('Are you sure you want to delete this shortlink?')) 
-        {
-            deleteMutation.mutate(id, 
-            {
-                onSuccess: () => toast.success('Shortlink deleted.'),
-                onError: () => toast.error('Failed to delete shortlink.'),
-            });
-        }
+        setShortlinkToDelete(id);
+        setIsDeleteModalOpen(true);
     };
 
     const copyToClipboard = (slug: string) => 
@@ -211,6 +208,26 @@ export const ShortlinkPage = () =>
                 isOpen={isModalOpen} 
                 onClose={handleCloseModal} 
                 editingShortlink={editingShortlink}
+            />
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={() => 
+                {
+                    if (shortlinkToDelete !== null) 
+                    {
+                        deleteMutation.mutate(shortlinkToDelete, 
+                        {
+                            onSuccess: () => toast.success('Shortlink deleted.'),
+                            onError: () => toast.error('Failed to delete shortlink.'),
+                        });
+                    }
+                }}
+                title="Delete Shortlink"
+                message="Are you sure you want to delete this shortlink?"
+                confirmText="Delete"
+                cancelText="Cancel"
             />
         </div>
     );

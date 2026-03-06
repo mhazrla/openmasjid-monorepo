@@ -12,13 +12,13 @@ const TikTokIcon = ({ className }: { className?: string }) => (
 
 const SocialMediaBadges = () => (
     <div className="flex flex-wrap justify-center lg:justify-start gap-6 mt-4">
-      <div className="flex items-center gap-4 bg-red-600/20 px-8 py-4 rounded-3xl border border-red-500/30 text-red-200 font-bold" style={{ fontSize: `calc(1.6rem * var(--scale-label, 1))` }}>
+      <div className="flex items-center gap-4 bg-red-600/20 px-8 py-4 rounded-3xl border border-red-500/30 text-red-200 font-bold" style={{ fontSize: `calc(2rem * var(--scale-label, 1))` }}>
         <Youtube className="w-10 h-10" /> at-tadzkirahtv
       </div>
-      <div className="flex items-center gap-4 bg-blue-600/20 px-8 py-4 rounded-3xl border border-blue-500/30 text-blue-200 font-bold" style={{ fontSize: `calc(1.6rem * var(--scale-label, 1))` }}>
+      <div className="flex items-center gap-4 bg-blue-600/20 px-8 py-4 rounded-3xl border border-blue-500/30 text-blue-200 font-bold" style={{ fontSize: `calc(2rem * var(--scale-label, 1))` }}>
         <Facebook className="w-10 h-10" /> At-tadzkirahtv Masjid
       </div>
-      <div className="flex items-center gap-4 bg-pink-600/20 px-8 py-4 rounded-3xl border border-pink-500/30 text-pink-200 font-bold" style={{ fontSize: `calc(1.6rem * var(--scale-label, 1))` }}>
+      <div className="flex items-center gap-4 bg-pink-600/20 px-8 py-4 rounded-3xl border border-pink-500/30 text-pink-200 font-bold" style={{ fontSize: `calc(2rem * var(--scale-label, 1))` }}>
         <TikTokIcon className="w-10 h-10" /> at_tadzkirahtv
       </div>
     </div>
@@ -40,68 +40,52 @@ const KajianBadge = ({ type }: { type: string }) =>
     );
 };
 
-const InfoItem = ({ icon: Icon, label, value }: { icon: any, label: string, value: string }) => (
-    <div className="flex items-center gap-8">
-      <div className="p-6 bg-black/40 rounded-3xl border border-white/10">
-        <Icon className="w-12 h-12" style={{ color: 'var(--theme-primary)' }} />
-      </div>
-      <div className="overflow-hidden">
-        <p className="uppercase tracking-widest font-bold mb-2" style={{ fontSize: `calc(1.8rem * var(--scale-label, 1))`, color: 'var(--theme-label, #cbd5e1)' }}>
-          {label}
-        </p>
-        <p className="text-[3.5rem] font-extrabold text-white tracking-tight truncate leading-tight">
-          {value}
-        </p>
-      </div>
-    </div>
-);
-
 const KajianNoPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, dateStr: string, timeStr: string }) => (
-    <div className="w-full h-full flex flex-col items-center justify-center p-12 md:p-20 relative overflow-hidden bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+    <div className="w-full h-full flex flex-col items-center justify-center p-8 md:p-12 relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
       
       {/* Background Decor */}
       <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-primary/10 blur-[150px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] left-[-10%] w-[800px] h-[800px] bg-primary/5 blur-[150px] rounded-full pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-7xl flex flex-col items-center text-center gap-10">
+      <div className="relative z-10 w-full max-w-full flex flex-col items-center text-center gap-6">
         <KajianBadge type={data.type} />
-        <h1 className="text-[7.5rem] font-black leading-none tracking-tighter text-white drop-shadow-2xl max-w-[95%] uppercase py-4">
+        <h1 className="font-black leading-tight tracking-tighter text-white drop-shadow-2xl max-w-[100%] uppercase py-2 line-clamp-2" style={{ fontSize: `calc(4rem * var(--scale-label, 1))` }}>
           {data.title || "Judul Kajian Belum Diisi"}
         </h1>
 
-        <div className="flex flex-col items-center justify-center gap-4 bg-white/5 px-24 py-10 rounded-[4rem] border border-white/10 w-full max-w-5xl shadow-inner relative overflow-hidden">
+        <div className="flex flex-col items-center justify-center gap-2 bg-white/5 px-16 py-8 rounded-[3rem] border border-white/10 w-full max-w-5xl shadow-inner relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
-          <div className="flex items-center gap-5 relative z-10 mb-2">
-            <User className="w-10 h-10" style={{ color: 'var(--theme-accent)' }} />
-            <span className="uppercase tracking-[0.5em] font-bold" style={{ fontSize: `calc(2.5rem * var(--scale-label, 1))`, color: 'var(--theme-accent)' }}>
+          <div className="flex items-center gap-4 relative z-10 mb-2">
+            <User className="w-8 h-8" style={{ color: 'var(--theme-accent)' }} />
+            <span className="uppercase tracking-widest font-bold" style={{ fontSize: `calc(2.4rem * var(--scale-label, 1))`, color: 'var(--theme-accent)' }}>
               Pemateri
             </span>
           </div>
-          <p className="text-[6rem] font-black text-white tracking-tight leading-none relative z-10 drop-shadow-md">
+          <p className="font-black text-white tracking-tight leading-none relative z-10 drop-shadow-md" style={{ fontSize: `calc(4rem * var(--scale-label, 1))` }}>
             {data.speaker || "Belum Ditentukan"}
           </p>
         </div>
 
-        <div className="w-80 h-2 bg-white/10 rounded-full my-2" />
+        <div className="w-80 h-2 bg-white/10 rounded-full my-1" />
 
-        <div className="grid grid-cols-2 gap-16 w-full max-w-5xl">
-          <div className="flex flex-col items-center gap-4 bg-black/30 p-8 rounded-[3rem] border border-white/5">
-            <div className="flex items-center gap-4">
-              <Calendar className="w-10 h-10" style={{ color: 'var(--theme-primary)' }} />
-              <span className="uppercase tracking-[0.3em] font-bold" style={{ fontSize: `calc(2rem * var(--scale-label, 1))`, color: 'var(--theme-label)' }}>Tanggal</span>
+        <div className="grid grid-cols-2 gap-10 w-full max-w-5xl">
+          <div className="flex flex-col items-center gap-3 bg-black/30 p-6 rounded-[2.5rem] border border-white/5">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-8 h-8" style={{ color: 'var(--theme-primary)' }} />
+              <span className="uppercase tracking-wider font-bold" style={{ fontSize: `calc(1.7rem * var(--scale-label, 1))`, color: 'var(--theme-label)' }}>Tanggal</span>
             </div>
-            <p className="text-[3rem] font-extrabold text-slate-100 whitespace-nowrap leading-none">{dateStr}</p>
+            <p className="font-extrabold text-slate-100 whitespace-nowrap leading-none" style={{ fontSize: `calc(2.7rem * var(--scale-label, 1))` }}>{dateStr}</p>
           </div>
-          <div className="flex flex-col items-center gap-4 bg-black/30 p-8 rounded-[3rem] border border-white/5">
-            <div className="flex items-center gap-4">
-              <Clock className="w-10 h-10" style={{ color: 'var(--theme-primary)' }} />
-              <span className="uppercase tracking-[0.3em] font-bold" style={{ fontSize: `calc(2rem * var(--scale-label, 1))`, color: 'var(--theme-label)' }}>Waktu</span>
+          <div className="flex flex-col items-center gap-3 bg-black/30 p-6 rounded-[2.5rem] border border-white/5">
+            <div className="flex items-center gap-3">
+              <Clock className="w-8 h-8" style={{ color: 'var(--theme-primary)' }} />
+              <span className="uppercase tracking-wider font-bold" style={{ fontSize: `calc(1.7rem * var(--scale-label, 1))`, color: 'var(--theme-label)' }}>Waktu</span>
             </div>
-            <p className="text-[3rem] font-extrabold text-slate-100 leading-none whitespace-nowrap">{timeStr}</p>
+            <p className="font-extrabold text-slate-100 leading-none whitespace-nowrap" style={{ fontSize: `calc(2.7rem * var(--scale-label, 1))` }}>{timeStr}</p>
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-2 transform scale-90">
           <SocialMediaBadges />
         </div>
 
@@ -110,58 +94,64 @@ const KajianNoPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, dat
 );
 
 const KajianWithPoster = ({ data, dateStr, timeStr }: { data: KajianSlideData, dateStr: string, timeStr: string }) => (
-    <div className="w-full h-full flex flex-col lg:flex-row bg-[#0a0f0b] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+    <div className="w-full h-full relative flex items-center justify-center bg-[#0a0f0b] overflow-hidden rounded-[3rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
       
-      <div className="hidden lg:flex lg:w-[50%] relative bg-black items-center justify-center overflow-hidden h-full">
-        <div className="absolute inset-0 bg-cover bg-center blur-[80px] opacity-30 scale-110 z-0" style={{ backgroundImage: `url(${data.posterUrl})` }} />
-        <img
-          src={data.posterUrl}
-          alt={data.title}
-          className="w-full h-full object-contain relative z-10 drop-shadow-[0_0_30px_rgba(0,0,0,0.5)]"
-          loading="lazy"
-        />
+      <div className="absolute inset-0 bg-cover bg-center blur-[100px] opacity-40 scale-125 z-0" style={{ backgroundImage: `url(${data.posterUrl})` }} />
+
+      <div className="absolute inset-0 z-10 flex items-center justify-center px-8 pt-8 pb-[240px]">
+          <img
+            src={data.posterUrl}
+            alt={data.title || "Poster Kajian"}
+            className="w-full h-full object-contain drop-shadow-2xl"
+            loading="lazy"
+          />
       </div>
 
-      <div className="w-full lg:w-[50%] flex flex-col justify-between p-16 lg:p-20 bg-[#0d120e] relative border-l border-white/5">
-        <div className="absolute top-[-20%] right-[-20%] w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-t from-black/95 via-black/50 to-transparent z-10 pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col gap-8">
-          <div className="flex justify-start mb-2">
-            <KajianBadge type={data.type} />
-          </div>
-          <h1 className="text-[5.5rem] font-black leading-tight text-white drop-shadow-md uppercase line-clamp-3">
-            {data.title || "Judul Kajian"}
-          </h1>
-        </div>
-
-        <div className="relative z-10 flex flex-col gap-10 my-8">
-          <div className="flex items-center gap-8 bg-white/5 px-10 py-8 rounded-[3rem] border border-white/10 w-full shadow-inner">
-            <div className="p-6 bg-black/50 rounded-3xl border border-white/5 shrink-0">
-              <User className="w-16 h-16" style={{ color: 'var(--theme-accent)' }} />
+      <div className="absolute bottom-10 left-10 right-10 z-20">
+        <div className="bg-black/60 backdrop-blur-2xl border border-white/20 p-8 rounded-[2.5rem] shadow-2xl flex flex-row items-center justify-between gap-10 w-full">
+            
+            <div className="flex flex-col gap-4 flex-1 min-w-0 pr-4">
+                <div className="flex">
+                    <KajianBadge type={data.type} />
+                </div>
+                <h1 className="font-black leading-tight text-white drop-shadow-lg uppercase line-clamp-3 break-words" style={{ fontSize: `calc(3rem * var(--scale-label, 1))` }}>
+                    {data.title || "Kajian Rutin"}
+                </h1>
             </div>
-            <div className="overflow-hidden">
-              <p className="uppercase tracking-[0.4em] font-bold mb-2" style={{ fontSize: `calc(1.8rem * var(--scale-label, 1))`, color: 'var(--theme-accent)' }}>
-                Pemateri
-              </p>
-              <p className="text-[4rem] font-extrabold text-white tracking-tight truncate leading-none py-2">
-                {data.speaker}
-              </p>
-            </div>
-          </div>
 
-          <div className="h-px w-full bg-white/10" />
+            {/* Divider Vertikal */}
+            <div className="w-px h-32 bg-white/20 hidden lg:block rounded-full"></div>
 
-          <div className="flex flex-col gap-10">
-            <InfoItem icon={Calendar} label="Tanggal" value={dateStr} />
-            <InfoItem icon={Clock} label="Waktu" value={timeStr} />
-          </div>
+            {/* Tengah: Pemateri */}
+            <div className="flex flex-col gap-2 w-fit max-w-[35%] shrink-0 justify-center">
+                <span className="text-white/60 uppercase tracking-widest font-bold" style={{ fontSize: 'calc(2rem * var(--scale-label, 1))' }}>Pemateri</span>
+                <div className="flex items-center gap-4 mt-1">
+                    <div className="p-4 bg-primary/20 rounded-2xl border border-primary/30 shrink-0">
+                        <User className="w-10 h-10 text-primary" />
+                    </div>
+                    <p className="font-extrabold text-white tracking-wide leading-tight line-clamp-2" style={{ fontSize: `calc(3rem * var(--scale-label, 1))` }}>
+                {data.speaker || "Belum Ditentukan"}
+            </p>
         </div>
+    </div>
 
-        <div className="relative z-10 pt-4">
-          <p className="uppercase tracking-[0.3em] font-bold mb-4" style={{ fontSize: `calc(1.8rem * var(--scale-label, 1))`, color: 'var(--theme-label)' }}>
-            Live Streaming On
-          </p>
-          <SocialMediaBadges />
+            {/* Divider Vertikal */}
+            <div className="w-px h-32 bg-white/20 hidden lg:block rounded-full"></div>
+
+            {/* Kanan: Tanggal & Waktu */}
+            <div className="flex flex-col gap-4 shrink-0 w-fit">
+                <div className="flex items-center gap-5 bg-white/10 border border-white/10 px-6 py-4 rounded-2xl w-full">
+                    <Calendar className="w-8 h-8 text-slate-300" />
+                    <span className="font-bold text-slate-100 tracking-wide" style={{ fontSize: `calc(2rem * var(--scale-label, 1))` }}>{dateStr}</span>
+                </div>
+                <div className="flex items-center gap-5 bg-primary/20 border border-primary/40 px-6 py-4 rounded-2xl w-full shadow-inner">
+                    <Clock className="w-10 h-10 text-primary drop-shadow-md" />
+                    <span className="font-black text-white leading-none drop-shadow-lg tracking-wide" style={{ fontSize: `calc(2rem * var(--scale-label, 1))` }}>{timeStr}</span>
+                </div>
+            </div>
+
         </div>
       </div>
     </div>
@@ -175,9 +165,16 @@ export const KajianWidget = ({ data }: { data: KajianSlideData }) =>
   const eventDate = data.dateRaw ? new Date(data.dateRaw) : null;
   const isValidDate = eventDate && !isNaN(eventDate.getTime());
 
-  const dateStr = isValidDate
-    ? format(eventDate, 'EEEE, d MMMM yyyy', { locale: id })
-    : '-';
+  let dateStr = '-';
+  if (data.type === 'kajian_rutin' && data.dayOfWeek != null) 
+  {
+      const dayName = ['Ahad','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][Number(data.dayOfWeek)] || '';
+      dateStr = `Setiap Hari ${dayName}`;
+  }
+  else if (isValidDate)
+  {
+      dateStr = format(eventDate, 'EEEE, d MMMM yyyy', { locale: id });
+  }
 
   let timeStr: string;
   if (data.timeMode === 'bada_sholat' && data.badaSholat) 

@@ -22,7 +22,8 @@ export function DataTable<TData>({
   columns,
   data,
   isLoading,
-}: DataTableProps<TData>) {
+}: DataTableProps<TData>) 
+{
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 5, 

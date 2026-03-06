@@ -3,7 +3,6 @@ import { useForm, Controller } from 'react-hook-form';
 import { 
     useCreateTransaction, 
     useUpdateTransaction, 
-    useCategories, 
     useAccounts,
     useSuggestions 
 } from '../hooks';
@@ -13,6 +12,14 @@ import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
 import { Modal } from '../../../components/ui/Modal';
 import { handleFormError } from '../../../utils/form-error';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createTransactionSchema } from '../schema';
+
+const getLocalDatetimeString = (dateStr?: string | Date) => 
+{
+    const date = dateStr ? new Date(dateStr) : new Date();
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
 
 export interface TransactionFormModalProps 
 {
@@ -26,7 +33,6 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
     const createMutation = useCreateTransaction();
     const updateMutation = useUpdateTransaction();
     const { data: accounts = [] } = useAccounts();
-    const { data: categories = [] } = useCategories();
 
     const [descQuery, setDescQuery] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -35,24 +41,25 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
     const suggestionRef = useRef<HTMLDivElement>(null);
 
     const { register, handleSubmit, reset, setValue, watch, setError, clearErrors, control, formState: { errors } } = useForm<Transaction>({
+        resolver: zodResolver(createTransactionSchema as any),
         defaultValues: {
-            date: new Date().toISOString().slice(0, 16),
-            type: 'debit',
-            categoryId: '' as any,
+            date: getLocalDatetimeString(),
+            type: 'income',
+            fundCategory: 'operasional',
             accountId: accounts.length > 0 ? accounts[0].id : ('' as any),
             amount: 0,
             description: ''
         }
     });
 
-    const watchType = watch('type');
     const watchDesc = watch('description');
 
     useEffect(() => 
     {
         const delay = setTimeout(() => 
         {
-            if (watchDesc !== descQuery) {
+            if (watchDesc !== descQuery) 
+            {
                 setDescQuery(watchDesc || '');
             }
         }, 300);
@@ -63,7 +70,8 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
     {
         const handleClickOutside = (event: MouseEvent) => 
         {
-            if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
+            if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) 
+            {
                 setShowSuggestions(false);
             }
         };
@@ -79,16 +87,16 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
         {
             reset({
                ...editingTx,
-               date: new Date(editingTx.date).toISOString().slice(0, 16),
+               date: getLocalDatetimeString(editingTx.date),
             }); 
             setDescQuery(editingTx.description);
         } 
         else 
         {
             reset({ 
-                date: new Date().toISOString().slice(0, 16),
-                type: 'debit',
-                categoryId: '' as any,
+                date: getLocalDatetimeString(),
+                type: 'income',
+                fundCategory: 'operasional',
                 accountId: accounts.length > 0 ? accounts[0].id : ('' as any),
                 amount: 0,
                 description: ''
@@ -113,7 +121,7 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
             type: data.type,
             amount: Number(data.amount),
             description: data.description,
-            categoryId: Number(data.categoryId),
+            fundCategory: data.fundCategory,
             accountId: Number(data.accountId)
         };
 
@@ -135,12 +143,6 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
 
     const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
-    const targetCategoryType = watchType === 'debit' ? 'income' : 'expense';
-
-    const filteredCategories = categories
-        .filter(c => c.type === targetCategoryType)
-        .map(c => ({ value: c.id.toString(), label: c.name }));
-
     const accountOptions = accounts
         .map(a => ({ value: a.id.toString(), label: a.name }));
 
@@ -155,31 +157,27 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
                 <div className="grid grid-cols-2 gap-4">
                     <Input 
                         type="datetime-local"
-                        label={<span>Date <span className="text-red-500">*</span></span>}
-                        {...register('date', { required: 'Date is required' })} 
-                        error={errors.date?.message} 
+                        label="Date"
+                        required
+                        {...register('date')} 
+                        error={errors.date?.message as string} 
                     />
 
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-700 block">
-                            Transaction Type <span className="text-red-500">*</span>
-                        </label>
                         <Controller
                             control={control}
                             name="type"
                             render={({ field: { value, onChange } }) => (
                                 <Select
+                                    label="Transaction Type"
+                                    required
                                     options={[
-                                        { value: 'debit', label: 'Income' },
-                                        { value: 'credit', label: 'Expense' }
+                                        { value: 'income', label: 'Income' },
+                                        { value: 'expense', label: 'Expense' }
                                     ]}
                                     value={value}
-                                    onChange={(v) => 
-                                    {
-                                        onChange(v);
-                                        setValue('categoryId', '' as any);
-                                    }}
-                                    error={errors.type?.message}
+                                    onChange={(v) => onChange(v)}
+                                    error={errors.type?.message as string}
                                 />
                             )}
                         />
@@ -188,45 +186,39 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-700 block">
-                            Category
-                             <span className="text-red-500">*</span>
-                        </label>
                         <Controller
                             control={control}
-                            name="categoryId"
-                            rules={{ 
-                                required: 'Please select a Category',
-                                validate: val => Number(val) > 0 || 'Please select a Category' 
-                            }}
+                            name="fundCategory"
                             render={({ field: { value, onChange } }) => (
                                 <Select
-                                    options={filteredCategories}
-                                    value={value?.toString()}
-                                    onChange={(v) => onChange(Number(v))}
-                                    error={errors.categoryId?.message}
+                                    label="Fund Category"
+                                    required
+                                    options={[
+                                        { value: 'operasional', label: 'Operasional Masjid' },
+                                        { value: 'yatim', label: 'Yatim & Dhuafa' },
+                                        { value: 'pembangunan', label: 'Pembangunan' },
+                                        { value: 'ramadhan', label: 'Program Khusus / Ramadhan' }
+                                    ]}
+                                    value={value}
+                                    onChange={(v) => onChange(v as any)}
+                                    error={errors.fundCategory?.message as string}
                                 />
                             )}
                         />
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-700 block">
-                            Cash Account <span className="text-red-500">*</span>
-                        </label>
                         <Controller
                             control={control}
                             name="accountId"
-                            rules={{ 
-                                required: 'Please select an Account',
-                                validate: val => Number(val) > 0 || 'Please select an Account' 
-                            }}
                             render={({ field: { value, onChange } }) => (
                                 <Select
+                                    label="Cash Account"
+                                    required
                                     options={accountOptions}
                                     value={value?.toString()}
                                     onChange={(v) => onChange(Number(v))}
-                                    error={errors.accountId?.message}
+                                    error={errors.accountId?.message as string}
                                 />
                             )}
                         />
@@ -237,10 +229,6 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
                     <Controller
                         control={control}
                         name="amount"
-                        rules={{
-                            required: 'Amount is required',
-                            min: { value: 100, message: 'Minimum Rp 100' }
-                        }}
                         render={({ field: { value, onChange, onBlur } }) => 
                         {
                             const displayValue = value ? new Intl.NumberFormat('id-ID').format(value) : '';
@@ -248,7 +236,8 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
                             return (
                                 <Input
                                     type="text"
-                                    label={<span>Amount (Rp) <span className="text-red-500">*</span></span>}
+                                    label="Amount (Rp)"
+                                    required
                                     placeholder="0"
                                     value={displayValue}
                                     onChange={(e) => 
@@ -257,7 +246,7 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
                                         onChange(rawValue ? Number(rawValue) : 0);
                                     }}
                                     onBlur={onBlur}
-                                    error={errors.amount?.message}
+                                    error={errors.amount?.message as string}
                                 />
                             );
                         }}
@@ -266,10 +255,11 @@ export const TransactionFormModal = ({ isOpen, onClose, editingTx }: Transaction
 
                 <div className="relative" ref={suggestionRef}>
                     <Input 
-                        label={<span>Description <span className="text-red-500">*</span></span>}
-                        {...register('description', { required: 'Description is required' })} 
+                        label="Description"
+                        required
+                        {...register('description')} 
                         placeholder="e.g. Electricity bill, Donations..."
-                        error={errors.description?.message} 
+                        error={errors.description?.message as string} 
                         autoComplete="off"
                         onFocus={() => setShowSuggestions(true)}
                     />

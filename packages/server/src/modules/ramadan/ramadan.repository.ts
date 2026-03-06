@@ -55,7 +55,8 @@ export class RamadanRepository
       }).returning(); 
 
       const newConfigId = insertedConfig.id;
-      const newConfig = {
+      const newConfig = 
+      {
         ...insertedConfig,
         ...data,
       };

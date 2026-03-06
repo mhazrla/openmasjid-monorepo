@@ -10,12 +10,10 @@ if (import.meta.env.PROD && import.meta.env.VITE_API_URL)
   baseURL = apiUrl.endsWith('/api/') ? apiUrl : apiUrl.replace(/\/$/, '') + '/api/';
 }
 
-// Configured Axios instance
 const api = axios.create({
   baseURL,
 });
 
-// Hook for fetching all albums
 export const useAlbums = () => 
 {
   return useQuery({
@@ -28,7 +26,6 @@ export const useAlbums = () =>
   });
 };
 
-// Hook for fetching a single album and its media
 export const useAlbumDetail = (id: string | undefined) => 
 {
   return useQuery({

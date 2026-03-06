@@ -9,7 +9,8 @@ interface AlbumCardProps {
   itemCount: number;
 }
 
-export const AlbumCard = ({ id, title, date, coverImage, itemCount }: AlbumCardProps) => {
+export const AlbumCard = ({ id, title, date, coverImage, itemCount }: AlbumCardProps) => 
+{
   return (
     <Link to={`/archive/${id}`} className="group block overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 break-inside-avoid mb-6">
       <div className="relative aspect-4/3 overflow-hidden bg-slate-100">

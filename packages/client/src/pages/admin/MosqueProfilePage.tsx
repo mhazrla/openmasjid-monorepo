@@ -4,24 +4,15 @@ import type { UpdateMosqueProfileDto } from '../../features/mosque/types';
 import { useEffect, useState } from 'react';
 import { useLoadingStore } from '../../store/useLoadingStore';
 import { Save } from 'lucide-react';
-import { cn } from '../../lib/utils';
 import { toast } from 'sonner';
 import { ActionButton } from '../../components/ui/ActionButton';
 import { handleFormError } from '../../utils/form-error';
 import { ImageUpload } from '../../components/ui/ImageUpload';
 import { FormItem } from '../../components/ui/FormLayout';
 import { Input } from '../../components/ui/Input';
-import { api } from '../../lib/axios';
-
-const uploadFile = async (file: File): Promise<string> => 
-{
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const { data } = await api.post<{ data: { url: string } }>('/upload', formData);
-
-    return data.data.url;
-};
+import { Textarea } from '../../components/ui/Textarea';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { updateMosqueProfileSchema } from '../../features/mosque/schema';
 
 export const MosqueProfilePage = () => 
 {
@@ -31,13 +22,18 @@ export const MosqueProfilePage = () =>
     const [logoFile, setLogoFile]       = useState<File | null>(null);
     const [qrisFile, setQrisFile]       = useState<File | null>(null);
 
-    const { register, control, handleSubmit, reset, setError, formState: { errors, isDirty } } = useForm<UpdateMosqueProfileDto>();
+    const { register, control, handleSubmit, reset, setError, formState: { errors, isDirty } } = useForm<UpdateMosqueProfileDto>({
+        resolver: zodResolver(updateMosqueProfileSchema as any)
+    });
 
     useEffect(() => 
     {
-        if (isLoading) {
+        if (isLoading) 
+        {
             useLoadingStore.getState().showLoading('Loading profile...');
-        } else {
+        } 
+        else 
+        {
             useLoadingStore.getState().hideLoading();
         }
 
@@ -59,42 +55,42 @@ export const MosqueProfilePage = () =>
     {
         useLoadingStore.getState().showLoading('Saving profile...');
         try {
-            let finalLogoUrl: string | null | undefined = data.logoUrl;
-            let finalQrisUrl: string | null | undefined = data.qrisUrl;
-
+            const formData = new FormData();
+            
+            formData.append('name', data.name || '');
+            formData.append('address', data.address || '');
+            formData.append('bankName', data.bankName || '');
+            formData.append('bankAccountName', data.bankAccountName || '');
+            formData.append('bankAccountNumber', data.bankAccountNumber || '');
+            
+            // Handle logo
             if (logoFile) 
             {
-                finalLogoUrl = await uploadFile(logoFile);
+                formData.append('logoFile', logoFile);
             }
             else if (logoFile === null && data.logoUrl === '') 
             {
-               finalLogoUrl = null;
+               formData.append('logoUrl', '');
             }
 
+            // Handle qris
             if (qrisFile) 
             {
-                finalQrisUrl = await uploadFile(qrisFile);
+                formData.append('qrisFile', qrisFile);
             }
             else if (qrisFile === null && data.qrisUrl === '') 
             {
-               finalQrisUrl = null;
+               formData.append('qrisUrl', '');
             }
 
-            const payload = 
-            {
-                ...data,
-                logoUrl: finalLogoUrl,
-                qrisUrl: finalQrisUrl,
-            };
-
-            await updateMutation.mutateAsync(payload);
+            await updateMutation.mutateAsync(formData as any);
             
             toast.success("Profile successfully updated!");
             
             setLogoFile(null);
             setQrisFile(null);
             
-            reset(payload);
+            reset(data);
 
         } 
         catch (err: any) 
@@ -110,7 +106,7 @@ export const MosqueProfilePage = () =>
 
     if (isLoading) 
     {
-        return null; // hide behind overlay
+        return null;
     }
 
     return (
@@ -135,26 +131,19 @@ export const MosqueProfilePage = () =>
                                 <Input
                                     id="name"
                                     placeholder="Example: Al-Ikhlas Mosque"
-                                    {...register('name', { required: 'Mosque name is required' })}
+                                    {...register('name')}
                                 />
                             </FormItem>
 
-                            <FormItem 
-                                label="Full Address" 
-                                required 
+                            <Textarea
+                                id="address"
+                                label="Full Address"
+                                required
                                 error={errors.address?.message}
-                            >
-                                <textarea
-                                    id="address"
-                                    rows={3}
-                                    {...register('address', { required: 'Address is required' })}
-                                    className={cn(
-                                        "flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                                        "resize-none"
-                                    )}
-                                    placeholder="123 Main Street..."
-                                />
-                            </FormItem>
+                                rows={3}
+                                {...register('address')}
+                                placeholder="123 Main Street..."
+                            />
                         </div>
 
                         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden p-6 space-y-6">
@@ -199,7 +188,8 @@ export const MosqueProfilePage = () =>
                                         <ImageUpload 
                                             label="Mosque Logo"
                                             value={logoFile || field.value} 
-                                            onChange={(file) => {
+                                            onChange={(file) => 
+                                            {
                                                 setLogoFile(file);
                                                 if (file) 
                                                 {
@@ -223,7 +213,8 @@ export const MosqueProfilePage = () =>
                                         <ImageUpload 
                                             label="QRIS Code"
                                             value={qrisFile || field.value}
-                                            onChange={(file) => {
+                                            onChange={(file) => 
+                                            {
                                                 setQrisFile(file);
                                                 if (file) 
                                                 {

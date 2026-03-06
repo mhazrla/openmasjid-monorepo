@@ -6,7 +6,6 @@ export { BankInfoWidget } from './BankInfoWidget';
 export { TarawihWidget } from './TarawihWidget';
 export { KajianIfthorWidget } from './KajianIfthorWidget';
 export { KajianWidget } from './KajianWidget';
-export { ClockWidget } from './ClockWidget';
 export { default as PrayerCountdownWidget } from './PrayerCountdownWidget';
 export { FloatingPillClock } from './FloatingPillClock';
 export { BottomPrayerCards } from './BottomPrayerCards';

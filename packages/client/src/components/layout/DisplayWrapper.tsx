@@ -3,7 +3,8 @@ import React, { useState, useEffect, type ReactNode } from 'react';
 const CANVAS_WIDTH = 1920;
 const CANVAS_HEIGHT = 1080;
 
-interface DisplayWrapperProps {
+interface DisplayWrapperProps 
+{
     children: ReactNode;
 }
 
@@ -11,7 +12,8 @@ export const DisplayWrapper: React.FC<DisplayWrapperProps> = ({ children }) =>
 {
     const [scale, setScale] = useState<number>(1);
 
-    useEffect(() => {
+    useEffect(() => 
+    {
         const calculateScale = () => 
         {
             const s = Math.min(window.innerWidth / CANVAS_WIDTH, window.innerHeight / CANVAS_HEIGHT);

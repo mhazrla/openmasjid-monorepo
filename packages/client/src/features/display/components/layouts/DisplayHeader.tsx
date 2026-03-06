@@ -11,25 +11,32 @@ interface DisplayHeaderProps
     effectiveDate?: Date;
 }
 
-export const DisplayHeader = ({ profile, currentTime, config, effectiveDate }: DisplayHeaderProps) => {
+export const DisplayHeader = ({ profile, currentTime, config, effectiveDate }: DisplayHeaderProps) => 
+{
     let displayHijriDate = config?.cachedHijriDate;
 
-    if (effectiveDate) {
+    if (effectiveDate) 
+    {
         try {
             const adjustedDate = new Date(effectiveDate);
-            if (config?.hijriAdj) {
+            if (config?.hijriAdj) 
+            {
                 adjustedDate.setDate(adjustedDate.getDate() + config.hijriAdj);
             }
-            const formatter = new Intl.DateTimeFormat('id-ID-u-ca-islamic', {
+            const formatter = new Intl.DateTimeFormat('id-ID-u-ca-islamic', 
+            {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
             });
             displayHijriDate = formatter.format(adjustedDate).replace(/ AH$/, ' H');
-            if (!displayHijriDate.endsWith('H')) {
+            if (!displayHijriDate.endsWith('H')) 
+            {
                 displayHijriDate += ' H';
             }
-        } catch (e) {
+        } 
+        catch (e) 
+        {
             console.error('Hijri format error', e);
         }
     }

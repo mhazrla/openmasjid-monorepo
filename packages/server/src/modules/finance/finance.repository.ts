@@ -1,6 +1,6 @@
 import { eq, desc, and, gte, lte, sql } from 'drizzle-orm';
 import { db } from '../../db'; 
-import { transactions, accounts, coaCategories } from '../../db/schema';
+import { transactions, accounts } from '../../db/schema';
 import { GetTransactionsQueryDto, CreateTransactionDto, UpdateTransactionDto } from './finance.interface';
 
 export class FinanceRepository 
@@ -30,7 +30,6 @@ export class FinanceRepository
         where: conditions.length > 0 ? and(...conditions) : undefined,
         with: 
         {
-            category: true,
             account: true,
         },
         orderBy: [desc(transactions.date), desc(transactions.createdAt)],
@@ -38,8 +37,8 @@ export class FinanceRepository
         offset,
     });
 
-    let totalDebit = 0;
-    let totalCredit = 0;
+    let totalIncome = 0;
+    let totalExpense = 0;
 
     const summaryRows = await db.select({
       type: transactions.type,
@@ -51,8 +50,8 @@ export class FinanceRepository
 
     for (const row of summaryRows) 
     {
-        if (row.type === 'debit') totalDebit = row.total;
-        if (row.type === 'credit') totalCredit = row.total;
+        if (row.type === 'income') totalIncome = row.total;
+        if (row.type === 'expense') totalExpense = row.total;
     }
 
     const [{ count }] = await db.select({ count: sql<number>`count(*)`.mapWith(Number) })
@@ -61,7 +60,7 @@ export class FinanceRepository
 
     return {
         data: rows,
-        summary: { totalDebit, totalCredit },
+        summary: { totalIncome, totalExpense },
         pagination: {
             total: count,
             page: filters.page,
@@ -75,7 +74,7 @@ export class FinanceRepository
   {
     return await db.query.transactions.findFirst({
       where: eq(transactions.id, id),
-      with: { category: true, account: true }
+      with: { account: true }
     });
   }
 
@@ -92,7 +91,7 @@ export class FinanceRepository
         })
         .returning();
 
-      const modifier = data.type === 'debit' ? data.amount : -data.amount;
+      const modifier = data.type === 'income' ? data.amount : -data.amount;
       
       await tx.update(accounts)
         .set({ balance: sql`balance + ${modifier}`, updatedAt: new Date() })
@@ -112,12 +111,12 @@ export class FinanceRepository
 
       if (!oldTx) throw new Error('Transaction not found');
 
-      const oldModifier = oldTx.type === 'debit' ? -oldTx.amount : oldTx.amount;
+      const oldModifier = oldTx.type === 'income' ? -oldTx.amount : oldTx.amount;
       await tx.update(accounts)
         .set({ balance: sql`balance + ${oldModifier}` })
         .where(eq(accounts.id, oldTx.accountId));
 
-      const newModifier = data.type === 'debit' ? data.amount : -data.amount;
+      const newModifier = data.type === 'income' ? data.amount : -data.amount;
       await tx.update(accounts)
         .set({ balance: sql`balance + ${newModifier}`, updatedAt: new Date() })
         .where(eq(accounts.id, data.accountId));
@@ -145,7 +144,7 @@ export class FinanceRepository
 
       if (!oldTx) return null;
 
-      const oldModifier = oldTx.type === 'debit' ? -oldTx.amount : oldTx.amount;
+      const oldModifier = oldTx.type === 'income' ? -oldTx.amount : oldTx.amount;
       await tx.update(accounts)
         .set({ balance: sql`balance + ${oldModifier}`, updatedAt: new Date() })
         .where(eq(accounts.id, oldTx.accountId));
@@ -165,7 +164,16 @@ export class FinanceRepository
 
   async getCategories() 
   {
-    return await db.query.coaCategories.findMany();
+    return [
+      { id: 'operasional', name: 'Operasional Masjid', type: 'expense' },
+      { id: 'yatim', name: 'Yatim & Dhuafa', type: 'expense' },
+      { id: 'pembangunan', name: 'Pembangunan', type: 'expense' },
+      { id: 'ramadhan', name: 'Program Khusus / Ramadhan', type: 'expense' },
+      { id: 'operasional', name: 'Operasional Masjid', type: 'income' },
+      { id: 'yatim', name: 'Yatim & Dhuafa', type: 'income' },
+      { id: 'pembangunan', name: 'Pembangunan', type: 'income' },
+      { id: 'ramadhan', name: 'Program Khusus / Ramadhan', type: 'income' },
+    ];
   }
 
   async getSuggestions(query: string = '') 
@@ -191,14 +199,14 @@ export class FinanceRepository
 
   async getSummary() 
   {
-    const totalAssetsResult = await db.select({ total: sql<number>`sum(balance)`.mapWith(Number) }).from(accounts);
-    const totalAssets = totalAssetsResult[0]?.total || 0;
+    const accountsData = await db.query.accounts.findMany();
+    const totalAssets = accountsData.reduce((sum: number, acc: any) => sum + acc.balance, 0);
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    let totalDebit = 0;
-    let totalCredit = 0;
+    let monthlyIncome = 0;
+    let monthlyExpense = 0;
 
     const summaryRows = await db.select({
       type: transactions.type,
@@ -210,9 +218,56 @@ export class FinanceRepository
 
     for (const row of summaryRows) 
     {
-        if (row.type === 'debit') totalDebit = row.total;
-        if (row.type === 'credit') totalCredit = row.total;
+        if (row.type === 'income') monthlyIncome = row.total;
+        if (row.type === 'expense') monthlyExpense = row.total;
     }
+
+    const fundIncomeRows = await db.select({
+      fundCategory: transactions.fundCategory,
+      total: sql<number>`sum(${transactions.amount})`.mapWith(Number)
+    })
+    .from(transactions)
+    .where(eq(transactions.type, 'income'))
+    .groupBy(transactions.fundCategory);
+
+    const fundExpenseRows = await db.select({
+      fundCategory: transactions.fundCategory,
+      total: sql<number>`sum(${transactions.amount})`.mapWith(Number)
+    })
+    .from(transactions)
+    .where(eq(transactions.type, 'expense'))
+    .groupBy(transactions.fundCategory);
+
+    const fundBalances: Record<string, number> = 
+    {
+        operasional: 0,
+        yatim: 0,
+        pembangunan: 0,
+        ramadhan: 0
+    };
+
+    for (const row of fundIncomeRows) 
+    {
+        if (row.fundCategory && row.fundCategory in fundBalances) 
+        {
+             fundBalances[row.fundCategory] += row.total;
+        }
+    }
+    for (const row of fundExpenseRows) 
+    {
+        if (row.fundCategory && row.fundCategory in fundBalances) 
+        {
+             fundBalances[row.fundCategory] -= row.total;
+        }
+    }
+
+    // Identify account balances
+    const accountBalances = accountsData.reduce((acc: Record<string, number>, account: any) => {
+        const idMap: Record<number, string> = { 1: 'bsi', 2: 'cash' };
+        const key = idMap[account.id] || account.name;
+        acc[key] = account.balance;
+        return acc;
+    }, {} as Record<string, number>);
 
     const [latestTx] = await db.select({ date: transactions.date, updatedAt: transactions.updatedAt })
       .from(transactions)
@@ -221,8 +276,10 @@ export class FinanceRepository
 
     return {
         totalBalance: totalAssets,
-        monthlyIncome: totalDebit,
-        monthlyExpense: totalCredit,
+        monthlyIncome,
+        monthlyExpense,
+        fundBalances,
+        accountBalances,
         lastUpdated: latestTx ? (latestTx.updatedAt || latestTx.date) : null
     };
   }

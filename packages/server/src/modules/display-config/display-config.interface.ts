@@ -10,6 +10,7 @@ export type InsertDisplayConfig = InferInsertModel<typeof dsConfig>;
 export const updateDisplayConfigSchema = z.object({
   cityId: z.string().min(1, 'City ID required'),
   runningText: z.string().optional(),
+  isYoutubeLiveActive: z.boolean().optional(),
   
   // Timings - Must be positive integers
   preAdzanDuration: z.number().int().min(0).optional(),
@@ -44,6 +45,7 @@ export const updateDisplayConfigSchema = z.object({
 
   // Audio
   enableBeep: z.boolean().optional(),
+  beepReminderDuration: z.number().int().min(0).optional(),
 
   // Theme Config
   themeColor: z.string().optional(),

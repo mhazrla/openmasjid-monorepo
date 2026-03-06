@@ -5,7 +5,8 @@ import { useAlbums } from '../hooks/useArchive';
 import type { ArchiveAlbum } from '../types/archive.types';
 import { getImageUrl } from '../lib/utils';
 
-export const ArchiveExplorer = () => {
+export const ArchiveExplorer = () => 
+{
   const [activeFilter, setActiveFilter] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const filters = ['Semua', 'Kajian', 'Ramadhan', 'Sosial', 'Jumat'];
@@ -24,8 +25,8 @@ export const ArchiveExplorer = () => {
     });
   }, [sourceAlbums, activeFilter, searchQuery]);
 
-  return (
-    <div className="min-h-screen bg-slate-50 pt-24 pb-20">
+    return (
+    <div className="min-h-screen bg-slate-50 pt-8 pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Section */}

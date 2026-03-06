@@ -5,7 +5,8 @@ import { useAlbumDetail } from '../hooks/useArchive';
 import type { ArchiveMedia } from '../types/archive.types';
 import { getImageUrl } from '../lib/utils';
 
-const extractYouTubeId = (url: string): string | null => {
+const extractYouTubeId = (url: string): string | null => 
+{
     if (!url) return null;
     const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|shorts\/|live\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
     return match ? match[1] : null;
@@ -82,7 +83,8 @@ export const ArchiveDetail = () =>
               {/* Media Image (Same for Photo and Video) */}
               <img 
                 src={media.type === 'image' ? getImageUrl(media.mediaUrl) : `https://img.youtube.com/vi/${extractYouTubeId(media.mediaUrl)}/maxresdefault.jpg`}
-                onError={(e) => { 
+                onError={(e) => 
+                { 
                   if (media.type === 'video') e.currentTarget.src = `https://img.youtube.com/vi/${extractYouTubeId(media.mediaUrl)}/hqdefault.jpg`; 
                 }}
                 alt={media.title || 'Media'} 

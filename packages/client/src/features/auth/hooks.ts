@@ -3,7 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { api } from '../../lib/axios'; 
 
-const AUTH_KEY = 'masjid_display_auth_token';
+export const AUTH_KEY = 'masjid_display_auth_token';
+
+export const isTokenExpired = (token: string | null): boolean => 
+{
+    if (!token) return true;
+    try 
+    {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp) 
+        {
+            return (payload.exp * 1000) < Date.now();
+        }
+        return false;
+    } 
+    catch (e) 
+    {
+        return true;
+    }
+};
 
 interface LoginResponse 
 {
@@ -19,7 +37,8 @@ export const useAuth = () =>
 {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => 
     {
-        return !!localStorage.getItem(AUTH_KEY);
+        const token = localStorage.getItem(AUTH_KEY);
+        return token ? !isTokenExpired(token) : false;
     });
 
     const [isLoading, setIsLoading] = useState(false);
@@ -89,7 +108,8 @@ export const useAuth = () =>
     {
         const handleStorageChange = () => 
         {
-             setIsAuthenticated(!!localStorage.getItem(AUTH_KEY));
+             const token = localStorage.getItem(AUTH_KEY);
+             setIsAuthenticated(token ? !isTokenExpired(token) : false);
         };
         window.addEventListener('storage', handleStorageChange);
 

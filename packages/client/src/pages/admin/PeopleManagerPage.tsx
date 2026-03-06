@@ -152,8 +152,8 @@ export const PeopleManagerPage = () =>
         columnHelper.display({
             id: 'actions',
             header: () => <div className="text-right px-4">Actions</div>,
-            cell: ({ row }) => {
-
+            cell: ({ row }) => 
+            {
                 return (
                     <div className="flex items-center justify-end px-4 gap-2">
                         <ActionButton 

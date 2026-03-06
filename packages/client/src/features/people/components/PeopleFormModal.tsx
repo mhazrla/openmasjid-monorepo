@@ -7,6 +7,8 @@ import { Input } from '../../../components/ui/Input';
 import { Select } from '../../../components/ui/Select';
 import { Modal } from '../../../components/ui/Modal';
 import { handleFormError } from '../../../utils/form-error';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createPersonSchema } from '../schema';
 
 export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormModalProps) => 
 {
@@ -14,6 +16,7 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
     const updateMutation = useUpdatePerson();
 
     const { register, handleSubmit, reset, setError, clearErrors, control, formState: { errors } } = useForm<Person>({
+        resolver: zodResolver(createPersonSchema as any),
         defaultValues: {
             name: '',
             type: 'jamaah',
@@ -58,15 +61,8 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
 
     const onSubmit = (data: Person) => 
     {
-        // Convert status back to boolean if needed, or handle as is?
-        // Person interface expects boolean.
-        // We need to ensure we pass boolean to mutation if API expects boolean JSON.
-        // API (PeopleController) expects JSON body. 
-        // UpdatePersonDTO -> status?: boolean.
-        // Zod schema -> z.boolean().
-        // So we MUST convert string "true" to boolean true.
-        
-        const payload = {
+        const payload = 
+        {
             ...data,
             status: String(data.status) === 'true'
         };
@@ -87,8 +83,6 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
         }
     };
 
-
-
     return (
         <Modal 
             isOpen={isOpen} 
@@ -97,23 +91,23 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
         >
             <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-5">
                 <Input 
-                    label={<span>Full Name <span className="text-red-500">*</span></span>}
-                    {...register('name', { required: 'Name is required' })} 
+                    label="Full Name"
+                    required
+                    {...register('name')} 
                     placeholder="e.g. Ahmad Fulan"
-                    error={errors.name?.message} 
+                    error={errors.name?.message as string} 
                     autoFocus
                 />
 
                 <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-slate-700 block">
-                        Role Type <span className="text-red-500">*</span>
-                    </label>
                     <div className="relative">
                         <Controller
                             control={control}
                             name="type"
                             render={({ field: { value, onChange } }) => (
                                 <Select
+                                    label="Role Type"
+                                    required
                                     options={[
                                         { value: 'jamaah', label: 'Jamaah' },
                                         { value: 'ustadz', label: 'Ustadz' },
@@ -121,12 +115,11 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
                                     ]}
                                     value={value}
                                     onChange={onChange}
-                                    error={errors.type?.message}
+                                    error={errors.type?.message as string}
                                 />
                             )}
                         />
                     </div>
-                    {errors.type && <p className="text-xs text-red-500 mt-1">{errors.type.message}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -134,13 +127,13 @@ export const PeopleFormModal = ({ isOpen, onClose, editingPerson }: PeopleFormMo
                         label="Phone Number"
                         {...register('phoneNumber')} 
                         placeholder="0812..." 
-                        error={errors.phoneNumber?.message}
+                        error={errors.phoneNumber?.message as string}
                     />
                     <Input 
                         label="Address"
                         {...register('address')} 
                         placeholder="Street address..." 
-                        error={errors.address?.message}
+                        error={errors.address?.message as string}
                     />
                 </div>
 

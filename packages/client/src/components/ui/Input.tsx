@@ -21,7 +21,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(({
       <div className="w-full space-y-2">
         {label && (
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700">
-            {label}
+            {label} {props.required && <span className="text-red-500 ml-1">*</span>}
           </label>
         )}
         <input

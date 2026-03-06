@@ -21,25 +21,19 @@ export const useSlideData = (ramadanConfig: any | undefined, effectiveDateStr: s
         {
             kajianEvents.forEach((event: any) => 
             {
-                if (event.posterUrl) 
+                items.push({ type: event.type || 'kajian_rutin', data: 
                 {
-                    items.push({ type: 'poster', data: { id: event.id, title: event.title, imageUrl: getImageUrl(event.posterUrl) } });
-                } 
-                else 
-                {
-                    items.push({ type: 'kajian_event', data: 
-                    {
-                        id: event.id,
-                        title: event.title,
-                        speaker: typeof event.speaker === 'string' ? event.speaker : event.speaker?.name || 'Belum Ditentukan',
-                        type: event.type,
-                        dateRaw: event.date || event.displayDate || '',
-                        posterUrl: event.posterUrl ? getImageUrl(event.posterUrl) : undefined,
-                        timeMode: event.timeMode || 'manual',
-                        badaSholat: event.badaSholat || undefined,
-                        time: event.time || undefined,
-                    } });
-                }
+                    id: event.id,
+                    title: event.title,
+                    speaker: typeof event.speaker === 'string' ? event.speaker : event.speaker?.name || 'Belum Ditentukan',
+                    type: event.type,
+                    dateRaw: event.date || event.displayDate || '',
+                    dayOfWeek: event.dayOfWeek,
+                    posterUrl: event.posterUrl ? getImageUrl(event.posterUrl) : undefined,
+                    timeMode: event.timeMode || 'manual',
+                    badaSholat: event.badaSholat || undefined,
+                    time: event.time || undefined,
+                } });
             });
         }
 

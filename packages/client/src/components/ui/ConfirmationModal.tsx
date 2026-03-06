@@ -22,7 +22,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     message = 'Are you sure you want to proceed?',
     confirmText = 'Delete',
     cancelText = 'Cancel'
-}) => {
+}) => 
+{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title}>
             <div className="flex flex-col items-center justify-center pt-2 pb-6 px-4 text-center">
@@ -42,7 +43,11 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     </ActionButton>
                     <ActionButton 
                         variant="danger" 
-                        onClick={() => { onConfirm(); onClose(); }} 
+                        onClick={() => 
+                        { 
+                            onConfirm(); 
+                            onClose(); 
+                        }} 
                         className="w-full justify-center"
                     >
                         {confirmText}

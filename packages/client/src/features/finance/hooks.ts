@@ -6,8 +6,7 @@ import type {
     GetTransactionsQuery, 
     CreateTransactionDto, 
     UpdateTransactionDto, 
-    Account, 
-    CoaCategory 
+    Account 
 } from './types';
 import type { FinanceSummaryData } from '../display/types';
 import { useLoadingStore } from '../../store/useLoadingStore';
@@ -48,19 +47,6 @@ export const useAccounts = (options?: { refetchInterval?: number }) =>
     });
 };
 
-export const useCategories = () => 
-{
-    return useQuery({
-        queryKey: ['finance_categories'], 
-        queryFn: async () => 
-        {
-            const { data } = await api.get<{ data: CoaCategory[] }>('/finance/categories');
-            return data.data || data;
-        },
-        staleTime: 1000 * 60 * 30, // Rarely changes
-    });
-};
-
 export const useSuggestions = (queryStr: string) => 
 {
     return useQuery({
@@ -91,6 +77,7 @@ export const useCreateTransaction = () =>
         {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             queryClient.invalidateQueries({ queryKey: ['finance_accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['finance_summary'] });
             toast.success('Transaction added successfully');
         },
         onError: (error: any) => 
@@ -115,6 +102,7 @@ export const useUpdateTransaction = () =>
         {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             queryClient.invalidateQueries({ queryKey: ['finance_accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['finance_summary'] });
             toast.success('Transaction updated successfully');
         },
         onError: (error: any) => 
@@ -138,6 +126,7 @@ export const useDeleteTransaction = () =>
         {
             queryClient.invalidateQueries({ queryKey: ['transactions'] });
             queryClient.invalidateQueries({ queryKey: ['finance_accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['finance_summary'] });
             toast.success('Transaction deleted successfully');
         },
         onError: (error: any) => 

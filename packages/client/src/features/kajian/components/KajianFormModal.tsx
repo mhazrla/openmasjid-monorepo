@@ -11,6 +11,8 @@ import { cn, getImageUrl } from '../../../lib/utils';
 import { type KajianFormValues, type KajianFormModalProps, DAYS } from '../types';
 import { format } from 'date-fns';
 import { handleFormError } from '../../../utils/form-error';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createKajianSchema } from '../schema';
 
 export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormModalProps) => 
 {
@@ -20,7 +22,9 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isPosterRemoved, setIsPosterRemoved] = useState(false); // New State
 
-    const { register, handleSubmit, reset, control, setError, clearErrors, formState: { errors } } = useForm<KajianFormValues>();
+    const { register, handleSubmit, reset, control, setError, clearErrors, formState: { errors } } = useForm<KajianFormValues>({
+        resolver: zodResolver(createKajianSchema as any)
+    });
 
     const selectedType = useWatch({ control, name: 'type' });
     const selectedTimeMode = useWatch({ control, name: 'timeMode' });
@@ -32,14 +36,14 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
         
         const formatDate = (dateStr: string | undefined | null) => 
         {
-            if (!dateStr) return format(new Date(), "yyyy-MM-dd'T'HH:mm");
+            if (!dateStr) return format(new Date(), "yyyy-MM-dd");
             try 
             {
-                return format(new Date(dateStr), "yyyy-MM-dd'T'HH:mm");
+                return format(new Date(dateStr), "yyyy-MM-dd");
             } 
             catch (e) 
             {
-                return format(new Date(), "yyyy-MM-dd'T'HH:mm");
+                return format(new Date(), "yyyy-MM-dd");
             }
         };
 
@@ -63,7 +67,7 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
             reset({
                 title: '',
                 speakerId: '',
-                date: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+                date: format(new Date(), "yyyy-MM-dd"),
                 type: 'kajian_tematik',
                 dayOfWeek: '1',
                 time: '20:00',
@@ -198,28 +202,27 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                 {/* LEFT COLUMN: Inputs */}
                 <div className="lg:col-span-8 space-y-5">
                     <Input 
-                        label={<span>Title <span className="text-red-500">*</span></span>}
-                        {...register('title', { required: 'Title is required' })} 
+                        label="Title"
+                        required
+                        {...register('title')} 
                         placeholder="e.g. Weekly Study"
-                        error={errors.title?.message}
+                        error={errors.title?.message as string}
                         autoFocus
                     />
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 block">
-                                Speaker <span className="text-red-500">*</span>
-                            </label>
                             <Controller
                                 control={control}
                                 name="speakerId"
-                                rules={{ required: 'Speaker is required' }}
                                 render={({ field: { value, onChange } }) => (
                                     <Select
+                                        label="Speaker"
+                                        required
                                         options={speakerOptions}
                                         value={value}
                                         onChange={onChange}
-                                        error={errors.speakerId?.message}
+                                        error={errors.speakerId?.message as string}
                                         placeholder="-- Select Speaker --"
                                         searchable
                                     />
@@ -228,15 +231,13 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-slate-700 block">
-                                Event Type <span className="text-red-500">*</span>
-                            </label>
                             <Controller
                                 control={control}
                                 name="type"
-                                rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                     <Select
+                                        label="Event Type"
+                                        required
                                         options={[
                                             { value: 'kajian_tematik', label: 'Thematic Study' },
                                             { value: 'kajian_rutin', label: 'Recurring Study' },
@@ -244,7 +245,7 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                                         ]}
                                         value={value}
                                         onChange={onChange}
-                                        error={errors.type?.message}
+                                        error={errors.type?.message as string}
                                     />
                                 )}
                             />
@@ -253,38 +254,31 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
 
                     <div className="space-y-1.5">
                         {selectedType === 'kajian_rutin' ? (
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-sm font-medium text-slate-700 block">
-                                        Day <span className="text-red-500">*</span>
-                                    </label>
                                     <Controller
                                         control={control}
                                         name="dayOfWeek"
-                                        rules={{ required: 'Day is required' }}
                                         render={({ field: { value, onChange } }) => (
                                             <Select
+                                                label="Day"
+                                                required
                                                 options={DAYS}
                                                 value={value}
                                                 onChange={onChange}
-                                                error={errors.dayOfWeek?.message}
+                                                error={errors.dayOfWeek?.message as string}
                                             />
                                         )}
                                     />
                                 </div>
-                                <Input 
-                                    label={<span>Date & Time (Optional)</span>}
-                                    type="datetime-local" 
-                                    {...register('date')} 
-                                    error={errors.date?.message}
-                                />
                             </div>
                         ) : (
                             <Input 
-                                label={<span>Date & Time <span className="text-red-500">*</span></span>}
-                                type="datetime-local" 
-                                {...register('date', { required: 'Date is required' })} 
-                                error={errors.date?.message}
+                                label="Date"
+                                required
+                                type="date" 
+                                {...register('date')} 
+                                error={errors.date?.message as string}
                             />
                         )}
                     </div>
@@ -293,24 +287,24 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                     <div className="space-y-3 pt-2">
                         <label className="text-sm font-medium text-slate-700 block">Waktu Kajian <span className="text-red-500">*</span></label>
                         <div className="flex items-center gap-4">
-                            <label className="flex items-center gap-2 cursor-pointer p-2 px-4 rounded-lg hover:bg-slate-50 border border-transparent has-[:checked]:border-emerald-200 has-[:checked]:bg-emerald-50 transition-colors">
+                            <label className="flex items-center gap-2 cursor-pointer p-2 px-4 rounded-lg hover:bg-slate-50 border border-transparent has-checked:border-emerald-200 has-checked:bg-emerald-50 transition-colors">
                                 <input type="radio" value="manual" {...register('timeMode')} className="text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
                                 <span className="text-sm text-slate-700">Waktu Manual</span>
                             </label>
-                            <label className="flex items-center gap-2 cursor-pointer p-2 px-4 rounded-lg hover:bg-slate-50 border border-transparent has-[:checked]:border-amber-200 has-[:checked]:bg-amber-50 transition-colors">
+                            <label className="flex items-center gap-2 cursor-pointer p-2 px-4 rounded-lg hover:bg-slate-50 border border-transparent has-checked:border-amber-200 has-checked:bg-amber-50 transition-colors">
                                 <input type="radio" value="bada_sholat" {...register('timeMode')} className="text-amber-600 focus:ring-amber-500 cursor-pointer" />
                                 <span className="text-sm text-slate-700">Ba'da Sholat</span>
                             </label>
                         </div>
                         {selectedTimeMode === 'bada_sholat' ? (
                             <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-slate-700 block">Setelah Sholat</label>
                                 <Controller
                                     control={control}
                                     name="badaSholat"
-                                    rules={{ required: selectedTimeMode === 'bada_sholat' ? 'Pilih waktu sholat' : false }}
                                     render={({ field: { value, onChange } }) => (
                                         <Select
+                                            label="Setelah Sholat"
+                                            required
                                             options={[
                                                 { value: 'subuh', label: 'Subuh' },
                                                 { value: 'dzuhur', label: 'Dzuhur' },
@@ -320,17 +314,18 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                                             ]}
                                             value={value}
                                             onChange={onChange}
-                                            error={errors.badaSholat?.message}
+                                            error={errors.badaSholat?.message as string}
                                         />
                                     )}
                                 />
                             </div>
                         ) : (
                             <Input 
-                                label={<span>Jam <span className="text-red-500">*</span></span>}
+                                label="Jam"
+                                required
                                 type="time" 
                                 {...register('time')} 
-                                error={errors.time?.message}
+                                error={errors.time?.message as string}
                             />
                         )}
                     </div>
@@ -339,11 +334,11 @@ export const KajianFormModal = ({ isOpen, onClose, editingKajian }: KajianFormMo
                         <div className="mt-2">
                             <label className="text-sm font-medium text-slate-700 block mb-2">Status</label>
                             <div className="flex items-center gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-[:checked]:border-emerald-200 has-[:checked]:bg-emerald-50 transition-colors">
+                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-checked:border-emerald-200 has-checked:bg-emerald-50 transition-colors">
                                     <input type="radio" value="true" {...register('status')} className="text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
                                     <span className="text-sm text-slate-700">Active</span>
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-[:checked]:border-slate-300 has-[:checked]:bg-slate-100 transition-colors">
+                                <label className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-slate-50 border border-transparent has-checked:border-slate-300 has-checked:bg-slate-100 transition-colors">
                                     <input type="radio" value="false" {...register('status')} className="text-slate-600 focus:ring-slate-500 cursor-pointer" />
                                     <span className="text-sm text-slate-700">Archived (Inactive)</span>
                                 </label>

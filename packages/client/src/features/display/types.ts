@@ -89,6 +89,7 @@ export interface KajianSlideData
   speaker: string;
   type: string;
   dateRaw: string;
+  dayOfWeek?: number | string | null;
   posterUrl?: string;
   timeMode?: 'manual' | 'bada_sholat';
   badaSholat?: string;
@@ -151,6 +152,8 @@ export interface FinanceSummaryData
     totalBalance: number;
     monthlyIncome: number;
     monthlyExpense: number;
+    fundBalances?: Record<string, number>;
+    accountBalances?: Record<string, number>;
     lastUpdated: string | Date | null;
 }
 
@@ -163,7 +166,7 @@ export type SlideContent =
   | { type: 'lelang_table'; data: RamadanScheduleUI[] }
   | { type: 'tarawih_today'; data: RamadanScheduleUI }
   | { type: 'kajian_today'; data: RamadanScheduleUI }
-  | { type: 'kajian_event'; data: KajianSlideData }
+  | { type: 'kajian_rutin' | 'kajian_tematik' | 'tabligh_akbar'; data: KajianSlideData }
   | { type: 'poster'; data: PosterData }
   | { type: 'hadits'; data: HaditsData }
   | { type: 'bank_info'; data: BankInfoData }

@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Sidebar } from '../components/layout/Sidebar';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 
-export const AdminLayout = () => {
+export const AdminLayout = () => 
+{
     const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
 
     return (

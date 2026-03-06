@@ -24,7 +24,7 @@ export class UploadController
             }
 
             const folderField = data.fields.folder as any;
-            const folderName = folderField?.value || 'profile';
+            const folderName = folderField?.value || 'album';
 
             const fileUrl = await cloudinaryService.uploadFromStream(data.file, folderName);
 

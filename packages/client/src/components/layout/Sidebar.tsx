@@ -31,12 +31,14 @@ const MENU_ITEMS = [
     { label: 'Financial Report', path: '/admin/finance', icon: Wallet }
 ];
 
-interface SidebarProps {
+interface SidebarProps 
+{
     isOpen: boolean;
     setIsOpen: (open: boolean) => void;
 }
 
-export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
+export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => 
+{
     const location = useLocation();
     const { logout, isLoading } = useAuth();
 
@@ -93,7 +95,8 @@ export const Sidebar = ({ isOpen, setIsOpen }: SidebarProps) => {
             </div>
 
             <nav className="p-4 space-y-1 flex-1 overflow-y-auto overflow-x-hidden">
-                {MENU_ITEMS.map((item) => {
+                {MENU_ITEMS.map((item) => 
+                {
                     const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
                     const Icon = item.icon;
                     

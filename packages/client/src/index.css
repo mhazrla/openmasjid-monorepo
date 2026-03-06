@@ -21,3 +21,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Hide default browser password reveal icon (Edge/IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}

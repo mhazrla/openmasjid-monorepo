@@ -4,11 +4,13 @@ import { Footer } from './components/Footer';
 import { LandingPage } from './pages/LandingPage';
 import { ArchiveExplorer } from './pages/ArchiveExplorer';
 import { ArchiveDetail } from './pages/ArchiveDetail';
+import { FinanceReportPage } from './pages/FinanceReportPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
-function App() {
+function App() 
+{
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -19,6 +21,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/archive" element={<ArchiveExplorer />} />
             <Route path="/archive/:id" element={<ArchiveDetail />} />
+            <Route path="/keuangan" element={<FinanceReportPage />} />
           </Routes>
           </main>
           <Footer />

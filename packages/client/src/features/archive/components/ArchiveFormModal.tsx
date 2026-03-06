@@ -2,12 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { ActionButton } from '../../../components/ui/ActionButton';
 import { Input } from '../../../components/ui/Input';
+import { Textarea } from '../../../components/ui/Textarea';
+import { Select } from '../../../components/ui/Select';
 import { Modal } from '../../../components/ui/Modal';
 import { Upload, X } from 'lucide-react';
 import { cn, getImageUrl } from '../../../lib/utils';
 import { useLoadingStore } from '../../../store/useLoadingStore';
 import { useCreateAlbum, useUpdateAlbum } from '../hooks';
 import type { ArchiveFormModalProps, ArchiveFormValues, CreateArchiveAlbumRequest } from '../types';
+import { handleFormError } from '../../../utils/form-error';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createArchiveAlbumSchema } from '../schema';
+import { Controller } from 'react-hook-form';
 
 export const ArchiveFormModal = ({ isOpen, onClose, album }: ArchiveFormModalProps) => 
 {
@@ -17,7 +23,9 @@ export const ArchiveFormModal = ({ isOpen, onClose, album }: ArchiveFormModalPro
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [isRemovingCover, setIsRemovingCover] = useState(false);
 
-    const { register, handleSubmit, reset, clearErrors, formState: { errors } } = useForm<ArchiveFormValues>();
+    const { register, handleSubmit, reset, clearErrors, control, setError, formState: { errors } } = useForm<ArchiveFormValues>({
+        resolver: zodResolver(createArchiveAlbumSchema as any)
+    });
 
     const handleReset = () => 
     {
@@ -108,7 +116,8 @@ export const ArchiveFormModal = ({ isOpen, onClose, album }: ArchiveFormModalPro
              finalCoverImageUrl = null;
          }
 
-         const payload: Partial<CreateArchiveAlbumRequest> = {
+         const payload: Partial<CreateArchiveAlbumRequest> = 
+         {
              title: data.title,
              description: data.description || undefined,
              category: data.category || undefined,
@@ -117,13 +126,19 @@ export const ArchiveFormModal = ({ isOpen, onClose, album }: ArchiveFormModalPro
              coverImageUrl: finalCoverImageUrl === null ? null : (finalCoverImageUrl || undefined)
          };
 
+         const mutationOptions = 
+         {
+             onSuccess: () => onClose(),
+             onError: (err: any) => handleFormError(err, setError)
+         };
+
          if (album) 
          {
-             updateAlbum({ id: album.id, payload }, { onSuccess: () => onClose() });
+             updateAlbum({ id: album.id, payload }, mutationOptions);
          } 
          else 
          {
-             createAlbum(payload as CreateArchiveAlbumRequest, { onSuccess: () => onClose() });
+             createAlbum(payload as CreateArchiveAlbumRequest, mutationOptions);
          }
     };
 
@@ -134,43 +149,52 @@ export const ArchiveFormModal = ({ isOpen, onClose, album }: ArchiveFormModalPro
                 {/* LEFT COLUMN: Inputs */}
                 <div className="lg:col-span-8 space-y-5">
                     <Input 
-                        label={<span>Album Title <span className="text-red-500">*</span></span>}
-                        {...register('title', { required: 'Title is required' })} 
+                        label="Album Title"
+                        required
+                        {...register('title')} 
                         placeholder="e.g. Idul Fitri 1445 H"
-                        error={errors.title?.message}
+                        error={errors.title?.message as string}
                         autoFocus
                     />
                     
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-700 block">Description</label>
-                        <textarea
+                        <Textarea
+                            label="Description"
                             {...register('description')}
-                            className="flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 resize-none"
                             rows={3}
                             placeholder="Optional album description..."
+                            error={errors.description?.message as string}
                         />
                     </div>
 
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-slate-700 block">Category</label>
-                        <select
-                            {...register('category')}
-                            className="flex w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                        >
-                            <option value="Kajian">Kajian</option>
-                            <option value="Ramadhan">Ramadhan</option>
-                            <option value="Sosial">Sosial</option>
-                            <option value="Jumat">Jumat</option>
-                            <option value="Lainnya">Lainnya</option>
-                        </select>
+                        <Controller
+                            control={control}
+                            name="category"
+                            render={({ field: { value, onChange } }) => (
+                                <Select
+                                    label="Category"
+                                    options={[
+                                        { value: 'Kajian', label: 'Kajian' },
+                                        { value: 'Ramadhan', label: 'Ramadhan' },
+                                        { value: 'Sosial', label: 'Sosial' },
+                                        { value: 'Jumat', label: 'Jumat' },
+                                        { value: 'Lainnya', label: 'Lainnya' },
+                                    ]}
+                                    value={value}
+                                    onChange={onChange}
+                                    error={errors.category?.message as string}
+                                />
+                            )}
+                        />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <Input 
-                            label={<span>Event Date</span>}
+                            label="Event Date"
                             type="date" 
                             {...register('eventDate')} 
-                            error={errors.eventDate?.message}
+                            error={errors.eventDate?.message as string}
                         />
 
                         <div className="space-y-1.5">

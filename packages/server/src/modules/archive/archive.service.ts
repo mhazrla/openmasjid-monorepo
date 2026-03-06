@@ -83,7 +83,8 @@ export class ArchiveService
 
   async addVideoMedia(albumId: number, title: string | undefined, mediaUrl: string) 
   {
-    const mediaObj: InsertArMedia = {
+    const mediaObj: InsertArMedia = 
+    {
       albumId,
       type: 'video',
       mediaUrl,
@@ -96,7 +97,8 @@ export class ArchiveService
   {
     const mediaUrl = await cloudinaryService.uploadImage(imageBuffer, 'archives');
 
-    const mediaObj: InsertArMedia = {
+    const mediaObj: InsertArMedia = 
+    {
       albumId,
       type: 'image',
       mediaUrl,

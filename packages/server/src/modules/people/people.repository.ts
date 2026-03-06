@@ -36,7 +36,8 @@ export class PeopleRepository
       .orderBy(orderBy);
 
     // If limit is exactly 0, fetch ALL without pagination
-    if (filters.limit === 0) {
+    if (filters.limit === 0) 
+    {
         return await baseQuery;
     }
 

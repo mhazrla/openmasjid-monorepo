@@ -3,7 +3,7 @@
   import bcrypt from 'bcryptjs';
   import { eq } from 'drizzle-orm';
   import { db } from './index'; 
-  import { users, people, dsMosqueProfile, dsConfig, accounts, coaCategories, hadisEnc } from './schema';
+  import { users, people, dsMosqueProfile, dsConfig, accounts, hadisEnc } from './schema';
   import { PrayerTimeService } from '../modules/prayer-time/prayer-time.service';
   import { PrayerTimeRepository } from '../modules/prayer-time/prayer-time.repository';
   import { DisplayConfigRepository } from '../modules/display-config/display-config.repository';
@@ -98,17 +98,9 @@
         hijriAdj: 0,
         }).onConflictDoNothing();
 
-        await db.insert(coaCategories).values([
-        { name: 'Infaq/Sedekah', type: 'income' },
-        { name: 'Zakat/Wakaf', type: 'income' },
-        { name: 'Operasional', type: 'expense' },
-        { name: 'Bisyarah/Honor', type: 'expense' },
-        { name: 'Dakwah & Sosial', type: 'expense' },
-        ]).onConflictDoNothing();
-
         await db.insert(accounts).values([
-        { name: 'Kas Tunai', balance: 0, isActive: true },
-        { name: 'Bank BSI', balance: 0, isActive: true }
+        { id: 1, name: 'Bank BSI', balance: 0, isActive: true },
+        { id: 2, name: 'Kas Tunai (Cash)', balance: 0, isActive: true }
         ]).onConflictDoNothing();
 
         console.log('Fetching 1-year default prayer times...');

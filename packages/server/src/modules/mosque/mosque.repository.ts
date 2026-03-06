@@ -13,7 +13,8 @@ export class MosqueRepository
 
   async createOrUpdateProfile(data: Partial<InsertMosqueProfile>) 
   {
-    const insertValues = {
+    const insertValues = 
+    {
       id: 1,
       name: data.name ?? 'New Mosque',
       address: data.address ?? '-', 

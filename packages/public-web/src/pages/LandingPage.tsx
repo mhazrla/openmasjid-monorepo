@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, MapPin, Image as ImageIcon, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { PrayerTimesBar } from '../components/PrayerTimesBar';
+import { LiveStreamBanner } from '../components/LiveStreamBanner';
 import { AlbumCard } from '../components/AlbumCard';
 import { useAlbums } from '../hooks/useArchive';
 import type { ArchiveAlbum } from '../types/archive.types';
@@ -54,7 +55,7 @@ export const LandingPage = () =>
         
         <div className="relative z-10 text-center px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto mt-[-5vh]">
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-lg leading-tight lg:leading-tight">
-            Selamat Datang di <br /><span className="text-emerald-400">Masjid Jami At-Tadzkirah</span>
+            Selamat Datang di <br /><span className="text-emerald-400">{import.meta.env.VITE_APP_NAME}</span>
           </h1>
           <p className="mt-6 text-lg sm:text-xl md:text-2xl text-slate-200 font-medium max-w-2xl mx-auto drop-shadow-md">
             Membangun peradaban umat melalui pusat informasi, dokumentasi, dan layanan masjid digital.
@@ -67,6 +68,8 @@ export const LandingPage = () =>
         <PrayerTimesBar />
       </section>
 
+      <LiveStreamBanner />
+
       {/* Laporan Keuangan Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mt-8">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
@@ -74,7 +77,7 @@ export const LandingPage = () =>
             <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Transparansi Keuangan</h2>
             <p className="text-slate-500 mt-2 font-medium">Ringkasan kas masjid untuk bulan ini.</p>
           </div>
-          <Link to="#" className="inline-flex items-center gap-2 group text-emerald-600 hover:text-emerald-700 font-bold transition-colors">
+          <Link to="/keuangan" className="inline-flex items-center gap-2 group text-emerald-600 hover:text-emerald-700 font-bold transition-colors">
             Lihat Laporan Lengkap
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>

@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useLayoutEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { createColumnHelper } from '@tanstack/react-table';
 import { Plus, Trash2, Pencil, MoreVertical, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useTransactions, useAccounts, useDeleteTransaction } from '../../features/finance/hooks';
+import { useTransactions, useAccounts, useDeleteTransaction, useFinanceSummaryData } from '../../features/finance/hooks';
 import { cn } from '../../lib/utils';
 import { ActionButton } from '../../components/ui/ActionButton';
 import { DataTable } from '../../components/ui/DataTable';
 import { TransactionFormModal } from '../../features/finance/components/TransactionFormModal';
+import { ConfirmationModal } from '../../components/ui/ConfirmationModal';
 import { Select } from '../../components/ui/Select';
 import { Input } from '../../components/ui/Input';
 import type { Transaction, Account } from '../../features/finance/types';
@@ -36,10 +38,14 @@ export const FinanceManagerPage = () =>
     const [accountId, setAccountId] = useState<number | undefined>(undefined);
     const [page, setPage] = useState(1);
     const [activeMenu, setActiveMenu] = useState<number | null>(null);
+    const [menuPos, setMenuPos] = useState({ top: 0, left: 0, openUp: false });
+    const menuTriggerRef = useRef<Record<number, HTMLDivElement | null>>({});
     
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTx, setEditingTx] = useState<Transaction | null>(null);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [transactionToDelete, setTransactionToDelete] = useState<number | null>(null);
 
     // --- Hooks ---
     const { data: accounts = [] } = useAccounts();
@@ -54,16 +60,16 @@ export const FinanceManagerPage = () =>
     });
 
     const transactions = queryResult?.data || [];
-    const summary = queryResult?.summary || { totalDebit: 0, totalCredit: 0 };
     const pagination = queryResult?.pagination || { total: 0, page: 1, limit: 20, totalPages: 1 };
-    const { totalDebit, totalCredit } = summary;
-    const saldoAkhir = totalDebit - totalCredit;
-
-    // Total Kekayaan Masjid (Sum of all account balances)
-    const totalKekayaan = useMemo(() => 
-    {
-        return accounts.reduce((sum: number, acc: Account) => sum + acc.balance, 0);
-    }, [accounts]);
+    
+    const { data: summaryData } = useFinanceSummaryData();
+    const summary = summaryData || { 
+        totalBalance: 0, monthlyIncome: 0, monthlyExpense: 0,
+        fundBalances: {} as Record<string, number>, 
+        accountBalances: {} as Record<string, number>
+    };
+    
+    const { totalBalance, monthlyIncome, monthlyExpense, fundBalances, accountBalances } = summary;
 
     // Group transactions by Date for mobile view
     const groupedTransactions = useMemo(() => 
@@ -99,11 +105,40 @@ export const FinanceManagerPage = () =>
 
     const handleDelete = (id: number) => 
     {
-        if (window.confirm('Yakin ingin menghapus transaksi ini? Saldo terkait akan otomatis dikembalikan.')) 
-        {
-            deleteMutation.mutate(id);
-        }
+        setTransactionToDelete(id);
+        setIsDeleteModalOpen(true);
     };
+
+    // --- Positioning for Portal Action Menu ---
+    const updateMenuPos = useCallback(() => 
+    {
+        if (activeMenu !== null && menuTriggerRef.current[activeMenu]) 
+        {
+            const rect = menuTriggerRef.current[activeMenu]!.getBoundingClientRect();
+            const menuH = 110; // approx height of edit+delete menu
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const openUp = spaceBelow < menuH && rect.top > menuH;
+
+            setMenuPos({
+                top: openUp ? rect.top + window.scrollY - menuH - 4 : rect.bottom + window.scrollY + 4,
+                left: rect.right + window.scrollX - 144, // w-36 = 144px, align right
+                openUp,
+            });
+        }
+    }, [activeMenu]);
+
+    useLayoutEffect(() => 
+    {
+        if (activeMenu === null) return;
+        updateMenuPos();
+        window.addEventListener('scroll', updateMenuPos, true);
+        window.addEventListener('resize', updateMenuPos);
+        return () => 
+        {
+            window.removeEventListener('scroll', updateMenuPos, true);
+            window.removeEventListener('resize', updateMenuPos);
+        };
+    }, [activeMenu, updateMenuPos]);
 
     // --- Column Definition ---
     const columnHelper = createColumnHelper<Transaction>();
@@ -119,26 +154,36 @@ export const FinanceManagerPage = () =>
             header: 'Date',
             cell: info => <div className="text-sm font-medium whitespace-nowrap">{formatDate(info.getValue())}</div>,
         }),
-        columnHelper.accessor('categoryId', 
+        columnHelper.accessor('fundCategory', 
         {
-            header: 'Category',
-            cell: info => (
-                <div>
-                    <span className="px-2 py-0.5 rounded text-xs border border-slate-200 bg-slate-50 text-slate-700 font-medium">
-                        {info.row.original.category?.name || '-'}
-                    </span>
-                    <div className="text-xs text-slate-400 mt-1">{info.row.original.account?.name}</div>
-                </div>
-            ),
+            header: 'Fund Category',
+            cell: info => 
+            {
+                const map: Record<string, string> = 
+                {
+                    operasional: 'Operasional',
+                    yatim: 'Yatim & Dhuafa',
+                    pembangunan: 'Pembangunan',
+                    ramadhan: 'Ramadhan'
+                };
+                return (
+                    <div>
+                        <span className="px-2 py-0.5 rounded text-xs border border-slate-200 bg-slate-50 text-slate-700 font-medium">
+                            {map[info.getValue()] || info.getValue()}
+                        </span>
+                        <div className="text-xs text-slate-400 mt-1">{info.row.original.account?.name}</div>
+                    </div>
+                )
+            },
         }),
         columnHelper.accessor('description', 
         {
             header: 'Description',
             cell: info => <div className="text-sm max-w-[200px] lg:max-w-md">{info.getValue()}</div>,
         }),
-        columnHelper.accessor(row => row.type === 'debit' ? row.amount : 0, 
+        columnHelper.accessor(row => row.type === 'income' ? row.amount : 0, 
         {
-            id: 'debit',
+            id: 'income',
             header: () => <div className="text-right">Income</div>,
             cell: info => 
             {
@@ -146,9 +191,9 @@ export const FinanceManagerPage = () =>
                 return <div className="text-right text-emerald-600 font-medium">{val > 0 ? formatCurrency(val) : '-'}</div>;
             },
         }),
-        columnHelper.accessor(row => row.type === 'credit' ? row.amount : 0, 
+        columnHelper.accessor(row => row.type === 'expense' ? row.amount : 0, 
         {
-            id: 'credit',
+            id: 'expense',
             header: () => <div className="text-right">Expense</div>,
             cell: info => 
             {
@@ -200,14 +245,41 @@ export const FinanceManagerPage = () =>
                 </ActionButton>
             </div>
 
-            {/* Grand Total */}
-            <div className="bg-linear-to-br from-emerald-600 to-emerald-800 rounded-xl p-4 md:p-8 flex items-center justify-between shadow-md text-white border border-emerald-500/30">
-                <div>
-                    <h2 className="text-base md:text-2xl font-bold mb-0.5 md:mb-1">Total Assets</h2>
-                    <p className="text-emerald-100/80 text-[10px] md:text-base leading-tight">Master Balance</p>
+            {/* Grand Total & Accounts */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-linear-to-br from-emerald-600 to-emerald-800 rounded-xl p-6 flex flex-col justify-between shadow-md text-white border border-emerald-500/30 min-h-[140px]">
+                    <div>
+                        <h2 className="text-sm md:text-base font-semibold mb-1 opacity-90">Total Master Balance</h2>
+                        <p className="text-2xl md:text-4xl font-bold tracking-tight">{formatCurrency(totalBalance)}</p>
+                    </div>
                 </div>
-                <div className="text-right">
-                    <p className="text-xl md:text-4xl font-bold tracking-tight">{formatCurrency(totalKekayaan)}</p>
+                <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center min-h-[140px]">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Kas Bank BSI</p>
+                    <p className="text-xl md:text-3xl font-bold text-slate-800">{formatCurrency(accountBalances?.bsi || 0)}</p>
+                </div>
+                <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm flex flex-col justify-center min-h-[140px]">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Kas Tunai (Cash)</p>
+                    <p className="text-xl md:text-3xl font-bold text-slate-800">{formatCurrency(accountBalances?.cash || 0)}</p>
+                </div>
+            </div>
+
+            {/* Fund Categories Breakdown */}
+            <div className="bg-slate-50 rounded-xl p-6 border border-slate-200 shadow-sm grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Operasional</p>
+                    <p className="text-lg font-bold text-slate-900">{formatCurrency(fundBalances?.operasional || 0)}</p>
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Yatim & Dhuafa</p>
+                    <p className="text-lg font-bold text-slate-900">{formatCurrency(fundBalances?.yatim || 0)}</p>
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Pembangunan</p>
+                    <p className="text-lg font-bold text-slate-900">{formatCurrency(fundBalances?.pembangunan || 0)}</p>
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Prog. Ramadhan</p>
+                    <p className="text-lg font-bold text-slate-900">{formatCurrency(fundBalances?.ramadhan || 0)}</p>
                 </div>
             </div>
 
@@ -276,20 +348,14 @@ export const FinanceManagerPage = () =>
                 </div>
                 
                 {/* Summary Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100">
+                <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-100">
                     <div className="p-4 flex justify-between md:block items-center">
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider md:mb-1">Total Income</p>
-                        <p className="text-lg md:text-2xl font-semibold text-emerald-600">{formatCurrency(totalDebit)}</p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider md:mb-1">Monthly Income (All Accounts)</p>
+                        <p className="text-lg md:text-2xl font-semibold text-emerald-600">{formatCurrency(monthlyIncome)}</p>
                     </div>
                     <div className="p-4 flex justify-between md:block items-center">
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider md:mb-1">Total Expense</p>
-                        <p className="text-lg md:text-2xl font-semibold text-rose-600">{formatCurrency(totalCredit)}</p>
-                    </div>
-                    <div className="p-4 bg-slate-50/50 flex justify-between md:block items-center">
-                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider md:mb-1">Period Balance</p>
-                        <p className={cn("text-lg md:text-2xl font-semibold", saldoAkhir < 0 ? "text-rose-600" : "text-slate-900")}>
-                            {formatCurrency(saldoAkhir)}
-                        </p>
+                        <p className="text-xs text-slate-500 font-medium uppercase tracking-wider md:mb-1">Monthly Expense (All Accounts)</p>
+                        <p className="text-lg md:text-2xl font-semibold text-rose-600">{formatCurrency(monthlyExpense)}</p>
                     </div>
                 </div>
             </div>
@@ -323,43 +389,23 @@ export const FinanceManagerPage = () =>
                                             >
                                                 <div className="flex-1 min-w-0 pr-3">
                                                     <p className="text-[14px] font-bold text-slate-800 truncate">{tx.description}</p>
-                                                    <p className="text-[12px] text-slate-400 mt-0.5 truncate">{tx.category?.name || '-'} &bull; {tx.account?.name}</p>
+                                                    <p className="text-[12px] text-slate-400 mt-0.5 truncate">{tx.fundCategory} &bull; {tx.account?.name}</p>
                                                 </div>
                                                 <div className="flex items-center gap-2 pl-2">
                                                     <div className={cn(
                                                         "font-bold text-[14px] whitespace-nowrap",
-                                                        tx.type === 'debit' ? "text-emerald-600" : "text-rose-600"
+                                                        tx.type === 'income' ? "text-emerald-600" : "text-rose-600"
                                                     )}>
-                                                        {tx.type === 'debit' ? '+' : '-'}{formatCurrency(tx.amount)}
+                                                        {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
                                                     </div>
-                                                    <MoreVertical className="w-4 h-4 text-slate-300" />
+                                                    <div 
+                                                        ref={(el) => { menuTriggerRef.current[tx.id] = el; }}
+                                                        className="p-1"
+                                                    >
+                                                        <MoreVertical className="w-4 h-4 text-slate-300" />
+                                                    </div>
                                                 </div>
                                             </div>
-                                            
-                                            {/* Action Menu Dropdown */}
-                                            {activeMenu === tx.id && (
-                                                <>
-                                                    <div className="fixed inset-0 z-40" onClick={(e) => 
-                                                    { e.stopPropagation(); setActiveMenu(null); }}></div>
-                                                    <div className="absolute right-4 top-10 z-50 w-36 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 overflow-hidden animate-in fade-in zoom-in duration-150">
-                                                        <button 
-                                                            onClick={(e) => 
-                                                            { e.stopPropagation(); handleOpenEdit(tx); setActiveMenu(null); }} 
-                                                            className="w-full text-left px-4 py-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors"
-                                                        >
-                                                            <Pencil className="w-4 h-4 text-slate-400" /> Edit
-                                                        </button>
-                                                        <div className="h-px bg-slate-100 my-0.5"></div>
-                                                        <button 
-                                                            onClick={(e) => 
-                                                            { e.stopPropagation(); handleDelete(tx.id); setActiveMenu(null); }} 
-                                                            className="w-full text-left px-4 py-3 text-[13px] font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition-colors"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-rose-500" /> Delete
-                                                        </button>
-                                                    </div>
-                                                </>
-                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -369,6 +415,45 @@ export const FinanceManagerPage = () =>
                 )}
             </div>
 
+            {/* Portal-based Action Menu for Mobile */}
+            {activeMenu !== null && createPortal(
+                <>
+                    <div className="fixed inset-0 z-199" onClick={() => setActiveMenu(null)} />
+                    <div 
+                        className="absolute z-200 w-36 bg-white rounded-xl shadow-lg border border-slate-100 py-1.5 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+                        style={{
+                            top: menuPos.top,
+                            left: menuPos.left,
+                        }}
+                    >
+                        <button 
+                            onClick={(e) => 
+                            { 
+                                e.stopPropagation(); 
+                                const tx = transactions.find((t: Transaction) => t.id === activeMenu);
+                                if (tx) handleOpenEdit(tx);
+                                setActiveMenu(null); 
+                            }} 
+                            className="w-full text-left px-4 py-3 text-[13px] font-medium text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                        >
+                            <Pencil className="w-4 h-4 text-slate-400" /> Edit
+                        </button>
+                        <div className="h-px bg-slate-100 my-0.5" />
+                        <button 
+                            onClick={(e) => 
+                            { 
+                                e.stopPropagation(); 
+                                handleDelete(activeMenu); 
+                                setActiveMenu(null); 
+                            }} 
+                            className="w-full text-left px-4 py-3 text-[13px] font-medium text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 transition-colors cursor-pointer"
+                        >
+                            <Trash2 className="w-4 h-4 text-rose-500" /> Delete
+                        </button>
+                    </div>
+                </>,
+                document.body
+            )}
             <div className="hidden md:block relative">
                 {isFetching && (
                     <div className="absolute inset-0 z-20 bg-white/50 backdrop-blur-[1px] flex items-center justify-center rounded-xl">
@@ -444,6 +529,22 @@ export const FinanceManagerPage = () =>
                 isOpen={isModalOpen} 
                 onClose={handleCloseModal} 
                 editingTx={editingTx} 
+            />
+
+            <ConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={() => 
+                {
+                    if (transactionToDelete !== null) 
+                    {
+                        deleteMutation.mutate(transactionToDelete);
+                    }
+                }}
+                title="Delete Transaction"
+                message="Are you sure you want to delete this transaction? The balance will be returned automatically."
+                confirmText="Delete"
+                cancelText="Cancel"
             />
         </div>
     );

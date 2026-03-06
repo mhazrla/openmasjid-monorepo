@@ -11,7 +11,8 @@ export interface ModalProps
     className?: string;
 }
 
-export const Modal = ({ isOpen, onClose, title, children, className }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, title, children, className }: ModalProps) => 
+{
     if (!isOpen) return null;
 
     return (

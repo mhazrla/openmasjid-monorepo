@@ -1,4 +1,5 @@
-import { sql, relations, InferSelectModel, InferInsertModel } from 'drizzle-orm';
+import { sql, relations } from 'drizzle-orm';
+import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
 import { pgTable, text, integer, boolean, timestamp, json, doublePrecision, serial, index } from 'drizzle-orm/pg-core';
 
 // Helper for timestamps
@@ -24,9 +25,10 @@ export const dsMosqueProfile = pgTable('ds_mosque_profile', {
 });
 
 export const dsConfig = pgTable('ds_config', {
-  id: serial('id').primaryKey(), // Singleton ID 1
+  id: serial('id').primaryKey(),
   cityId: text('city_id').notNull(),
   runningText: text('running_text').default('Please straighten and tighten the rows...'),
+  isYoutubeLiveActive: boolean('is_youtube_live_active').notNull().default(false),
   
   // Timings
   preAdzanDuration: integer('pre_adzan_duration').notNull().default(2),
@@ -231,13 +233,6 @@ export const hadisEnc = pgTable('hadis_enc', {
 
 // --- 4. Finance ---
 
-export const coaCategories = pgTable('coa_categories', {
-  id: serial('id').primaryKey(),
-  name: text('name').notNull(),
-  type: text('type').$type<'income' | 'expense'>().notNull(),
-  createdAt, updatedAt
-});
-
 export const accounts = pgTable('accounts', {
     id: serial('id').primaryKey(),
     name: text('name').notNull(), 
@@ -249,16 +244,16 @@ export const accounts = pgTable('accounts', {
 export const transactions = pgTable('transactions', {
   id: serial('id').primaryKey(),
   date: timestamp('date').notNull(),
-  type: text('type').$type<'debit' | 'credit'>().notNull(),
+  type: text('type').$type<'income' | 'expense'>().notNull(), 
   amount: doublePrecision('amount').notNull(),
   description: text('description').notNull(),
-  categoryId: integer('category_id').references(() => coaCategories.id).notNull(),
+  fundCategory: text('fund_category').$type<'operasional' | 'yatim' | 'pembangunan' | 'ramadhan'>().notNull(),
   accountId: integer('account_id').references(() => accounts.id).notNull(),
   createdAt, updatedAt
 }, (table) => {
   return {
     accountIdIdx: index("transactions_account_id_idx").on(table.accountId),
-    categoryIdIdx: index("transactions_category_id_idx").on(table.categoryId),
+    fundCategoryIdx: index("transactions_fund_category_idx").on(table.fundCategory),
     dateIdx: index("transactions_date_idx").on(table.date),
   };
 });
@@ -316,10 +311,6 @@ export const weeklyRosterRelations = relations(weeklyRoster, ({ one }) => ({
 }));
 
 export const transactionsRelations = relations(transactions, ({ one }) => ({
-  category: one(coaCategories, {
-    fields: [transactions.categoryId],
-    references: [coaCategories.id],
-  }),
   account: one(accounts, {
       fields: [transactions.accountId],
       references: [accounts.id]

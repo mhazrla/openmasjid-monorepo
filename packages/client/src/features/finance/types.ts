@@ -1,10 +1,3 @@
-export interface CoaCategory 
-{
-  id: number;
-  name: string;
-  type: 'income' | 'expense';
-}
-
 export interface Account 
 {
   id: number;
@@ -17,12 +10,11 @@ export interface Transaction
 {
   id: number;
   date: string;
-  type: 'debit' | 'credit';
+  type: 'income' | 'expense';
   amount: number;
   description: string;
-  categoryId: number;
+  fundCategory: 'operasional' | 'yatim' | 'pembangunan' | 'ramadhan';
   accountId: number;
-  category?: CoaCategory;
   account?: Account;
   createdAt?: string;
   updatedAt?: string;
@@ -40,8 +32,12 @@ export interface GetTransactionsQuery
 
 export interface TransactionSummary 
 {
-  totalDebit: number;
-  totalCredit: number;
+  totalBalance: number;
+  monthlyIncome: number;
+  monthlyExpense: number;
+  fundBalances?: Record<string, number>;
+  accountBalances?: Record<string, number>;
+  lastUpdated?: string;
 }
 
 export interface TransactionResponse 
@@ -59,10 +55,10 @@ export interface TransactionResponse
 export interface CreateTransactionDto 
 {
   date: string;
-  type: 'debit' | 'credit';
+  type: 'income' | 'expense';
   amount: number;
   description: string;
-  categoryId: number;
+  fundCategory: 'operasional' | 'yatim' | 'pembangunan' | 'ramadhan';
   accountId: number;
 }
 

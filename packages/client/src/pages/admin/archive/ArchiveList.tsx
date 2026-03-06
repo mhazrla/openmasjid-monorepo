@@ -103,7 +103,8 @@ export const ArchiveList = () =>
                         variant="secondary"
                         size="sm"
                         icon={<Edit className="w-3.5 h-3.5" />}
-                        onClick={() => {
+                        onClick={() => 
+                        {
                             setEditingAlbum(row.original);
                             setIsFormModalOpen(true);
                         }}
@@ -148,7 +149,8 @@ export const ArchiveList = () =>
                 <ActionButton
                     variant="primary"
                     icon={<Plus className="w-4 h-4" />}
-                    onClick={() => {
+                    onClick={() => 
+                    {
                         setEditingAlbum(undefined);
                         setIsFormModalOpen(true);
                     }}
@@ -181,7 +183,8 @@ export const ArchiveList = () =>
 
             {/* Mobile FAB for Add Album */}
             <ActionButton 
-                onClick={() => {
+                onClick={() => 
+                {
                     setEditingAlbum(undefined);
                     setIsFormModalOpen(true);
                 }}
@@ -200,8 +203,10 @@ export const ArchiveList = () =>
             <ConfirmationModal
                 isOpen={isDeleteModalOpen}
                 onClose={() => setIsDeleteModalOpen(false)}
-                onConfirm={() => {
-                    if (albumToDelete) {
+                onConfirm={() => 
+                {
+                    if (albumToDelete) 
+                    {
                         deleteAlbum(albumToDelete.id);
                     }
                 }}

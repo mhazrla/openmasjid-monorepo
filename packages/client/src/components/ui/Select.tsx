@@ -1,6 +1,5 @@
-
 import * as React from "react"
-
+import { createPortal } from "react-dom"
 import { ChevronDown, Check, X, Search } from "lucide-react"
 import { cn } from "../../lib/utils"
 
@@ -24,6 +23,7 @@ export interface SelectProps
     searchable?: boolean;
     multiple?: boolean;
     disabled?: boolean;
+    required?: boolean;
     name?: string;
     triggerClassName?: string;
     onBlur?: () => void;
@@ -54,17 +54,37 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
     const searchInputRef = React.useRef<HTMLInputElement>(null);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
 
-    React.useLayoutEffect(() => 
+    const updatePosition = React.useCallback(() => 
     {
-        if (isOpen && containerRef.current) 
+        if (containerRef.current) 
         {
+            const rect = containerRef.current.getBoundingClientRect();
+            const dropdownMaxH = 240; // 15rem
+            const spaceBelow = window.innerHeight - rect.bottom;
+            const openUp = spaceBelow < dropdownMaxH && rect.top > dropdownMaxH;
+
             setPosition({
-                top: containerRef.current.offsetHeight,
-                left: 0,
-                width: containerRef.current.offsetWidth
+                top: openUp 
+                    ? rect.top + window.scrollY - dropdownMaxH - 4 
+                    : rect.bottom + window.scrollY + 4,
+                left: rect.left + window.scrollX,
+                width: rect.width,
             });
         }
-    }, [isOpen]);
+    }, []);
+
+    React.useLayoutEffect(() => 
+    {
+        if (!isOpen) return;
+        updatePosition();
+        window.addEventListener('scroll', updatePosition, true);
+        window.addEventListener('resize', updatePosition);
+        return () => 
+        {
+            window.removeEventListener('scroll', updatePosition, true);
+            window.removeEventListener('resize', updatePosition);
+        };
+    }, [isOpen, updatePosition]);
 
     // Handle click outside
     React.useEffect(() => 
@@ -167,8 +187,9 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
     const dropdownContent = (
         <div 
             ref={dropdownRef}
-            className="absolute z-100 mt-1 overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg animate-in fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 flex flex-col"
+            className="z-200 overflow-hidden rounded-md border border-slate-200 bg-white shadow-lg animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 flex flex-col"
             style={{
+                position: 'absolute',
                 top: position.top,
                 left: position.left,
                 width: position.width,
@@ -232,7 +253,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
         <div className={cn("w-full space-y-2", className)} ref={containerRef} {...props}>
             {label && (
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-slate-700">
-                    {label}
+                    {label} {props.required && <span className="text-red-500 ml-1">*</span>}
                 </label>
             )}
             
@@ -253,7 +274,7 @@ const Select = React.forwardRef<HTMLDivElement, SelectProps>(({
                     <ChevronDown className={cn("h-4 w-4 opacity-50 transition-transform", isOpen && "rotate-180")} />
                 </div>
 
-                {isOpen && dropdownContent}
+                {isOpen && createPortal(dropdownContent, document.body)}
             </div>
 
             {description && !error && <p className="text-xs text-slate-500">{description}</p>}

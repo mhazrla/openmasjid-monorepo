@@ -39,7 +39,8 @@ export class PrayerTimeService
     const adjusted  = { ...schedule };
     const dateRef   = parse(schedule.date, 'yyyy-MM-dd', new Date()); 
 
-    const adjustments: Partial<Record<keyof ParsedPrayerSchedule, number>> = {
+    const adjustments: Partial<Record<keyof ParsedPrayerSchedule, number>> = 
+    {
       subuh: config.adjSubuh,
       dzuhur: config.adjDzuhur,
       ashar: config.adjAshar,

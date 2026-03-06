@@ -9,9 +9,10 @@ interface ImageUploadProps
     onChange: (file: File | null) => void;
     label: string;
     className?: string;
+    required?: boolean;
 }
 
-export const ImageUpload = ({ value, onChange, label, className }: ImageUploadProps) => 
+export const ImageUpload = ({ value, onChange, label, className, required }: ImageUploadProps) => 
 {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -87,7 +88,7 @@ export const ImageUpload = ({ value, onChange, label, className }: ImageUploadPr
     return (
         <div className={cn("space-y-4", className)}>
             <label className="block text-sm font-medium text-slate-700">
-                {label}
+                {label} {required && <span className="text-red-500 ml-1">*</span>}
             </label>
 
             <div className="flex items-start gap-4">
@@ -99,7 +100,8 @@ export const ImageUpload = ({ value, onChange, label, className }: ImageUploadPr
                                 src={previewUrl} 
                                 alt="Preview" 
                                 className="w-full h-full object-contain"
-                                onError={(e) => {
+                                onError={(e) => 
+                                {
                                     e.currentTarget.style.display = 'none';
                                 }}
                             />

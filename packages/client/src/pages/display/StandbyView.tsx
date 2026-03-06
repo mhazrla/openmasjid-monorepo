@@ -42,7 +42,15 @@ export const StandbyView = () =>
         if (slides.length === 0) return true;
         const currentType = slides[slideIndex % slides.length]?.type;
         
-        const hiddenOn = ['lelang_table', 'bank_info', 'hadits', 'kajian_event'];
+        const hiddenOn = [
+            'lelang_table', 
+            'bank_info', 
+            'hadits', 
+            'kajian_rutin', 
+            'kajian_tematik', 
+            'tabligh_akbar',
+            'poster'
+        ];
         return !hiddenOn.includes(currentType);
     }, [slides, slideIndex]);
 
@@ -79,16 +87,24 @@ export const StandbyView = () =>
 
     return (
         <div 
-            className="w-[1920px] h-[1080px] overflow-hidden relative flex flex-col bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white select-none cursor-none"
+            className="w-[1920px] h-[1080px] overflow-hidden relative flex flex-col text-white select-none cursor-none"
             style={{
                 fontFamily: getFontFamily(),
                 transformOrigin: 'top left',
+                background: `
+                    radial-gradient(ellipse at 0% 0%, #020617 0%, transparent 50%),
+                    radial-gradient(ellipse at 100% 0%, #064e3b 0%, transparent 50%),
+                    radial-gradient(ellipse at 0% 100%, #0f172a 0%, transparent 50%),
+                    radial-gradient(ellipse at 100% 100%, #020617 0%, transparent 50%),
+                    linear-gradient(135deg, #020617 0%, #0f172a 100%)
+                `,
                 '--theme-primary': config.themeColor || '#10b981',
                 '--color-primary': 'var(--theme-primary)',
                 '--theme-accent': config.accentColor || '#fbbf24',
                 '--color-accent': 'var(--theme-accent)',
                 '--theme-label': config.labelColor || '#cbd5e1',
-                '--scale-label': (config.labelFontSize || 100) / 100
+                '--scale-label': (config.labelFontSize || 100) / 100,
+                '--scale-clock': (config.clockFontSize || 100) / 100
             } as React.CSSProperties}
         >
             <style>
@@ -102,17 +118,42 @@ export const StandbyView = () =>
                         white-space: nowrap;
                         animation: marquee 25s linear infinite;
                     }
+                    @keyframes orb-breathe {
+                        0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+                        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); }
+                    }
+                    @keyframes orb-breathe-slow {
+                        0%, 100% { opacity: 0.5; transform: scale(1); }
+                        50% { opacity: 0.8; transform: scale(1.05); }
+                    }
                 `}
             </style>
             
-            <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[1200px] h-[800px] bg-primary/20 blur-[150px] rounded-full pointer-events-none z-0" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[800px] h-[800px] bg-emerald-900/20 blur-[150px] rounded-full pointer-events-none z-0" />
+            {/* Glow Orbs */}
+            <div 
+                className="absolute top-[-15%] left-1/2 w-[1400px] h-[900px] bg-primary/25 blur-[180px] rounded-full pointer-events-none z-0"
+                style={{ animation: 'orb-breathe 9s ease-in-out infinite' }}
+            />
+            <div 
+                className="absolute bottom-[-15%] right-[-10%] w-[1000px] h-[1000px] bg-emerald-500/20 blur-[150px] rounded-full pointer-events-none z-0"
+                style={{ animation: 'orb-breathe-slow 12s ease-in-out infinite' }}
+            />
+            <div 
+                className="absolute top-[30%] right-[-5%] w-[600px] h-[600px] bg-amber-500/10 blur-[120px] rounded-full pointer-events-none z-0"
+                style={{ animation: 'orb-breathe-slow 15s ease-in-out infinite 3s' }}
+            />
             <div className={`absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-primary/20 to-transparent blur-[80px] pointer-events-none z-0 transition-opacity duration-1000 ${isMenuVisible ? 'opacity-100' : 'opacity-0'}`} />
+            
+            {/* Texture Overlay */}
+            <div 
+                className="absolute inset-0 pointer-events-none z-[1] mix-blend-overlay opacity-[0.03]"
+                style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/arabesque.png')", backgroundRepeat: 'repeat' }}
+            />
 
             {prayerState.mode === 'adzan' && (
                 <AlertScreenWrapper now={now} config={config} profile={profile} zIndex="z-50">
-                    <h1 className="text-[8rem] font-black text-primary mb-6 drop-shadow-[0_0_40px_rgba(16,185,129,0.5)] tracking-[0.2em] animate-pulse">ADZAN</h1>
-                    <p className="text-[3.5rem] text-slate-200 font-light uppercase tracking-[0.4em] drop-shadow-lg">
+                    <h1 className="font-black text-primary mb-6 drop-shadow-[0_0_40px_rgba(16,185,129,0.5)] tracking-[0.2em] animate-pulse" style={{ fontSize: 'calc(8rem * var(--scale-label, 1))' }}>ADZAN</h1>
+                    <p className="text-slate-200 font-light uppercase tracking-[0.3em] drop-shadow-lg" style={{ fontSize: 'calc(4.5rem * var(--scale-label, 1))' }}>
                         <span className="font-bold text-white">{prayerState.prayerName}</span> BERKUMANDANG
                     </p>
                 </AlertScreenWrapper>
@@ -120,12 +161,12 @@ export const StandbyView = () =>
 
             {prayerState.mode === 'shalat' && (
                 <AlertScreenWrapper now={now} config={config} profile={profile} zIndex="z-[100]">
-                    <p className="text-[2.5rem] text-primary font-medium tracking-[0.4em] uppercase mb-6 drop-shadow-md">SHALAT BERLANGSUNG</p>
-                    <h1 className="text-[9rem] font-black text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.2)] tracking-tighter mb-14 uppercase leading-none">
+                    <p className="text-primary font-medium tracking-[0.2em] uppercase mb-6 drop-shadow-md" style={{ fontSize: 'calc(4.5rem * var(--scale-label, 1))' }}>SHALAT BERLANGSUNG</p>
+                    <h1 className="font-black text-white drop-shadow-[0_0_50px_rgba(255,255,255,0.2)] tracking-wider mb-14 uppercase leading-none" style={{ fontSize: 'calc(9rem * var(--scale-label, 1))' }}>
                         {prayerState.prayerName || 'SHALAT'}
                     </h1>
                     <div className="w-64 h-2 bg-primary rounded-full shadow-[0_0_20px_var(--theme-primary)] mb-14" />
-                    <p className="text-[3rem] text-slate-300 font-light tracking-wide drop-shadow-md">Mohon Nonaktifkan Nada Dering Handphone</p>
+                    <p className="text-slate-300 font-light tracking-wider drop-shadow-md" style={{ fontSize: 'calc(3.7rem * var(--scale-label, 1))' }}>Mohon Nonaktifkan Nada Dering Handphone</p>
                 </AlertScreenWrapper>
             )}
 

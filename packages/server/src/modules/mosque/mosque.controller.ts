@@ -1,6 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { MosqueService } from './mosque.service';
-import { updateMosqueProfileSchema } from './mosque.interface';
 import { sendError, sendSuccess } from '../../common/utils/response.formatter';
 
 export class MosqueController 
@@ -25,20 +24,14 @@ export class MosqueController
   {
     try 
     {
-      const result = updateMosqueProfileSchema.safeParse(req.body);
-
-      if (!result.success) 
-      {
-        return sendError(reply, 'Validation Error', 400, result.error.issues);
-      }
-      
-      const updated = await this.mosqueService.update(result.data);
+      const updated = await this.mosqueService.updateProfileWithMultipart(req);
       return sendSuccess(reply, updated, 'Profile updated successfully');
     } 
-    catch (error) 
+    catch (error: any) 
     {
       req.log.error(error);
-      return sendError(reply, 'Internal Server Error');
+      const status = error.message.includes('Validation') || error.message.includes('Invalid') ? 400 : 500;
+      return sendError(reply, error.message || 'Internal Server Error', status);
     }
   }
 }

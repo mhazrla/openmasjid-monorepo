@@ -55,12 +55,15 @@ export const BottomPrayerCards = memo(({ prayerTimes, currentTimeStr }: { prayer
                 return (
                     <div key={index} className={`relative flex flex-col items-center justify-center py-5 px-4 rounded-[2.5rem] transition-all duration-500 overflow-hidden ${
                         isActive 
-                        ? 'bg-amber-500 scale-[1.05] z-30 shadow-lg' 
-                        : `bg-gradient-to-b ${prayer.colorTheme.bg} border ${prayer.colorTheme.border} z-10`
+                        ? 'bg-amber-500 scale-[1.05] z-30 shadow-[0_10px_40px_rgba(251,191,36,0.4)]' 
+                        : 'bg-white/10 backdrop-blur-[40px] border border-white/20 z-10 shadow-lg'
                     }`}>
+                        {!isActive && (
+                            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-transparent pointer-events-none" />
+                        )}
                         {isActive && (
                             <>
-                                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-white/30 via-transparent to-transparent pointer-events-none" />
                             </>
                         )}
                         <h3 className={`text-[2rem] font-black mb-2 uppercase tracking-widest relative z-10 ${isActive ? 'text-slate-900' : prayer.colorTheme.label}`}>

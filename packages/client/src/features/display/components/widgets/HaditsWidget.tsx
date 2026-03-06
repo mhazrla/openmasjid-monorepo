@@ -2,9 +2,10 @@ import { memo } from 'react';
 import { Quote } from 'lucide-react';
 import type { HaditsWidgetProps } from '../../types';
 
-export const HaditsWidget = memo(({ data }: HaditsWidgetProps) => {
+export const HaditsWidget = memo(({ data }: HaditsWidgetProps) => 
+{
     return (
-        <div className="w-full h-full flex flex-col items-center justify-center relative z-10 bg-[#121914] p-24 overflow-hidden rounded-[3rem] border border-white/5 shadow-xl">
+        <div className="w-full h-full flex flex-col items-center justify-center relative z-10 bg-white/5 backdrop-blur-2xl p-24 overflow-hidden rounded-[3rem] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
             <Quote className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] text-white/5 -scale-x-100" />
             
             <div className="z-10 w-full max-w-full flex flex-col items-center justify-center space-y-12">

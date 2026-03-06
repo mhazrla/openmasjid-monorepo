@@ -19,6 +19,8 @@ import { Input } from '../../components/ui/Input';
 import { cn } from '../../lib/utils';
 import { enUS } from 'date-fns/locale';
 import { handleFormError } from '../../utils/form-error';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { createRamadanConfigSchema, updateRamadanConfigSchema } from '../../features/ramadan/schema';
 
 // StatusBadge removed because the client no longer needs manual status toggles
 
@@ -38,10 +40,12 @@ const MinimalInput = memo(({ className, type, ...props }: MinimalInputProps) => 
 
 import { Select } from '../../components/ui/Select';
 
-const UserSelect = memo(({ value, onChange, placeholder = "Select..." }: Omit<UserSelectProps, 'options'>) => {
+const UserSelect = memo(({ value, onChange, placeholder = "Select..." }: Omit<UserSelectProps, 'options'>) => 
+{
     const { data: people = [] } = usePeople({ limit: 0 });
 
-    const options = useMemo(() => {
+    const options = useMemo(() => 
+    {
         if (!people) return [];
         return people
             .filter((p: any) => p.type === 'ustadz' || p.type === 'pengurus' || p.type === 'jamaah')
@@ -69,7 +73,8 @@ const InitRamadanForm = () =>
 {
     const { mutate: initRamadan } = useInitRamadan();
 
-    const { register, handleSubmit, setError } = useForm<InitFormData>({
+    const { register, handleSubmit, setError, formState: { errors } } = useForm<InitFormData>({
+        resolver: zodResolver(createRamadanConfigSchema as any),
         defaultValues: 
         {
             hijriYear: new Date().getFullYear() - 579,
@@ -107,14 +112,14 @@ const InitRamadanForm = () =>
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-left">
                     <div className="grid grid-cols-2 gap-4">
-                        <Input label="Hijri Year" type="number" min={0} {...register('hijriYear', { valueAsNumber: true })} />
-                        <Input label="Gregorian Year" type="number" min={0} {...register('gregorianYear', { valueAsNumber: true })} />
+                        <Input label="Hijri Year" required type="number" min={0} {...register('hijriYear', { valueAsNumber: true })} error={errors.hijriYear?.message as string} />
+                        <Input label="Gregorian Year" required type="number" min={0} {...register('gregorianYear', { valueAsNumber: true })} error={errors.gregorianYear?.message as string} />
                     </div>
-                    <Input label="Start Date (1 Ramadan)" type="date" {...register('startDate', { required: true })} />
-                    <Input label="Title" {...register('title')} placeholder="Program Ramadhan 1447H" />
-                    <Input label="Subtitle" {...register('subtitle')} placeholder="Konfirmasi Infaq: 0812-XXX-XXX (Pesan: INFAQ RAMADHAN)" />
-                    <Input label="Footer Note" {...register('footerNote')} placeholder="Running text footer..." />
-                    <Input label="Badal Text" {...register('badalImamText')} placeholder="Default badal name..." />
+                    <Input label="Start Date (1 Ramadan)" required type="date" {...register('startDate')} error={errors.startDate?.message as string} />
+                    <Input label="Title" required {...register('title')} placeholder="Program Ramadhan 1447H" error={errors.title?.message as string} />
+                    <Input label="Subtitle" {...register('subtitle')} placeholder="Konfirmasi Infaq: 0812-XXX-XXX (Pesan: INFAQ RAMADHAN)" error={errors.subtitle?.message as string} />
+                    <Input label="Footer Note" {...register('footerNote')} placeholder="Running text footer..." error={errors.footerNote?.message as string} />
+                    <Input label="Badal Text" {...register('badalImamText')} placeholder="Default badal name..." error={errors.badalImamText?.message as string} />
                     
                     <ActionButton type="submit" className="w-full justify-center mt-4 h-11 cursor-pointer" variant="primary">
                         Start Ramadan Period
@@ -166,7 +171,8 @@ const ScheduleRow = memo(({ schedule, index, totalRows }: ScheduleRowProps) =>
             itikafTarget: Number(formData.itikafTarget) || 0,
             itikafCurrent: Number(formData.itikafCurrent) || 0,
         }, {
-            onSuccess: () => {
+            onSuccess: () => 
+            {
                 toast.success(`Day ${schedule.ramadanDay} saved`);
                 setIsDirty(false);
             },
@@ -290,20 +296,26 @@ const ScheduleRow = memo(({ schedule, index, totalRows }: ScheduleRowProps) =>
             </td>
         </tr>
     );
-}, (prev, next) => {
+}, (prev, next) => 
+{
     return prev.schedule.id === next.schedule.id; 
 });
 
 
 // --- MAIN PAGE ---
-export const RamadanPage = () => {
+export const RamadanPage = () => 
+{
     const { data: activeConfig, isLoading } = useActiveRamadan();
 
-    const { register: registerGlobal, handleSubmit: submitGlobal, reset: resetGlobal } = useForm();
+    const { register: registerGlobal, handleSubmit: submitGlobal, reset: resetGlobal, formState: { errors: globalErrors } } = useForm({
+        resolver: zodResolver(updateRamadanConfigSchema as any)
+    });
     const { mutate: updateConfig, isPending: isUpdatingConfig } = useUpdateRamadanConfig();
 
-    useEffect(() => {
-        if (activeConfig) {
+    useEffect(() => 
+    {
+        if (activeConfig) 
+        {
             resetGlobal({
                 title: activeConfig.title,
                 subtitle: activeConfig.subtitle,
@@ -358,12 +370,13 @@ export const RamadanPage = () => {
                             }))}
                         >
                             <div className="space-y-1">
-                                <label className="text-[10px] text-slate-400 uppercase font-semibold">Event Title</label>
+                                <label className="text-[10px] text-slate-400 uppercase font-semibold">Event Title <span className="text-emerald-500">*</span></label>
                                 <input 
                                     {...registerGlobal('title')}
-                                    className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all font-serif tracking-wide"
+                                    className={cn("w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-sm text-white placeholder:text-slate-600 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all font-serif tracking-wide", globalErrors.title && "border-red-500 focus:border-red-500 focus:ring-red-500")}
                                     placeholder="e.g. Lelang Program Ramadhan"
                                 />
+                                {globalErrors.title && <p className="text-red-400 text-xs mt-1">{globalErrors.title.message as string}</p>}
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] text-slate-400 uppercase font-semibold">Subtitle / Contact Info</label>

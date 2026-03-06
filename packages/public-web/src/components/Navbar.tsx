@@ -18,12 +18,12 @@ export const Navbar = () =>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="text-xl font-bold tracking-tight">Masjid Jami At-Tadzkirah</Link>
+            <Link to="/" className="text-xl font-bold tracking-tight">{import.meta.env.VITE_APP_NAME}</Link>
           </div>
           
           <div className="hidden md:flex space-x-8 items-center">
             <Link to="/" className="hover:text-amber-400 transition-colors font-medium">Beranda</Link>
-            <Link to="#" className="hover:text-amber-400 transition-colors font-medium">Galeri Arsip</Link>
+            <Link to="/archive" className="hover:text-amber-400 transition-colors font-medium">Galeri Arsip</Link>
             <Link to="#" className="hover:text-amber-400 transition-colors font-medium">Tentang Kami</Link>
             {/* <button className="bg-amber-500 hover:bg-amber-400 text-slate-900 px-5 py-2 rounded-full font-semibold transition-colors shadow-sm">
               Donasi
@@ -50,7 +50,7 @@ export const Navbar = () =>
               Beranda
             </Link>
             <Link 
-              to="#" 
+              to="/archive" 
               onClick={() => setIsOpen(false)}
               className="block px-3 py-3 rounded-md text-base font-medium hover:bg-emerald-600/50 hover:text-amber-400"
             >

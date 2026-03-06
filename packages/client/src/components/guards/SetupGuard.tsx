@@ -23,7 +23,8 @@ export const SetupGuard = ({ children }: SetupGuardProps) =>
     }
 
     // Network Error Handling
-    if (isError) {
+    if (isError) 
+    {
         return (
             <div className="h-screen w-screen flex flex-col items-center justify-center bg-slate-900 text-white space-y-6 text-center px-4">
                 <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center">

@@ -32,7 +32,8 @@ export class PrayerTimeController
     }
   }
 
-  async syncTimes(req: FastifyRequest, reply: FastifyReply) {
+  async syncTimes(req: FastifyRequest, reply: FastifyReply)
+  {
     try 
     {
       const bodySchema = z.object({

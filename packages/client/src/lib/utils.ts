@@ -15,13 +15,15 @@ export const formatCurrency = (amount: number) =>
 
 export const formatDate = (dateString: string | Date, includeTime = false) => 
 {
-    const options: Intl.DateTimeFormatOptions = {
+    const options: Intl.DateTimeFormatOptions = 
+    {
         day: '2-digit', 
         month: 'short', 
         year: 'numeric',
     };
     
-    if (includeTime) {
+    if (includeTime) 
+    {
         options.hour = '2-digit';
         options.minute = '2-digit';
     }

@@ -4,17 +4,19 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import type { FinanceSummaryWidgetProps } from '../../types';
 
-const formatCurrency = (amount: number) => {
+const formatCurrency = (amount: number) => 
+{
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount);
 };
 
-export const FinanceSummaryWidget = memo(({ data }: FinanceSummaryWidgetProps) => {
+export const FinanceSummaryWidget = memo(({ data }: FinanceSummaryWidgetProps) => 
+{
     const { totalBalance, monthlyIncome, monthlyExpense, lastUpdated } = data;
     const isKasNegative = totalBalance < 0;
     const formattedLastUpdated = lastUpdated ? format(new Date(lastUpdated), 'dd MMMM yyyy HH:mm', { locale: id }) : format(new Date(), 'dd MMMM yyyy', { locale: id });
 
     return (
-        <div className="flex flex-col w-full h-full p-16 justify-center bg-black/40 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[3rem] relative overflow-hidden">
+        <div className="flex flex-col w-full h-full p-16 justify-center bg-white/5 backdrop-blur-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] rounded-[3rem] relative overflow-hidden">
             <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-primary/10 blur-[100px] rounded-full pointer-events-none" />
             <div className="flex flex-col gap-0 mb-16 shrink-0 relative z-10">
                 <div className="flex items-center gap-6">

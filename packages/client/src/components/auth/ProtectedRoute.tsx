@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../../features/auth/hooks';
+import { useAuth, AUTH_KEY, isTokenExpired } from '../../features/auth/hooks';
 import { Loader2 } from 'lucide-react';
 
 export const ProtectedRoute = () => 
@@ -15,7 +15,9 @@ export const ProtectedRoute = () =>
         );
     }
 
-    if (!isAuthenticated) 
+    const token = localStorage.getItem(AUTH_KEY);
+
+    if (!isAuthenticated || isTokenExpired(token)) 
     {
         return <Navigate to="/login" replace />;
     }

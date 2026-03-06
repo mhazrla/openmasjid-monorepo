@@ -48,30 +48,32 @@ export const ShortlinkFormModal = ({ isOpen, onClose, editingShortlink }: Shortl
 
     const onSubmit = (data: CreateShortlinkRequests) => 
     {
-        const payload = {
+        const payload = 
+        {
             ...data,
             slug: data.slug.toLowerCase()
         };
 
         if (isEditing && editingShortlink) 
         {
-             const updatePayload: UpdateShortlinkRequests = {
-                 id: editingShortlink.id,
-                 ...payload
-             };
+            const updatePayload: UpdateShortlinkRequests = 
+        {
+                id: editingShortlink.id,
+                ...payload
+            };
 
-             updateMutation.mutate(updatePayload, 
-             {
-                 onSuccess: () => 
-                 {
-                     toast.success('Shortlink updated successfully!');
-                     onClose();
-                 },
-                 onError: (err) => 
-                 {
-                     handleFormError(err, setError);
-                 }
-             });
+            updateMutation.mutate(updatePayload, 
+            {
+                onSuccess: () => 
+                {
+                    toast.success('Shortlink updated successfully!');
+                    onClose();
+                },
+                onError: (err) => 
+                {
+                    handleFormError(err, setError);
+                }
+            });
         }
         else 
         {

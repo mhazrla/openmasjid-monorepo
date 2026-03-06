@@ -4,6 +4,7 @@ export const displayConfigSchema = z.object({
   id: z.number(),
   cityId: z.string(),
   runningText: z.string().optional().nullable(),
+  isYoutubeLiveActive: z.boolean().default(false),
   
   // Timings
   preAdzanDuration: z.number().default(2),

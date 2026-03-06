@@ -13,7 +13,8 @@ import type { KajianType, KajianEvent } from '../../features/kajian/types';
 // --- Helper Components ---
 const TypeBadge = ({ type }: { type: string }) => 
 {
-    const colors = {
+    const colors = 
+    {
         kajian_rutin: "bg-blue-50 text-blue-700 border-blue-200", 
         tabligh_akbar: "bg-purple-50 text-purple-700 border-purple-200",
         kajian_tematik: "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -152,14 +153,17 @@ export const KajianManagerPage = () =>
 
                         <div className="flex items-center gap-1.5 text-emerald-600 font-medium mt-1 text-sm">
                             <CalIcon className="w-3.5 h-3.5 shrink-0" />
-                            {(() => {
+                            {(() => 
+                            {
                                 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
                                 const timeLabel = row.timeMode === 'bada_sholat' && row.badaSholat
                                     ? `Ba'da ${capitalize(row.badaSholat)}`
                                     : row.time || null;
 
-                                if (row.type === 'kajian_rutin') {
-                                    if (row.dayOfWeek !== null && timeLabel) {
+                                if (row.type === 'kajian_rutin') 
+                                {
+                                    if (row.dayOfWeek !== null && timeLabel) 
+                                    {
                                         const dayName = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][Number(row.dayOfWeek)] || '';
                                         return `Every ${dayName}, ${timeLabel}`;
                                     }
@@ -190,7 +194,8 @@ export const KajianManagerPage = () =>
         columnHelper.display({
             id: 'actions',
             header: () => <div className="text-right px-4">Actions</div>,
-            cell: ({ row }) => {
+            cell: ({ row }) => 
+                {
 
                 return (
                     <div className="flex items-center justify-end px-4 gap-2">

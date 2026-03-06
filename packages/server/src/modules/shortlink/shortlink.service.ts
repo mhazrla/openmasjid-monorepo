@@ -39,20 +39,21 @@ export class ShortlinkService {
         slug = candidate;
         try 
         {
-           return await this.repository.create({ ...data, slug });
+          return await this.repository.create({ ...data, slug });
         } 
         catch (e: any) 
         {
-           if (e.code === 'SQLITE_CONSTRAINT_UNIQUE' || e.message?.includes('UNIQUE constraint')) {
-             retries--;
+          if (e.code === 'SQLITE_CONSTRAINT_UNIQUE' || e.message?.includes('UNIQUE constraint')) 
+          {
+            retries--;
              
-             continue;
-           }
+            continue;
+          }
 
-           throw e;
+          throw e;
         }
       }
-      throw new Error('Failed to generate unique slug after retries');
+    throw new Error('Failed to generate unique slug after retries');
     }
 
     return this.repository.create({ ...data, slug });

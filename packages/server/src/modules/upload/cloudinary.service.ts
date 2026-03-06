@@ -17,11 +17,12 @@ export class CloudinaryService
 {
   async uploadImage(buffer: Buffer, folderName: string = 'general'): Promise<string> 
   {
+    const baseFolder = process.env.NODE_ENV === 'production' ? 'openmasjid/prod' : 'openmasjid/dev';
     return new Promise((resolve, reject) => 
     {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: `openmasjid/${folderName}`,
+          folder: `${baseFolder}/${folderName}`,
           format: 'webp',
           quality: 'auto'
         },
@@ -49,11 +50,12 @@ export class CloudinaryService
 
   async uploadFromStream(fileStream: NodeJS.ReadableStream, folderName: string = 'general'): Promise<string> 
   {
+    const baseFolder = process.env.NODE_ENV === 'production' ? 'openmasjid/prod' : 'openmasjid/dev';
     return new Promise((resolve, reject) => 
     {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: `openmasjid/${folderName}`,
+          folder: `${baseFolder}/${folderName}`,
           format: 'webp',
           quality: 'auto'
         },
