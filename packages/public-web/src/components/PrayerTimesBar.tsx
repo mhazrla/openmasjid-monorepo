@@ -38,8 +38,6 @@ export const PrayerTimesBar = () =>
         staleTime: 1000 * 60 * 60 * 6,
     });
 
-    console.log(timings)
-
     const times = [
         { name: 'Subuh', time: timings?.subuh || '--:--' },
         { name: 'Dzuhur', time: timings?.dzuhur || '--:--' },
