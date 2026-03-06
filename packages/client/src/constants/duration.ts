@@ -1,2 +1,2 @@
 export const REFETCH_INTERVAL = 20000;
-export const SLIDE_DURATION = 3000;
+export const SLIDE_DURATION = 15000;
