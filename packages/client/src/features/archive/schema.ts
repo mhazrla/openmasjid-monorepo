@@ -7,4 +7,5 @@ export const createArchiveAlbumSchema = z.object({
   eventDate: z.string().optional(),
   coverImageUrl: z.string().url().nullable().optional(),
   isFeatured: z.union([z.boolean(), z.enum(['true', 'false'])]).optional(),
+  coverImage: z.any().optional(),
 });
